@@ -1,47 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <RelativeLayout
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="40sp"
+        android:background="@color/dark"
+        app:tabIndicator="@drawable/tab_indicator"
+        app:tabIndicatorColor="?trackColor"
+        app:tabIndicatorFullWidth="true"
+        app:tabIndicatorGravity="center"
+        app:tabIndicatorHeight="40sp"
+        app:tabTextColor="@color/white" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="40sp"
-            android:background="@color/dark"
-            app:tabIndicator="@drawable/tab_indicator"
-            app:tabIndicatorColor="?trackColor"
-            app:tabIndicatorFullWidth="true"
-            app:tabIndicatorGravity="center"
-            app:tabIndicatorHeight="40sp"
-            app:tabTextColor="@color/white" />
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/fragBottomPlayer"
+        android:layout_below="@+id/tabLayout" />
 
-        <androidx.viewpager.widget.ViewPager
-            android:id="@+id/viewPager"
+    <FrameLayout
+        android:id="@+id/fragBottomPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/tabLayout"
+        android:layout_alignParentBottom="true">
+
+        <fragment
+            android:name="com.flatcode.littleplayer.Fragment.NowPlayerFragmentBottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/fragBottomPlayer"
-            android:layout_below="@+id/tabLayout" />
+            tools:layout="@layout/fragment_now_player_bottom" />
 
-        <FrameLayout
-            android:id="@+id/fragBottomPlayer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/tabLayout"
-            android:layout_alignParentBottom="true">
+    </FrameLayout>
 
-            <fragment
-                android:name="com.flatcode.littleplayer.Fragment.NowPlayerFragmentBottom"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:layout="@layout/fragment_now_player_bottom" />
-
-        </FrameLayout>
-
-    </RelativeLayout>
-
-</layout>
+</RelativeLayout>
