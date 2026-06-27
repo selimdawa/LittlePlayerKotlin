@@ -16,21 +16,20 @@ class AlbumFragment : Fragment() {
     private var adapter: AlbumAdapter? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAlbumBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        binding.recyclerView.setHasFixedSize(true)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val albumList = MainActivity.albums
-        if (albumList != null && albumList.isNotEmpty()) {
+        if (albumList.isNotEmpty()) {
             adapter = AlbumAdapter(requireContext(), albumList)
             binding.recyclerView.adapter = adapter
         }
-
-        return binding.root
     }
 
     override fun onDestroyView() {

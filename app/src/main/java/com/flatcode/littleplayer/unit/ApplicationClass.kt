@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Unit
+package com.flatcode.littleplayer.unit
 
 import android.app.Application
 import android.app.NotificationChannel

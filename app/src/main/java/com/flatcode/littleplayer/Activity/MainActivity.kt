@@ -2,7 +2,6 @@ package com.flatcode.littleplayer.Activity
 
 import android.Manifest
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
@@ -11,7 +10,6 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
@@ -23,7 +21,7 @@ import com.flatcode.littleplayer.Fragment.AlbumFragment
 import com.flatcode.littleplayer.Fragment.SongsFragment
 import com.flatcode.littleplayer.Model.MusicFiles
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.Unit.DATA
+import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
 import java.util.ArrayList
 

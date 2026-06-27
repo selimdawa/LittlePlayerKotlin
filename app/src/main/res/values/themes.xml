@@ -272,4 +272,8 @@
 
     <style name="Theme.GradientSevenTheme" parent="Base.Theme.GradientSevenTheme" />
 
+    <style name="ShapeAppearance.App.CircleImage" parent="">
+        <item name="cornerSize">8dp</item>
+    </style>
+
 </resources>

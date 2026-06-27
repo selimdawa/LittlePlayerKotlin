@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.view.View
 import android.view.WindowManager
 import android.widget.SeekBar
 import android.widget.Toast
@@ -22,9 +21,9 @@ import com.flatcode.littleplayer.Adapter.MusicAdapter
 import com.flatcode.littleplayer.Model.MusicFiles
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.Service.MusicService
-import com.flatcode.littleplayer.Unit.ActionPlaying
-import com.flatcode.littleplayer.Unit.DATA
-import com.flatcode.littleplayer.Unit.VOID
+import com.flatcode.littleplayer.unit.ActionPlaying
+import com.flatcode.littleplayer.unit.DATA
+import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import java.util.ArrayList
 import java.util.Random
@@ -291,10 +290,10 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             val art = retriever.embeddedPicture
             if (art != null) {
                 val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
-                VOID.GlideBitmap(context, bitmap, binding.image)
-                VOID.GlideBlurBitmap(context, bitmap, binding.imageBlur, 10)
+                VOID.glideBitmap(context, bitmap, binding.image)
+                VOID.glideBlurBitmap(context, bitmap, binding.imageBlur, 10)
             } else {
-                VOID.Glide(context, null, binding.image)
+                VOID.glide(context, null, binding.image)
                 binding.songName.setTextColor(Color.WHITE)
                 binding.songArtist.setTextColor(Color.DKGRAY)
             }

@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
-import com.flatcode.littleplayer.Unit.THEME
-import com.flatcode.littleplayer.Unit.CLASS
-import com.flatcode.littleplayer.Unit.VOID
+import com.flatcode.littleplayer.unit.THEME
+import com.flatcode.littleplayer.unit.CLASS
+import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.databinding.ActivitySplashBinding
 
 class SplashActivity : AppCompatActivity() {
@@ -28,7 +28,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun launch() {
-        VOID.Intent1(context, CLASS.MAIN)
+        VOID.intent1(context, CLASS.MAIN)
         finish()
     }
 

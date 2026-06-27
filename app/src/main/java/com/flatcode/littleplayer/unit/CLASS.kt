@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Unit
+package com.flatcode.littleplayer.unit
 
 import com.flatcode.littleplayer.Activity.AlbumDetailsActivity
 import com.flatcode.littleplayer.Activity.MainActivity

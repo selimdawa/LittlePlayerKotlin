@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Unit;
+package com.flatcode.littleplayer.unit;
 
 public interface ActionPlaying {
     void playPauseBtn();

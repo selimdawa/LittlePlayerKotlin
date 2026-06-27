@@ -7,7 +7,9 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +26,23 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
     private val binding get() = _binding!!
 
     private var musicService: MusicService? = null
+    private val handler = Handler(Looper.getMainLooper())
+
+    private val progressUpdater = object : Runnable {
+        override fun run() {
+            musicService?.let { service ->
+                if (service.isPlaying()) {
+                    val duration = service.getDuration()
+                    if (duration > 0) {
+                        val currentPosition = service.getCurrentPosition()
+                        val progress = (currentPosition.toLong() * 100 / duration).toInt()
+                        binding.miniProgressBar.progress = progress
+                    }
+                }
+            }
+            handler.postDelayed(this, 1000)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -109,10 +128,12 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
                 context?.bindService(intent, this, Context.BIND_AUTO_CREATE)
             }
         }
+        handler.post(progressUpdater)
     }
 
     override fun onPause() {
         super.onPause()
+        handler.removeCallbacks(progressUpdater)
     }
 
     private fun getAlbumArt(uri: String): ByteArray? {

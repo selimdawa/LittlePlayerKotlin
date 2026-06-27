@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Unit
+package com.flatcode.littleplayer.unit
 
 object DATA {
 

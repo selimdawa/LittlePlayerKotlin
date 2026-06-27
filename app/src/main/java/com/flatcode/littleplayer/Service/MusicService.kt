@@ -10,8 +10,8 @@ import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import com.flatcode.littleplayer.Activity.PlayerActivity
 import com.flatcode.littleplayer.Model.MusicFiles
-import com.flatcode.littleplayer.Unit.ActionPlaying
-import com.flatcode.littleplayer.Unit.DATA
+import com.flatcode.littleplayer.unit.ActionPlaying
+import com.flatcode.littleplayer.unit.DATA
 
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
@@ -60,7 +60,6 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     private fun playMedia(startPosition: Int) {
-        // Accessing the static list from PlayerActivity
         musicFiles = PlayerActivity.listSongs ?: ArrayList()
         position = startPosition
 

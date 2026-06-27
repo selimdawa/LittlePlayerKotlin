@@ -2,8 +2,6 @@ package com.flatcode.littleplayer.Adapter
 
 import android.content.ContentUris
 import android.content.Context
-import android.media.MediaMetadataRetriever
-import android.net.Uri
 import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
@@ -15,9 +13,9 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.Model.MusicFiles
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.Unit.CLASS
-import com.flatcode.littleplayer.Unit.DATA
-import com.flatcode.littleplayer.Unit.VOID
+import com.flatcode.littleplayer.unit.CLASS
+import com.flatcode.littleplayer.unit.DATA
+import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
@@ -31,6 +29,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        // تم الإصلاح: تعريف الـ binding محلياً لمنع تهنيج قائمة الأغاني
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
         return ViewHolder(binding)
     }
@@ -40,13 +39,12 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         val currentFile = filesList[position]
 
         holder.name.text = currentFile.title
-        val image = getAlbumArt(currentFile.path)
 
-        VOID.GlideByte(context, image, holder.image)
-        VOID.GlideBlurByte(context, image, holder.imageBlur, 50)
+        VOID.coiImage(context, currentFile.id, holder.image)
+        VOID.coiImageBlur(context, currentFile.id, holder.imageBlur, 50)
 
         holder.itemView.setOnClickListener {
-            VOID.IntentExtraInt(context, CLASS.PLAYER, DATA.POSITION, holder.bindingAdapterPosition)
+            VOID.intentExtraInt(context, CLASS.PLAYER, DATA.POSITION, holder.bindingAdapterPosition)
         }
 
         holder.more.setOnClickListener { v ->
@@ -90,29 +88,13 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         }
     }
 
-    override fun getItemCount(): Int {
-        return mFiles?.size ?: 0
-    }
+    override fun getItemCount(): Int = mFiles?.size ?: 0
 
     class ViewHolder(binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root) {
         val name: TextView = binding.name
         val image: ImageView = binding.image
         val imageBlur: ImageView = binding.imageBlur
         val more: ImageView = binding.more
-    }
-
-    private fun getAlbumArt(uri: String?): ByteArray? {
-        if (uri == null) return null
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(uri)
-            val art = retriever.embeddedPicture
-            retriever.release()
-            art
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
     }
 
     fun updateList(musicFilesArrayList: ArrayList<MusicFiles>) {

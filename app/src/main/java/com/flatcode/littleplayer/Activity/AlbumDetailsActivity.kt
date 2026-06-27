@@ -3,14 +3,13 @@ package com.flatcode.littleplayer.Activity
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.Adapter.AlbumDetailsAdapter
 import com.flatcode.littleplayer.Model.MusicFiles
-import com.flatcode.littleplayer.Unit.DATA
-import com.flatcode.littleplayer.Unit.VOID
+import com.flatcode.littleplayer.unit.DATA
+import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import java.util.ArrayList
 
@@ -44,8 +43,8 @@ class AlbumDetailsActivity : AppCompatActivity() {
 
         if (albumSongs.isNotEmpty()) {
             val image = getAlbumArt(albumSongs[0].path)
-            VOID.GlideByte(context, image, binding.image)
-            VOID.GlideBlurByte(context, image, binding.imageBlur, 50)
+            VOID.glideByte(context, image, binding.image)
+            VOID.glideBlurByte(context, image, binding.imageBlur, 50)
         }
     }
 
