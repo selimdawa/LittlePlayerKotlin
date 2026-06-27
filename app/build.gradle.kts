@@ -27,15 +27,30 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    buildFeatures {
+        dataBinding = true
+        viewBinding = true
+        //buildConfig = true
+    }
 }
 
 dependencies {
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.material)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.activity.ktx)
+    //implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.preference.ktx)           //Shared Preference
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    //Layout
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.material)
+    //Image
+    implementation(libs.circleimageview)                //Circle image
+    implementation(libs.glide)            //Glide image
+    implementation(libs.glide.transformations)           //Glide Blur
+    //Player
+    //implementation 'androidx.core:core:1.9.0'
+    //implementation 'androidx.media:media:1.6.0'
 }

@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#fff</color>
+    //Needed
+    <color name="image_profile">#e0e0e0</color>
+    <color name="dark">#000000</color>
+    <color name="black">#212121</color>
+    <color name="white">#ffffff</color>
+    <color name="night_corner">#ef7462</color>
+    <color name="night_corner_2">#ed3559</color>
+    <color name="red">#F44336</color>
+    //Day Theme
+    <color name="basic_2">#3c415e</color>
+    <color name="basic">#2196F3</color>
+    <color name="basic_two">#E91E63</color>
+    <color name="basic_three">#8BC34A</color>
+    <color name="basic_four">#F57F17</color>
+    <color name="basic_five">#FA835E</color>
+    <color name="basic_six">#C51162</color>
+    <color name="basic_seven">#F85C91</color>
+    <color name="basic_eight">#8D6E63</color>
+    <color name="basic_night">#999999</color>
+    //Night Theme
+    <color name="night_corner_one">#A748FC</color>
+    <color name="night_corner_one_2">#2D347A</color>
+    <color name="night_corner_two">#FF9301</color>
+    <color name="night_corner_two_2">#FF3B30</color>
+    <color name="night_corner_three">#4DB6AC</color>
+    <color name="night_corner_three_2">#009688</color>
+    <color name="night_corner_four">#CE6124</color>
+    <color name="night_corner_four_2">#B5177B</color>
+    <color name="night_corner_five">#228ACC</color>
+    <color name="night_corner_five_2">#2E3192</color>
+    <color name="night_corner_six">#A748FC</color>
+    <color name="night_corner_six_2">#00695C</color>
 </resources>
