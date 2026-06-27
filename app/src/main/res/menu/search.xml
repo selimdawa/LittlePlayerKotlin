@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/search_option"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/seacrh"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:title="@string/sort_by"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/name"
+                android:title="@string/name"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/date"
+                android:title="@string/date"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/size"
+                android:title="@string/size"
+                app:showAsAction="never" />
+        </menu>
+    </item>
+
+   <!-- <item
+        android:id="@+id/mode"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="Mode"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom" /> -->
+
+</menu>

@@ -47,10 +47,10 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
     //Image
-    implementation(libs.circleimageview)                //Circle image
-    implementation(libs.glide)            //Glide image
-    implementation(libs.glide.transformations)           //Glide Blur
+    implementation(libs.circleimageview)                   //Circle image
+    implementation(libs.glide)                             //Glide image
+    implementation(libs.glide.transformations)             //Glide image Blur
     //Player
-    //implementation 'androidx.core:core:1.9.0'
-    //implementation 'androidx.media:media:1.6.0'
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.media)
 }

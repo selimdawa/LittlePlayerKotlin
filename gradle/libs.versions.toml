@@ -11,6 +11,7 @@ constraintlayout = "2.2.1"
 circleimageview = "3.1.0"
 glide = "5.0.7"
 glideTransformations = "4.3.0"
+media = "1.6.0"
 preferenceKtx = "1.2.1"
 
 [libraries]
@@ -29,6 +30,9 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-transformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
+#Other's
+androidx-core = { module = "androidx.core:core", version.ref = "coreKtx" }
+androidx-media = { module = "androidx.media:media", version.ref = "media" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

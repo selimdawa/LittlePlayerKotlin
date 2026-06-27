@@ -17,4 +17,12 @@
     <string name="gradual_five_theme">Gradual 5</string>
     <string name="gradual_six_theme">Gradual 6</string>
     <string name="gradual_seven_theme">Gradual 7</string>
+    //App
+    <string name="delete">Delete</string>
+    <string name="seacrh">Seacrh</string>
+    <string name="sort_by">Sort By</string>
+    <string name="name">Name</string>
+    <string name="date">Date</string>
+    <string name="size">Size</string>
+    <string name="zero_zero">0:00</string>
 </resources>
