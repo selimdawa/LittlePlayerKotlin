@@ -1,9 +1,9 @@
 package com.flatcode.littleplayer.unit
 
-import com.flatcode.littleplayer.Activity.AlbumDetailsActivity
-import com.flatcode.littleplayer.Activity.MainActivity
-import com.flatcode.littleplayer.Activity.PlayerActivity
-import com.flatcode.littleplayer.Activity.SplashActivity
+import com.flatcode.littleplayer.activity.AlbumDetailsActivity
+import com.flatcode.littleplayer.activity.MainActivity
+import com.flatcode.littleplayer.activity.PlayerActivity
+import com.flatcode.littleplayer.activity.SplashActivity
 
 object CLASS {
     val MAIN: Class<*> = MainActivity::class.java

@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Adapter
+package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.Model.MusicFiles
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.CLASS
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
@@ -17,7 +17,6 @@ class AlbumAdapter(private val context: Context, private val albumFiles: ArrayLi
     RecyclerView.Adapter<AlbumAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // تم الإصلاح: تعريف الـ binding محلياً داخل الدالة لمنع تجميد الشاشة وبطء التمرير
         val binding = ItemAlbumBinding.inflate(LayoutInflater.from(context), parent, false)
         return ViewHolder(binding)
     }

@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Activity
+package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
 import android.content.Context
@@ -16,11 +16,11 @@ import android.view.WindowManager
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.flatcode.littleplayer.Adapter.AlbumDetailsAdapter
-import com.flatcode.littleplayer.Adapter.MusicAdapter
-import com.flatcode.littleplayer.Model.MusicFiles
+import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
+import com.flatcode.littleplayer.adapter.MusicAdapter
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.Service.MusicService
+import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
@@ -62,7 +62,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        PlayerActivity@this.runOnUiThread(object : Runnable {
+        this.runOnUiThread(object : Runnable {
             override fun run() {
                 musicService?.let { service ->
                     val mCurrentPosition = service.getCurrentPosition() / 1000
@@ -141,7 +141,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             binding.songArtist.text = listSongs[position].artist
             binding.seekBar.max = service.getDuration() / 1000
 
-            PlayerActivity@this.runOnUiThread(object : Runnable {
+            this.runOnUiThread(object : Runnable {
                 override fun run() {
                     musicService?.let {
                         val currentPosition = it.getCurrentPosition() / 1000
@@ -187,7 +187,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             binding.songArtist.text = listSongs[position].artist
             binding.seekBar.max = service.getDuration() / 1000
 
-            PlayerActivity@this.runOnUiThread(object : Runnable {
+            this.runOnUiThread(object : Runnable {
                 override fun run() {
                     musicService?.let {
                         val currentPosition = it.getCurrentPosition() / 1000
@@ -224,7 +224,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 binding.playPause.setImageResource(R.drawable.ic_play)
                 service.pause()
                 binding.seekBar.max = service.getDuration() / 1000
-                PlayerActivity@this.runOnUiThread(object : Runnable {
+                this.runOnUiThread(object : Runnable {
                     override fun run() {
                         musicService?.let {
                             val currentPosition = it.getCurrentPosition() / 1000
@@ -237,7 +237,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 binding.playPause.setImageResource(R.drawable.ic_pause)
                 service.start()
                 binding.seekBar.max = service.getDuration() / 1000
-                PlayerActivity@this.runOnUiThread(object : Runnable {
+                this.runOnUiThread(object : Runnable {
                     override fun run() {
                         musicService?.let {
                             val currentPosition = it.getCurrentPosition() / 1000

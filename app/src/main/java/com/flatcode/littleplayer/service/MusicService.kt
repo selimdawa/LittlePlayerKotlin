@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Service
+package com.flatcode.littleplayer.service
 
 import android.app.Service
 import android.content.Intent
@@ -8,8 +8,8 @@ import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
-import com.flatcode.littleplayer.Activity.PlayerActivity
-import com.flatcode.littleplayer.Model.MusicFiles
+import com.flatcode.littleplayer.activity.PlayerActivity
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
 

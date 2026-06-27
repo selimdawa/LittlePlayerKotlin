@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Fragment
+package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
 import android.content.Context
@@ -14,11 +14,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
-import com.flatcode.littleplayer.Activity.MainActivity
+import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.Service.MusicService
+import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
+import com.flatcode.littleplayer.viewmodel.MusicViewModel
 
 class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
 
@@ -26,6 +28,7 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
     private val binding get() = _binding!!
 
     private var musicService: MusicService? = null
+    private lateinit var viewModel: MusicViewModel
     private val handler = Handler(Looper.getMainLooper())
 
     private val progressUpdater = object : Runnable {
@@ -50,6 +53,7 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentNowPlayerBottomBinding.inflate(inflater, container, false)
+        viewModel = ViewModelProvider(requireActivity())[MusicViewModel::class.java]
 
         binding.nextBtn.setOnClickListener {
             musicService?.let { service ->
@@ -88,7 +92,8 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
                         if (art != null) {
                             Glide.with(requireContext()).load(art).into(binding.albumArt)
                         } else {
-                            Glide.with(requireContext()).load(R.drawable.logo).into(binding.albumArt)
+                            Glide.with(requireContext()).load(R.drawable.logo)
+                                .into(binding.albumArt)
                         }
                         binding.name.text = MainActivity.SONG_NAME_TO_FRAG
                         binding.artist.text = MainActivity.ARTIST_TO_FRAG

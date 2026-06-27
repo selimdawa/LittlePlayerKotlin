@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Adapter
+package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.Model.MusicFiles
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.CLASS
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID

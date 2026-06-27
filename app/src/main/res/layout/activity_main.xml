@@ -18,12 +18,12 @@
         app:tabIndicatorHeight="40sp"
         app:tabTextColor="@color/white" />
 
-    <androidx.viewpager.widget.ViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_above="@+id/fragBottomPlayer"
-        android:layout_below="@+id/tabLayout" />
+        android:layout_below="@+id/tabLayout"
+        android:layout_height="wrap_content" />
 
     <FrameLayout
         android:id="@+id/fragBottomPlayer"
@@ -33,7 +33,7 @@
         android:layout_alignParentBottom="true">
 
         <fragment
-            android:name="com.flatcode.littleplayer.Fragment.NowPlayerFragmentBottom"
+            android:name="com.flatcode.littleplayer.fragment.NowPlayerFragmentBottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:layout="@layout/fragment_now_player_bottom" />

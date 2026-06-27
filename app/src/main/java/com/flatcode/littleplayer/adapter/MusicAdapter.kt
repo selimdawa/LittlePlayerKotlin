@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Adapter
+package com.flatcode.littleplayer.adapter
 
 import android.content.ContentUris
 import android.content.Context
@@ -11,7 +11,7 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.Model.MusicFiles
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.unit.CLASS
 import com.flatcode.littleplayer.unit.DATA
@@ -29,7 +29,6 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // تم الإصلاح: تعريف الـ binding محلياً لمنع تهنيج قائمة الأغاني
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
         return ViewHolder(binding)
     }

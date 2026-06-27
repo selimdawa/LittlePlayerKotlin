@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Activity
+package com.flatcode.littleplayer.activity
 
 import android.content.Context
 import android.os.Bundle

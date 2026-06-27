@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.Model
+package com.flatcode.littleplayer.model
 
 data class MusicFiles(
     var path: String? = null,
