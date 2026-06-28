@@ -1,7 +1,9 @@
 package com.flatcode.littleplayer.viewmodel
 
-import android.app.Application
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NowPlayerViewModel @Inject constructor(
-    private val application: Application
+    private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
 
     private val _currentPlayingSong = MutableLiveData<MusicFiles?>()
@@ -23,6 +25,10 @@ class NowPlayerViewModel @Inject constructor(
 
     private val _isPlaying = MutableLiveData(false)
     val isPlaying: LiveData<Boolean> get() = _isPlaying
+
+    private val MUSIC_FILE_KEY = stringPreferencesKey("STORED_MUSIC")
+    private val ARTIST_NAME_KEY = stringPreferencesKey("ARTIST NAME")
+    private val SONG_NAME_KEY = stringPreferencesKey("SONG NAME")
 
     fun updatePlaybackState(playing: Boolean) {
         _isPlaying.value = playing
@@ -32,12 +38,10 @@ class NowPlayerViewModel @Inject constructor(
         _currentPlayingSong.value = song
 
         viewModelScope.launch(Dispatchers.IO) {
-            val preferences = application.getSharedPreferences("LAST_PLAYED", Context.MODE_PRIVATE)
-            preferences.edit().apply {
-                putString("STORED_MUSIC", song.path)
-                putString("ARTIST NAME", song.artist)
-                putString("SONG NAME", song.title)
-                apply()
+            dataStore.edit { preferences ->
+                preferences[MUSIC_FILE_KEY] = song.path ?: ""
+                preferences[ARTIST_NAME_KEY] = song.artist ?: "Unknown"
+                preferences[SONG_NAME_KEY] = song.title ?: "Unknown"
             }
         }
 

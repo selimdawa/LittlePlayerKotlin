@@ -279,7 +279,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 serviceInstance.createMediaPlayer(viewModel.position)
                 serviceInstance.start()
             }
-
             binding.seekBar.max = serviceInstance.getDuration() / 1000
             metaData(viewModel.uri)
             binding.songName.text = viewModel.listSongs[viewModel.position].title

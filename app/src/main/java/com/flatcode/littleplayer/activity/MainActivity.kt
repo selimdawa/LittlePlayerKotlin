@@ -111,7 +111,6 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             R.id.size -> viewModel.updateSortOrder(DATA.SORT_BY_SIZE)
             else -> return super.onOptionsItemSelected(item)
         }
-        this.recreate()
         return true
     }
 

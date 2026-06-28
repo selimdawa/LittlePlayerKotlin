@@ -8,8 +8,11 @@ import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.Player
 import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.common.util.UnstableApi
@@ -24,10 +27,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
+
+    @Inject
+    lateinit var dataStore: DataStore<Preferences>
 
     private val binder: IBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
@@ -41,6 +48,10 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     private var mediaSession: MediaSession? = null
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private val MUSIC_FILE_KEY = stringPreferencesKey(MUSIC_FILE)
+    private val ARTIST_NAME_KEY = stringPreferencesKey(ARTIST_NAME)
+    private val SONG_NAME_KEY = stringPreferencesKey(SONG_NAME)
 
     override fun onCreate() {
         super.onCreate()
@@ -148,10 +159,10 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         }
 
         serviceScope.launch(Dispatchers.IO) {
-            getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit {
-                putString(MUSIC_FILE, uri.toString())
-                putString(ARTIST_NAME, musicFiles[position].artist)
-                putString(SONG_NAME, musicFiles[position].title)
+            dataStore.edit { preferences ->
+                preferences[MUSIC_FILE_KEY] = uri.toString()
+                preferences[ARTIST_NAME_KEY] = musicFiles[position].artist ?: "Unknown"
+                preferences[SONG_NAME_KEY] = musicFiles[position].title ?: "Unknown"
             }
         }
 
@@ -219,7 +230,6 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     companion object {
-        const val MUSIC_LAST_PLAYED = "LAST_PLAYED"
         const val MUSIC_FILE = "STORED_MUSIC"
         const val ARTIST_NAME = "ARTIST NAME"
         const val SONG_NAME = "SONG NAME"

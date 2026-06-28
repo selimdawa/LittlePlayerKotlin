@@ -7,9 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,26 +23,31 @@ class MusicViewModel @Inject constructor(
     private val _filteredMusicFiles = MutableLiveData<List<MusicFiles>>()
     val filteredMusicFiles: LiveData<List<MusicFiles>> get() = _filteredMusicFiles
 
+    init {
+        viewModelScope.launch {
+            repository.sortOrderFlow.collect {
+                loadAudioData()
+            }
+        }
+    }
+
     fun loadAudioData() {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                val allAudio = repository.getAllAudio()
-                val uniqueAlbums = ArrayList<MusicFiles>()
-                val duplicates = HashSet<String>()
+            val allAudio = repository.getAllAudio()
+            val uniqueAlbums = ArrayList<MusicFiles>()
+            val duplicates = HashSet<String>()
 
-                for (song in allAudio) {
-                    val albumName = song.album ?: "Unknown"
-                    if (!duplicates.contains(albumName)) {
-                        uniqueAlbums.add(song)
-                        duplicates.add(albumName)
-                    }
+            for (song in allAudio) {
+                val albumName = song.album ?: "Unknown"
+                if (!duplicates.contains(albumName)) {
+                    uniqueAlbums.add(song)
+                    duplicates.add(albumName)
                 }
-                Pair(allAudio, uniqueAlbums)
             }
 
-            _musicFiles.value = result.first
-            _filteredMusicFiles.value = result.first
-            _albumFiles.value = result.second
+            _musicFiles.value = allAudio
+            _filteredMusicFiles.value = allAudio
+            _albumFiles.value = uniqueAlbums
         }
     }
 

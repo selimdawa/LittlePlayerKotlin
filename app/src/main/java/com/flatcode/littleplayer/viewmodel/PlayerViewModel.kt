@@ -1,16 +1,25 @@
 package com.flatcode.littleplayer.viewmodel
 
 import android.net.Uri
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Random
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class PlayerViewModel @Inject constructor() : ViewModel() {
+class PlayerViewModel @Inject constructor(
+    private val dataStore: DataStore<Preferences>
+) : ViewModel() {
 
     private val _isShuffle = MutableLiveData(false)
     val isShuffle: LiveData<Boolean> get() = _isShuffle
@@ -25,12 +34,35 @@ class PlayerViewModel @Inject constructor() : ViewModel() {
     var position = -1
     var uri: Uri? = null
 
+    private val SHUFFLE_KEY = booleanPreferencesKey("SHUFFLE_MODE")
+    private val REPEAT_KEY = booleanPreferencesKey("REPEAT_MODE")
+
+    init {
+        viewModelScope.launch {
+            val preferences = dataStore.data.first()
+            _isShuffle.value = preferences[SHUFFLE_KEY] ?: false
+            _isRepeat.value = preferences[REPEAT_KEY] ?: false
+        }
+    }
+
     fun toggleShuffle() {
-        _isShuffle.value = !(_isShuffle.value ?: false)
+        val newValue = !(_isShuffle.value ?: false)
+        _isShuffle.value = newValue
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[SHUFFLE_KEY] = newValue
+            }
+        }
     }
 
     fun toggleRepeat() {
-        _isRepeat.value = !(_isRepeat.value ?: false)
+        val newValue = !(_isRepeat.value ?: false)
+        _isRepeat.value = newValue
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[REPEAT_KEY] = newValue
+            }
+        }
     }
 
     fun updatePositionAndSong(newPosition: Int) {

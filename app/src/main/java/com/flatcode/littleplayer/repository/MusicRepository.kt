@@ -4,24 +4,34 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
-import androidx.core.content.edit
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.DATA
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class MusicRepository @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val dataStore: DataStore<Preferences>
 ) {
-    private val mySortPref = "SortOrder"
+    private val SORTING_KEY = stringPreferencesKey(DATA.SORTING)
+
+    val sortOrderFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[SORTING_KEY] ?: DATA.SORT_BY_NAME
+    }
 
     suspend fun getAllAudio(): ArrayList<MusicFiles> = withContext(Dispatchers.IO) {
-        val preferences = context.getSharedPreferences(mySortPref, Context.MODE_PRIVATE)
-        val sortOrder = preferences.getString(DATA.SORTING, DATA.SORT_BY_NAME)
+        val sortOrder = sortOrderFlow.first()
         val tempAudioList = ArrayList<MusicFiles>()
 
         val order = when (sortOrder) {
@@ -58,9 +68,9 @@ class MusicRepository @Inject constructor(
         tempAudioList
     }
 
-    suspend fun saveSortOrder(sortType: String) = withContext(Dispatchers.IO) {
-        context.getSharedPreferences(mySortPref, Context.MODE_PRIVATE).edit {
-            putString(DATA.SORTING, sortType)
+    suspend fun saveSortOrder(sortType: String) {
+        dataStore.edit { preferences ->
+            preferences[SORTING_KEY] = sortType
         }
     }
 }
