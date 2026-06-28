@@ -21,6 +21,7 @@
 
     <!-- Required for media playback execution on API 34+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:name=".unit.ApplicationClass"

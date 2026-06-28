@@ -6,14 +6,19 @@ import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
-import android.support.v4.media.session.MediaSessionCompat
+import androidx.core.content.edit
+import androidx.core.net.toUri
+import androidx.media3.common.Player
+import androidx.media3.common.SimpleBasePlayer
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaSession
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
-import androidx.core.net.toUri
-import androidx.core.content.edit
 
+@UnstableApi
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     private val binder: IBinder = MyBinder()
@@ -25,11 +30,22 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     var position = -1
 
     private var actionPlaying: ActionPlaying? = null
-    private var mediaSessionCompat: MediaSessionCompat? = null
+    private var mediaSession: MediaSession? = null
 
     override fun onCreate() {
         super.onCreate()
-        mediaSessionCompat = MediaSessionCompat(baseContext, "My Audio")
+        try {
+            val stubPlayer = object : SimpleBasePlayer(mainLooper) {
+                override fun getState(): State {
+                    return State.Builder()
+                        .setAvailableCommands(Player.Commands.EMPTY)
+                        .setPlaylist(emptyList())
+                        .build()
+                }
+            }
+            mediaSession = MediaSession.Builder(this, stubPlayer).build()
+        } catch (_: Exception) {
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -43,7 +59,12 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
-            val myPosition = it.getSerializableExtra(DATA.SERVICE_POSITION) as? Int ?: -1
+            val myPosition = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                it.getSerializableExtra(DATA.SERVICE_POSITION, Integer::class.java) as? Int ?: -1
+            } else {
+                @Suppress("DEPRECATION")
+                it.getSerializableExtra(DATA.SERVICE_POSITION) as? Int ?: -1
+            }
             val actionName = it.getStringExtra(DATA.ACTION_NAME)
 
             if (myPosition != -1) {
@@ -169,7 +190,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         super.onDestroy()
         mediaPlayer?.stop()
         mediaPlayer?.release()
-        mediaSessionCompat?.release()
+        mediaSession?.release()
     }
 
     companion object {
