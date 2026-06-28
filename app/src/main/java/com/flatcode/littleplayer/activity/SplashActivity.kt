@@ -13,6 +13,7 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
@@ -30,7 +31,7 @@ class SplashActivity : AppCompatActivity() {
         viewModel.loadAudioData()
 
         lifecycleScope.launch {
-            delay(2000)
+            delay(2000.milliseconds)
             VOID.intent1(context, CLASS.MAIN)
             finish()
         }

@@ -1,9 +1,8 @@
 package com.flatcode.littleplayer.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
@@ -15,10 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MusicViewModel @Inject constructor(
-    application: Application
-) : AndroidViewModel(application) {
-
-    private val repository = MusicRepository(application)
+    private val repository: MusicRepository
+) : ViewModel() {
 
     private val _musicFiles = MutableLiveData<List<MusicFiles>>()
 
@@ -31,7 +28,7 @@ class MusicViewModel @Inject constructor(
     fun loadAudioData() {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                val allAudio = repository.getAllAudio() ?: emptyList()
+                val allAudio = repository.getAllAudio()
                 val uniqueAlbums = ArrayList<MusicFiles>()
                 val duplicates = HashSet<String>()
 
@@ -67,7 +64,7 @@ class MusicViewModel @Inject constructor(
     }
 
     fun updateSortOrder(sortType: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             repository.saveSortOrder(sortType)
         }
     }

@@ -2,9 +2,9 @@ package com.flatcode.littleplayer.viewmodel
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.model.MusicFiles
@@ -15,8 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NowPlayerViewModel @Inject constructor(
-    application: Application
-) : AndroidViewModel(application) {
+    private val application: Application
+) : ViewModel() {
 
     private val _currentPlayingSong = MutableLiveData<MusicFiles?>()
     val currentPlayingSong: LiveData<MusicFiles?> get() = _currentPlayingSong
@@ -32,8 +32,7 @@ class NowPlayerViewModel @Inject constructor(
         _currentPlayingSong.value = song
 
         viewModelScope.launch(Dispatchers.IO) {
-            val app = getApplication<Application>()
-            val preferences = app.getSharedPreferences("LAST_PLAYED", Context.MODE_PRIVATE)
+            val preferences = application.getSharedPreferences("LAST_PLAYED", Context.MODE_PRIVATE)
             preferences.edit().apply {
                 putString("STORED_MUSIC", song.path)
                 putString("ARTIST NAME", song.artist)

@@ -23,9 +23,6 @@ interface SongDao {
     @Query("SELECT * FROM songs_table WHERE isFavorite = 1")
     fun getFavoriteSongs(): Flow<List<SongEntity>>
 
-    @Query("SELECT * FROM songs_table GROUP BY album")
-    fun getUniqueAlbums(): Flow<List<SongEntity>>
-
     @Query("SELECT * FROM songs_table WHERE album = :albumName")
     fun getSongsByAlbum(albumName: String): Flow<List<SongEntity>>
 }

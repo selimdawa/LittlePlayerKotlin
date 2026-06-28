@@ -113,12 +113,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         if (viewModel.listSongs.isNotEmpty() && position != -1) {
             binding.playPause.setImageResource(R.drawable.ic_pause)
             viewModel.updatePositionAndSong(position)
-
-            musicService?.let { service ->
-                service.musicFiles = viewModel.listSongs
-                service.createMediaPlayer(position)
-                service.start()
-            }
         }
 
         val intentService = Intent(context, MusicService::class.java).apply {
@@ -288,7 +282,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
             binding.seekBar.max = serviceInstance.getDuration() / 1000
             metaData(viewModel.uri)
-
             binding.songName.text = viewModel.listSongs[viewModel.position].title
             binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
             serviceInstance.onCompleted()

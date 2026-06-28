@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.di
 import android.content.Context
 import androidx.room.Room
 import com.flatcode.littleplayer.data.dao.AlbumImageDao
+import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.database.AppDatabase
 import dagger.Module
@@ -38,5 +39,11 @@ object DatabaseModule {
     @Singleton
     fun provideAlbumImageDao(database: AppDatabase): AlbumImageDao {
         return database.albumImageDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMusicDao(database: AppDatabase): MusicDao {
+        return database.musicDao()
     }
 }
