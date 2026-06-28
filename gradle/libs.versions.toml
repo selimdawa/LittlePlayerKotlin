@@ -10,10 +10,9 @@ material = "1.14.0"
 activityKtx = "1.13.0"
 constraintlayout = "2.2.1"
 circleimageview = "3.1.0"
-glide = "5.0.7"
-glideTransformations = "4.3.0"
 media = "1.8.0"
 preferenceKtx = "1.2.1"
+lifecycle = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -30,8 +29,9 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 #Image
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-glide-transformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
+#Lifecycle
+lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
 #Other's
 androidx-core = { module = "androidx.core:core", version.ref = "coreKtx" }
 androidx-media = { module = "androidx.media:media", version.ref = "media" }

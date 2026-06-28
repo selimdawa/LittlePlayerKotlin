@@ -15,7 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.bumptech.glide.Glide
+import coil.load
 import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.service.MusicService
@@ -89,11 +89,8 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
                 if (MainActivity.SHOW_MINI_PLAYER) {
                     MainActivity.PATH_TO_FRAG?.let { path ->
                         val art = getAlbumArt(path)
-                        if (art != null) {
-                            Glide.with(requireContext()).load(art).into(binding.albumArt)
-                        } else {
-                            Glide.with(requireContext()).load(R.drawable.logo)
-                                .into(binding.albumArt)
+                        binding.albumArt.load(art ?: R.drawable.logo) {
+                            crossfade(true)
                         }
                         binding.name.text = MainActivity.SONG_NAME_TO_FRAG
                         binding.artist.text = MainActivity.ARTIST_TO_FRAG
@@ -121,10 +118,8 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         if (MainActivity.SHOW_MINI_PLAYER) {
             MainActivity.PATH_TO_FRAG?.let { path ->
                 val art = getAlbumArt(path)
-                if (art != null) {
-                    Glide.with(requireContext()).load(art).into(binding.albumArt)
-                } else {
-                    Glide.with(requireContext()).load(R.drawable.logo).into(binding.albumArt)
+                binding.albumArt.load(art ?: R.drawable.logo) {
+                    crossfade(true)
                 }
                 binding.name.text = MainActivity.SONG_NAME_TO_FRAG
                 binding.artist.text = MainActivity.ARTIST_TO_FRAG

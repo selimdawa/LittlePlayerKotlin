@@ -47,8 +47,9 @@ dependencies {
     //Image
     implementation(libs.circleimageview)                   //Circle Image
     implementation(libs.coil)                              //Coil Image
-    implementation(libs.glide)                             //Glide Image
-    implementation(libs.glide.transformations)             //Glide Image Blur
+    //Lifecycle
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.livedata.ktx)
     //Player
     implementation(libs.androidx.core)
     implementation(libs.androidx.media)

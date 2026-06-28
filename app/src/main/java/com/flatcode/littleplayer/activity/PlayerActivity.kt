@@ -290,10 +290,10 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             val art = retriever.embeddedPicture
             if (art != null) {
                 val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
-                VOID.glideBitmap(context, bitmap, binding.image)
-                VOID.glideBlurBitmap(context, bitmap, binding.imageBlur, 10)
+                VOID.coilBitmap(context, bitmap, binding.image)
+                VOID.coilBlurBitmap(context, bitmap, binding.imageBlur, 10)
             } else {
-                VOID.glide(context, null, binding.image)
+                VOID.coil(context, null, binding.image)
                 binding.songName.setTextColor(Color.WHITE)
                 binding.songArtist.setTextColor(Color.DKGRAY)
             }

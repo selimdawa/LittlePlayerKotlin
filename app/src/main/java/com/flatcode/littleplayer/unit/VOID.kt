@@ -10,10 +10,7 @@ import android.util.Size
 import android.widget.ImageView
 import androidx.core.net.toUri
 import coil.load
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.flatcode.littleplayer.R
-import jp.wasabeef.glide.transformations.BlurTransformation
 
 object VOID {
     fun intentClear(context: Context, c: Class<*>?) {
@@ -56,68 +53,29 @@ object VOID {
         context.startActivity(intent)
     }
 
-    fun glide(context: Context?, url: Bitmap?, image: ImageView) {
-        try {
-            Glide.with(context!!).load(url).placeholder(R.color.image_profile).into(image)
-        } catch (_: Exception) {
-            image.setImageResource(R.color.image_profile)
+    fun coil(context: Context?, url: Bitmap?, image: ImageView) {
+        image.load(url) {
+            crossfade(true)
+            placeholder(R.color.image_profile)
+            error(R.color.image_profile)
         }
     }
 
-    fun glideBitmap(context: Context, url: Bitmap?, image: ImageView) {
-        try {
-            if (url != null) Glide.with(context).load(url).placeholder(R.color.image_profile)
-                .into(image)
-            else Glide.with(context).load(R.drawable.logo).into(image)
-        } catch (_: java.lang.Exception) {
-            image.setImageResource(R.drawable.logo)
+    fun coilBitmap(context: Context, url: Bitmap?, image: ImageView) {
+        image.load(url ?: R.drawable.logo) {
+            crossfade(true)
+            placeholder(R.color.image_profile)
+            error(R.drawable.logo)
         }
     }
 
-    fun glideBlurBitmap(context: Context, url: Bitmap?, image: ImageView, level: Int) {
-        try {
-            if (url != null) Glide.with(context).load(url).placeholder(R.color.image_profile)
-                .apply(bitmapTransform(BlurTransformation(level))).into(image)
-            else Glide.with(context).load(R.drawable.logo)
-                .apply(bitmapTransform(BlurTransformation(level))).into(image)
-        } catch (_: java.lang.Exception) {
-            image.setImageResource(R.drawable.logo)
-        }
-    }
-
-    fun glideByte(context: Context, url: ByteArray?, image: ImageView) {
-        try {
-            if (url != null) {
-                Glide.with(context)
-                    .load(url)
-                    .placeholder(R.color.image_profile)
-                    .into(image)
-            } else {
-                Glide.with(context)
-                    .load(R.drawable.logo)
-                    .into(image)
-            }
-        } catch (_: Exception) {
-            image.setImageResource(R.drawable.logo)
-        }
-    }
-
-    fun glideBlurByte(context: Context, url: ByteArray?, image: ImageView, level: Int) {
-        try {
-            if (url != null) {
-                Glide.with(context)
-                    .load(url)
-                    .placeholder(R.color.image_profile)
-                    .apply(bitmapTransform(BlurTransformation(level)))
-                    .into(image)
-            } else {
-                Glide.with(context)
-                    .load(R.drawable.logo)
-                    .apply(bitmapTransform(BlurTransformation(level)))
-                    .into(image)
-            }
-        } catch (_: Exception) {
-            image.setImageResource(R.drawable.logo)
+    fun coilBlurBitmap(context: Context, url: Bitmap?, image: ImageView, level: Int) {
+        val radius = (level / 4f).coerceIn(1f, 25f)
+        image.load(url ?: R.drawable.logo) {
+            crossfade(true)
+            placeholder(if (url != null) R.color.image_profile else R.drawable.logo)
+            error(R.drawable.logo)
+            transformations(CoilBlurTransformation(context, radius))
         }
     }
 
