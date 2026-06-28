@@ -7,8 +7,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.model.MusicFiles
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class NowPlayerViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class NowPlayerViewModel @Inject constructor(
+    application: Application
+) : AndroidViewModel(application) {
 
     private val _currentPlayingSong = MutableLiveData<MusicFiles?>()
     val currentPlayingSong: LiveData<MusicFiles?> get() = _currentPlayingSong

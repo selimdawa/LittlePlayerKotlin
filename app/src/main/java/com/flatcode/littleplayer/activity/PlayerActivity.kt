@@ -36,7 +36,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     private lateinit var binding: ActivityPlayerBinding
     private val context: Context = this@PlayerActivity
     private val viewModel: PlayerViewModel by viewModels()
-    
+
     private val handler = Handler(Looper.getMainLooper())
     var musicService: MusicService? = null
 

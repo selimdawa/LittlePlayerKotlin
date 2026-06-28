@@ -17,8 +17,10 @@ import androidx.media3.session.MediaSession
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
+import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
+@AndroidEntryPoint
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     private val binder: IBinder = MyBinder()

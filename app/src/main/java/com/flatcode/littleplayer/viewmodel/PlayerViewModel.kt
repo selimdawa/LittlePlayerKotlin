@@ -5,9 +5,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.flatcode.littleplayer.model.MusicFiles
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import java.util.Random
 
-class PlayerViewModel : ViewModel() {
+@HiltViewModel
+class PlayerViewModel @Inject constructor() : ViewModel() {
 
     private val _isShuffle = MutableLiveData(false)
     val isShuffle: LiveData<Boolean> get() = _isShuffle

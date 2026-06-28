@@ -7,8 +7,14 @@ import android.provider.MediaStore
 import androidx.core.content.edit
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.DATA
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class MusicRepository(private val context: Context) {
+@Singleton
+class MusicRepository @Inject constructor(
+    @param:ApplicationContext private val context: Context
+) {
     private val mySortPref = "SortOrder"
 
     fun getAllAudio(): ArrayList<MusicFiles> {
