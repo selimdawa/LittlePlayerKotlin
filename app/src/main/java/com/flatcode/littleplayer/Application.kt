@@ -1,11 +1,13 @@
-package com.flatcode.littleplayer.unit
+package com.flatcode.littleplayer
 
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import dagger.hilt.android.HiltAndroidApp
 
-class ApplicationClass : Application() {
+@HiltAndroidApp
+class Application : Application() {
 
     override fun onCreate() {
         super.onCreate()

@@ -8,6 +8,7 @@ espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.14.0"
 activityKtx = "1.13.0"
+fragmentKtx = "1.8.9"
 constraintlayout = "2.2.1"
 circleimageview = "3.1.0"
 media = "1.10.1"
@@ -47,7 +48,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
-#androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
+androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
 #Layout
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
@@ -68,7 +69,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 #Other's
-androidx-media = {  group = "androidx.media3", name = "media3-session", version.ref = "media" }
+androidx-media = { group = "androidx.media3", name = "media3-session", version.ref = "media" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 airbnb-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette" }

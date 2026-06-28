@@ -10,7 +10,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SongsFragment : Fragment() {
 
     private var _binding: FragmentSongsBinding? = null

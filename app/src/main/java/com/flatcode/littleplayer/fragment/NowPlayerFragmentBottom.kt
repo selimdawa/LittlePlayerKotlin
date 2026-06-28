@@ -14,13 +14,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.media3.common.util.UnstableApi
 import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
+@AndroidEntryPoint
 class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
 
     private var _binding: FragmentNowPlayerBottomBinding? = null

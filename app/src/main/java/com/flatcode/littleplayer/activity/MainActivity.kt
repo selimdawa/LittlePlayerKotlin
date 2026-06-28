@@ -20,7 +20,9 @@ import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     private lateinit var binding: ActivityMainBinding

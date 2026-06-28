@@ -9,7 +9,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.flatcode.littleplayer.adapter.AlbumAdapter
 import com.flatcode.littleplayer.databinding.FragmentAlbumBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AlbumFragment : Fragment() {
 
     private var _binding: FragmentAlbumBinding? = null

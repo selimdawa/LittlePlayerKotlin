@@ -38,7 +38,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.ktx)
-    //implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.preference.ktx)           //Shared Preference
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -63,24 +63,28 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     //Other's
+    //Needed #1
     implementation(libs.androidx.media)
     implementation(libs.androidx.datastore.preferences)
+    //Needed #2
     implementation(libs.airbnb.lottie)
     implementation(libs.androidx.palette.ktx)
+    //Needed #3
     implementation(libs.jakewharton.timber)
     debugImplementation(libs.squareup.leakcanary.android)
-
+    //Needed #4
     implementation(libs.jp.wasabeef.blurry)
     implementation(libs.zhanghai.fastscroll)
+    //Needed #5
     implementation(libs.androidx.media3.exoplayer)
-
     implementation(libs.facebook.shimmer)
+    //Needed #6
     implementation(libs.bogerchan.niervisualizer)
     implementation(libs.google.flexbox)
-
+    //Needed #7
     implementation(libs.lincollincol.amplituda)
     implementation(libs.chrisbanes.haze)
+    //Needed #8
     implementation(libs.zetbaitsu.compressor)
-
     implementation(libs.waveformseekbar)
 }

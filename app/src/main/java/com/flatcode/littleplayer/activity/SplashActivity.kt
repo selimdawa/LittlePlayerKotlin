@@ -9,7 +9,9 @@ import com.flatcode.littleplayer.unit.THEME
 import com.flatcode.littleplayer.unit.CLASS
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.databinding.ActivitySplashBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySplashBinding

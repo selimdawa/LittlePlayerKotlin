@@ -11,7 +11,9 @@ import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAlbumDetailsBinding

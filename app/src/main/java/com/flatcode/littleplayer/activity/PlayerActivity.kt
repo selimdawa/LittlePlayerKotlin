@@ -26,7 +26,9 @@ import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     private lateinit var binding: ActivityPlayerBinding
