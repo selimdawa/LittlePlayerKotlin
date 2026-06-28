@@ -13,10 +13,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import coil.load
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -31,7 +31,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @AndroidEntryPoint
-class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
+class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
 
     private var _binding: FragmentNowPlayerBottomBinding? = null
     private val binding get() = _binding!!
@@ -52,7 +52,6 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupListeners()
         observeViewModel()
     }
@@ -61,10 +60,7 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         binding.nextBtn.setOnClickListener {
             musicService?.let { service ->
                 service.nextBtnClicked()
-                if (service.musicFiles.isNotEmpty() && service.position in service.musicFiles.indices) {
-                    val currentSong = service.musicFiles[service.position]
-                    viewModel.saveAndBroadcastNextSong(currentSong)
-                }
+                updateUiFromService(service)
             }
         }
 
@@ -81,9 +77,7 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
             song?.let {
                 lifecycleScope.launch {
                     val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
-                    binding.albumArt.load(art ?: R.drawable.logo) {
-                        crossfade(true)
-                    }
+                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
                 }
                 binding.name.text = it.title
                 binding.artist.text = it.artist
@@ -96,29 +90,38 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (MainActivity.SHOW_MINI_PLAYER) {
-            MainActivity.PATH_TO_FRAG?.let { path ->
-                lifecycleScope.launch {
-                    val art = withContext(Dispatchers.IO) { getAlbumArt(path) }
-                    binding.albumArt.load(art ?: R.drawable.logo) {
-                        crossfade(true)
-                    }
-                }
-                binding.name.text = MainActivity.SONG_NAME_TO_FRAG
-                binding.artist.text = MainActivity.ARTIST_TO_FRAG
+    private fun updateUiFromService(service: MusicService) {
+        val player = service.exoPlayer ?: return
+        val currentMediaItem = player.currentMediaItem
+        if (currentMediaItem != null) {
+            val title = currentMediaItem.mediaMetadata.title?.toString() ?: "Unknown Track"
+            val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: "Unknown Artist"
+            val path = currentMediaItem.localConfiguration?.uri?.path
 
-                val intent = Intent(context, MusicService::class.java)
-                context?.bindService(intent, this, Context.BIND_AUTO_CREATE)
+            binding.name.text = title
+            binding.artist.text = artist
+
+            lifecycleScope.launch {
+                val art = withContext(Dispatchers.IO) { getAlbumArt(path) }
+                binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
             }
         }
+        val icon = if (player.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+        binding.playPauseBtn.setImageResource(icon)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val intent = Intent(context, MusicService::class.java)
+        context?.bindService(intent, this, Context.BIND_AUTO_CREATE)
         startProgressUpdater()
     }
 
     override fun onPause() {
         super.onPause()
         stopProgressUpdater()
+        musicService?.exoPlayer?.removeListener(this)
+        context?.unbindService(this)
     }
 
     private fun startProgressUpdater() {
@@ -163,13 +166,21 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         val binder = service as? MusicService.MyBinder
         musicService = binder?.service
 
-        musicService?.let {
-            viewModel.updatePlaybackState(it.isPlaying())
+        musicService?.let { serviceInstance ->
+            serviceInstance.exoPlayer?.addListener(this)
+            viewModel.updatePlaybackState(serviceInstance.isPlaying())
+            updateUiFromService(serviceInstance)
         }
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         musicService = null
+    }
+
+    override fun onEvents(player: Player, events: Player.Events) {
+        if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION) || events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
+            musicService?.let { updateUiFromService(it) }
+        }
     }
 
     override fun onDestroyView() {

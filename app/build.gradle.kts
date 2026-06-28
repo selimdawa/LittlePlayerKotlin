@@ -67,9 +67,10 @@ dependencies {
     //implementation(libs.navigation.fragment.ktx)
     //implementation(libs.navigation.ui.ktx)
     //implementation(libs.hilt.navigation.fragment)
-    //Other's
-    //Needed #1
+    //Media Player
     implementation(libs.androidx.media)
+    implementation(libs.androidx.media3.exoplayer)
+    //Other's
     implementation(libs.androidx.datastore.preferences)
     //Needed #2
     implementation(libs.airbnb.lottie)
@@ -81,7 +82,6 @@ dependencies {
     implementation(libs.jp.wasabeef.blurry)
     implementation(libs.zhanghai.fastscroll)
     //Needed #5
-    implementation(libs.androidx.media3.exoplayer)
     implementation(libs.facebook.shimmer)
     //Needed #6
     implementation(libs.bogerchan.niervisualizer)

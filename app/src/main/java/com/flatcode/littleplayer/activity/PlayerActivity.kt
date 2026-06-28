@@ -186,10 +186,17 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     private fun startProgressUpdater() {
+        stopProgressUpdater()
         progressJob = lifecycleScope.launch {
             while (isActive) {
                 musicService?.let { service ->
                     val mCurrentPosition = service.getCurrentPosition() / 1000
+                    val duration = service.getDuration() / 1000
+
+                    if (duration > 0 && binding.seekBar.max != duration) {
+                        binding.seekBar.max = duration
+                    }
+
                     binding.seekBar.progress = mCurrentPosition
                     binding.durationPlayed.text = formattedTime(mCurrentPosition)
                 }
@@ -275,17 +282,26 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
             Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
 
-            if (serviceInstance.position != viewModel.position) {
+            val currentPlayingUri = serviceInstance.exoPlayer?.currentMediaItem?.localConfiguration?.uri
+            if (currentPlayingUri != viewModel.uri) {
                 serviceInstance.createMediaPlayer(viewModel.position)
                 serviceInstance.start()
             }
-            binding.seekBar.max = serviceInstance.getDuration() / 1000
-            metaData(viewModel.uri)
+
             binding.songName.text = viewModel.listSongs[viewModel.position].title
             binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
+            metaData(viewModel.uri)
+
+            val duration = serviceInstance.getDuration() / 1000
+            if (duration > 0) {
+                binding.seekBar.max = duration
+            }
+
             serviceInstance.onCompleted()
+            resetProgressLoop()
         }
     }
+
 
     override fun onServiceDisconnected(name: ComponentName?) {
         musicService = null

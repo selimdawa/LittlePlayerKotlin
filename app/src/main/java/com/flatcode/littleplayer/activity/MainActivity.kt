@@ -11,7 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
@@ -21,12 +25,22 @@ import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
+    @Inject
+    lateinit var dataStore: DataStore<Preferences>
+
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MusicViewModel by viewModels()
+
+    private val MUSIC_FILE_KEY = stringPreferencesKey(MUSIC_FILE)
+    private val ARTIST_NAME_KEY = stringPreferencesKey(ARTIST_NAME)
+    private val SONG_NAME_KEY = stringPreferencesKey(SONG_NAME)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,13 +130,15 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     override fun onResume() {
         super.onResume()
-        val preferences = getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE)
-        val path = preferences.getString(MUSIC_FILE, null)
+        lifecycleScope.launch {
+            val preferences = dataStore.data.first()
+            val path = preferences[MUSIC_FILE_KEY]
 
-        SHOW_MINI_PLAYER = path != null
-        PATH_TO_FRAG = path
-        ARTIST_TO_FRAG = preferences.getString(ARTIST_NAME, null)
-        SONG_NAME_TO_FRAG = preferences.getString(SONG_NAME, null)
+            SHOW_MINI_PLAYER = !path.isNullOrEmpty()
+            PATH_TO_FRAG = path
+            ARTIST_TO_FRAG = preferences[ARTIST_NAME_KEY]
+            SONG_NAME_TO_FRAG = preferences[SONG_NAME_KEY]
+        }
     }
 
     class ViewPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
@@ -141,7 +157,6 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     companion object {
         const val REQUEST_CODE_PERMISSION = 1
-        const val MUSIC_LAST_PLAYED = "LAST_PLAYED"
         const val MUSIC_FILE = "STORED_MUSIC"
         const val ARTIST_NAME = "ARTIST NAME"
         const val SONG_NAME = "SONG NAME"

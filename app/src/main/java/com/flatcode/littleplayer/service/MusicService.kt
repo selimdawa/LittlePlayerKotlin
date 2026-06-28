@@ -3,7 +3,6 @@ package com.flatcode.littleplayer.service
 import android.app.Service
 import android.content.Intent
 import android.media.MediaMetadataRetriever
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -13,9 +12,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.SimpleBasePlayer
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.ActionPlaying
@@ -31,22 +32,20 @@ import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class MusicService : Service(), MediaPlayer.OnCompletionListener {
+class MusicService : Service(), Player.Listener {
 
     @Inject
     lateinit var dataStore: DataStore<Preferences>
 
     private val binder: IBinder = MyBinder()
-    var mediaPlayer: MediaPlayer? = null
+    var exoPlayer: ExoPlayer? = null
+    private var mediaSession: MediaSession? = null
 
     var musicFiles = ArrayList<MusicFiles>()
-
     var uri: Uri? = null
     var position = -1
 
     private var actionPlaying: ActionPlaying? = null
-    private var mediaSession: MediaSession? = null
-
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val MUSIC_FILE_KEY = stringPreferencesKey(MUSIC_FILE)
@@ -55,17 +54,13 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     override fun onCreate() {
         super.onCreate()
-        try {
-            val stubPlayer = object : SimpleBasePlayer(mainLooper) {
-                override fun getState(): State {
-                    return State.Builder()
-                        .setAvailableCommands(Player.Commands.EMPTY)
-                        .setPlaylist(emptyList())
-                        .build()
-                }
-            }
-            mediaSession = MediaSession.Builder(this, stubPlayer).build()
-        } catch (_: Exception) {
+
+        exoPlayer = ExoPlayer.Builder(this).build().apply {
+            addListener(this@MusicService)
+        }
+
+        exoPlayer?.let { player ->
+            mediaSession = MediaSession.Builder(this, player).build()
         }
     }
 
@@ -104,109 +99,93 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     private fun playMedia(startPosition: Int) {
         position = startPosition
-
-        mediaPlayer?.let {
-            it.stop()
-            it.release()
-        }
-
         if (musicFiles.isNotEmpty() && position in musicFiles.indices) {
             createMediaPlayer(position)
-            mediaPlayer?.start()
+            start()
         }
     }
 
     fun start() {
-        mediaPlayer?.start()
+        exoPlayer?.playWhenReady = true
+        exoPlayer?.prepare()
     }
 
     fun isPlaying(): Boolean {
-        return mediaPlayer?.isPlaying ?: false
+        return exoPlayer?.isPlaying ?: false
     }
 
     fun stop() {
-        mediaPlayer?.stop()
+        exoPlayer?.stop()
     }
 
     fun release() {
-        mediaPlayer?.release()
+        exoPlayer?.release()
     }
 
     fun getDuration(): Int {
-        return mediaPlayer?.duration ?: 0
+        return exoPlayer?.duration?.toInt() ?: 0
     }
 
     fun seekTo(position: Int) {
-        mediaPlayer?.seekTo(position)
+        exoPlayer?.seekTo(position.toLong())
     }
 
     fun getCurrentPosition(): Int {
-        return mediaPlayer?.currentPosition ?: 0
+        return exoPlayer?.currentPosition?.toInt() ?: 0
     }
 
     fun createMediaPlayer(positionInner: Int) {
         if (musicFiles.isEmpty() || positionInner !in musicFiles.indices) return
 
         position = positionInner
-        val path = musicFiles[position].path ?: return
+        val song = musicFiles[position]
+        val path = song.path ?: return
         uri = path.toUri()
-
-        mediaPlayer?.let {
-            if (it.isPlaying) {
-                it.stop()
-            }
-            it.release()
-        }
 
         serviceScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[MUSIC_FILE_KEY] = uri.toString()
-                preferences[ARTIST_NAME_KEY] = musicFiles[position].artist ?: "Unknown"
-                preferences[SONG_NAME_KEY] = musicFiles[position].title ?: "Unknown"
+                preferences[ARTIST_NAME_KEY] = song.artist ?: "Unknown"
+                preferences[SONG_NAME_KEY] = song.title ?: "Unknown"
             }
         }
 
-        mediaPlayer = MediaPlayer.create(baseContext, uri)
+        val mediaMetadata = MediaMetadata.Builder()
+            .setTitle(song.title ?: "Unknown Track")
+            .setArtist(song.artist ?: "Unknown Artist")
+            .setAlbumTitle(song.album ?: "Unknown Album")
+            .build()
+
+        val mediaItem = MediaItem.Builder()
+            .setUri(uri)
+            .setMediaMetadata(mediaMetadata)
+            .build()
+
+        exoPlayer?.stop()
+        exoPlayer?.setMediaItem(mediaItem)
+        exoPlayer?.prepare()
     }
 
     fun pause() {
-        mediaPlayer?.pause()
+        exoPlayer?.playWhenReady = false
     }
 
     fun onCompleted() {
-        mediaPlayer?.setOnCompletionListener(this)
+
     }
 
-    override fun onCompletion(mp: MediaPlayer?) {
-        actionPlaying?.nextBtn()
-        if (mediaPlayer != null && musicFiles.isNotEmpty() && position in musicFiles.indices) {
-            createMediaPlayer(position)
-            mediaPlayer?.start()
-            onCompleted()
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        if (playbackState == Player.STATE_ENDED) {
+            actionPlaying?.nextBtn()
+            if (musicFiles.isNotEmpty() && position in musicFiles.indices) {
+                createMediaPlayer(position)
+                start()
+            }
         }
     }
 
     fun setCallBack(actionPlaying: ActionPlaying) {
         this.actionPlaying = actionPlaying
-    }
-
-    private fun getAlbumArt(uri: String): ByteArray? {
-        var art: ByteArray? = null
-        serviceScope.launch {
-            art = withContext(Dispatchers.IO) {
-                val retriever = MediaMetadataRetriever()
-                try {
-                    retriever.setDataSource(baseContext, uri.toUri())
-                    val embeddedPicture = retriever.embeddedPicture
-                    retriever.release()
-                    embeddedPicture
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
-            }
-        }
-        return art
     }
 
     fun nextBtnClicked() {
@@ -223,9 +202,9 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
         mediaSession?.release()
+        exoPlayer?.removeListener(this)
+        exoPlayer?.release()
         serviceScope.cancel()
     }
 
