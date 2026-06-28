@@ -17,6 +17,7 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
 import com.flatcode.littleplayer.adapter.MusicAdapter
@@ -28,13 +29,14 @@ import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
 @AndroidEntryPoint
 class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     private lateinit var binding: ActivityPlayerBinding
     private val context: Context = this@PlayerActivity
     private val viewModel: PlayerViewModel by viewModels()
-
+    
     private val handler = Handler(Looper.getMainLooper())
     var musicService: MusicService? = null
 

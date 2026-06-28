@@ -41,7 +41,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.albumSongs.observe(this) { songs ->
-            if (!songs.isNullOrEmpty()) {
+            if (!songs.isNullOrEmpty() && songs.isNotEmpty()) {
                 val firstSong = songs[0]
                 val firstSongId = firstSong.id
                 val songPath = firstSong.path

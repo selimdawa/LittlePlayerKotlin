@@ -6,9 +6,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import java.util.ArrayList
 
-class AlbumDetailsViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class AlbumDetailsViewModel @Inject constructor(
+    application: Application
+) : AndroidViewModel(application) {
 
     private val repository = MusicRepository(application)
     private val _albumSongs = MutableLiveData<ArrayList<MusicFiles>>()

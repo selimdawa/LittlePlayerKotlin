@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
@@ -19,7 +19,7 @@ class SongsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var musicAdapter: MusicAdapter? = null
-    private lateinit var viewModel: MusicViewModel
+    private val viewModel: MusicViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -32,8 +32,6 @@ class SongsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        viewModel = ViewModelProvider(requireActivity())[MusicViewModel::class.java]
 
         viewModel.filteredMusicFiles.observe(viewLifecycleOwner) { files ->
             if (!files.isNullOrEmpty()) {

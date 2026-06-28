@@ -6,8 +6,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class MusicViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class MusicViewModel @Inject constructor(
+    application: Application
+) : AndroidViewModel(application) {
+
     private val repository = MusicRepository(application)
 
     private val _musicFiles = MutableLiveData<List<MusicFiles>>()

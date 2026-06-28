@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.module
+package com.flatcode.littleplayer.di
 
 import android.content.Context
 import android.app.NotificationManager
