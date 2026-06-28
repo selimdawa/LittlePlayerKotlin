@@ -7,10 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
-import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
+import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 
 class AlbumDetailsActivity : AppCompatActivity() {
 
@@ -40,9 +40,12 @@ class AlbumDetailsActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.albumSongs.observe(this) { songs ->
             if (!songs.isNullOrEmpty()) {
-                val firstSongId = songs[0].id
-                VOID.coiImage(context, firstSongId, binding.image)
-                VOID.coiImageBlur(context, firstSongId, binding.imageBlur, 50)
+                val firstSong = songs[0]
+                val firstSongId = firstSong.id
+                val songPath = firstSong.path
+
+                VOID.coilAlbumImage(songPath, binding.image)
+                VOID.coilImageBlur(context, firstSongId, binding.imageBlur, 50)
 
                 adapter = AlbumDetailsAdapter(context, songs)
                 binding.recyclerView.adapter = adapter

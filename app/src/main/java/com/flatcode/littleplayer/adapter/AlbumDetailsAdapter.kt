@@ -31,8 +31,8 @@ class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<Mu
 
         holder.name.text = currentFile.title
 
-        VOID.coiImage(context, currentFile.id, holder.image)
-        VOID.coiImageBlur(context, currentFile.id, holder.imageBlur, 50)
+        VOID.coilImage(context, currentFile.id, holder.image,150)
+        VOID.coilImageBlur(context, currentFile.id, holder.imageBlur, 50)
 
         holder.itemView.setOnClickListener {
             VOID.intentExtra2Int(

@@ -66,7 +66,7 @@ object VOID {
         }
     }
 
-    fun coiImage(context: Context, songId: String?, image: ImageView) {
+    fun coilImage(context: Context, songId: String?, image: ImageView, size: Int) {
         if (!songId.isNullOrEmpty()) {
             try {
                 val trackUri = ContentUris.withAppendedId(
@@ -77,7 +77,7 @@ object VOID {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val bitmap: Bitmap = context.contentResolver.loadThumbnail(
                         trackUri,
-                        Size(300, 300),
+                        Size(size, size),
                         null
                     )
                     image.load(bitmap) {
@@ -102,7 +102,7 @@ object VOID {
         }
     }
 
-    fun coiImageBlur(context: Context, songId: String?, image: ImageView, level: Int) {
+    fun coilImageBlur(context: Context, songId: String?, image: ImageView, level: Int) {
         if (!songId.isNullOrEmpty()) {
             try {
                 val trackUri = ContentUris.withAppendedId(
@@ -113,9 +113,7 @@ object VOID {
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val bitmap: Bitmap = context.contentResolver.loadThumbnail(
-                        trackUri,
-                        Size(150, 150),
-                        null
+                        trackUri, Size(150, 150), null
                     )
                     image.load(bitmap) {
                         crossfade(true)
@@ -144,6 +142,35 @@ object VOID {
                 val coilRadius = (level / 4f).coerceIn(1f, 25f)
                 transformations(CoilBlurTransformation(context, coilRadius))
             }
+        }
+    }
+
+    fun coilAlbumImage(songPath: String?, image: ImageView) {
+        if (!songPath.isNullOrEmpty()) {
+            val retriever = android.media.MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(songPath)
+                val art = retriever.embeddedPicture
+                if (art != null) {
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(art, 0, art.size)
+                    image.load(bitmap) {
+                        scale(coil.size.Scale.FILL)
+                        crossfade(true)
+                        placeholder(R.drawable.logo)
+                        error(R.drawable.logo)
+                    }
+                } else {
+                    image.load(R.drawable.logo)
+                }
+            } catch (_: Exception) {
+                image.load(R.drawable.logo)
+            } finally {
+                try {
+                    retriever.release()
+                } catch (_: Exception) {}
+            }
+        } else {
+            image.load(R.drawable.logo)
         }
     }
 }
