@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.core.content.edit
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.DATA
 
@@ -50,8 +51,8 @@ class MusicRepository(private val context: Context) {
     }
 
     fun saveSortOrder(sortType: String) {
-        val editor = context.getSharedPreferences(mySortPref, Context.MODE_PRIVATE).edit()
-        editor.putString(DATA.SORTING, sortType)
-        editor.apply()
+        context.getSharedPreferences(mySortPref, Context.MODE_PRIVATE).edit {
+            putString(DATA.SORTING, sortType)
+        }
     }
 }

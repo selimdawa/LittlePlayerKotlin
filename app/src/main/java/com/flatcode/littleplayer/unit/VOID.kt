@@ -13,10 +13,6 @@ import coil.load
 import com.flatcode.littleplayer.R
 
 object VOID {
-    fun intentClear(context: Context, c: Class<*>?) {
-        val intent = Intent(context, c)
-        context.startActivity(intent)
-    }
 
     fun intent1(context: Context, c: Class<*>?) {
         val intent = Intent(context, c)
@@ -35,15 +31,6 @@ object VOID {
         context.startActivity(intent)
     }
 
-    fun intentExtra2(
-        context: Context, c: Class<*>?, key: String?, value: String?, key2: String?, value2: String?
-    ) {
-        val intent = Intent(context, c)
-        intent.putExtra(key, value)
-        intent.putExtra(key2, value2)
-        context.startActivity(intent)
-    }
-
     fun intentExtra2Int(
         context: Context, c: Class<*>?, key: String?, value: String?, key2: String?, value2: Int
     ) {
@@ -53,7 +40,7 @@ object VOID {
         context.startActivity(intent)
     }
 
-    fun coil(context: Context?, url: Bitmap?, image: ImageView) {
+    fun coil(url: Bitmap?, image: ImageView) {
         image.load(url) {
             crossfade(true)
             placeholder(R.color.image_profile)
@@ -61,7 +48,7 @@ object VOID {
         }
     }
 
-    fun coilBitmap(context: Context, url: Bitmap?, image: ImageView) {
+    fun coilBitmap(url: Bitmap?, image: ImageView) {
         image.load(url ?: R.drawable.logo) {
             crossfade(true)
             placeholder(R.color.image_profile)

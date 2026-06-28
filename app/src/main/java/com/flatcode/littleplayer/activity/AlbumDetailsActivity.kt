@@ -39,7 +39,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.albumSongs.observe(this) { songs ->
-            if (songs.isNotEmpty()) {
+            if (!songs.isNullOrEmpty()) {
                 val firstSongId = songs[0].id
                 VOID.coiImage(context, firstSongId, binding.image)
                 VOID.coiImageBlur(context, firstSongId, binding.imageBlur, 50)

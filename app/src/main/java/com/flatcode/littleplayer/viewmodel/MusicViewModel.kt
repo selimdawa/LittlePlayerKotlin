@@ -11,7 +11,6 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = MusicRepository(application)
 
     private val _musicFiles = MutableLiveData<List<MusicFiles>>()
-    val musicFiles: LiveData<List<MusicFiles>> get() = _musicFiles
 
     private val _albumFiles = MutableLiveData<List<MusicFiles>>()
     val albumFiles: LiveData<List<MusicFiles>> get() = _albumFiles
@@ -24,7 +23,6 @@ class MusicViewModel(application: Application) : AndroidViewModel(application) {
         _musicFiles.value = allAudio
         _filteredMusicFiles.value = allAudio
 
-        // Extract unique albums
         val uniqueAlbums = ArrayList<MusicFiles>()
         val duplicates = HashSet<String>()
         for (song in allAudio) {

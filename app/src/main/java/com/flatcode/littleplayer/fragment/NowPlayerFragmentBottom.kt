@@ -2,7 +2,6 @@ package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.ServiceConnection
 import android.media.MediaMetadataRetriever
@@ -14,13 +13,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import coil.load
-import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.service.MusicService
+import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
-import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.flatcode.littleplayer.service.MusicService
+import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 
 class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
 
@@ -28,8 +27,9 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
     private val binding get() = _binding!!
 
     private var musicService: MusicService? = null
-    private lateinit var viewModel: MusicViewModel
     private val handler = Handler(Looper.getMainLooper())
+
+    private val viewModel: NowPlayerViewModel by activityViewModels()
 
     private val progressUpdater = object : Runnable {
         override fun run() {
@@ -53,48 +53,23 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentNowPlayerBottomBinding.inflate(inflater, container, false)
-        viewModel = ViewModelProvider(requireActivity())[MusicViewModel::class.java]
+        return binding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupListeners()
+        observeViewModel()
+    }
+
+    private fun setupListeners() {
         binding.nextBtn.setOnClickListener {
             musicService?.let { service ->
                 service.nextBtnClicked()
-
-                activity?.let { act ->
-                    val editor = act.getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit()
+                if (service.musicFiles.isNotEmpty() && service.position in service.musicFiles.indices) {
                     val currentSong = service.musicFiles[service.position]
-
-                    editor.putString(MUSIC_FILE, currentSong.path)
-                    editor.putString(ARTIST_NAME, currentSong.artist)
-                    editor.putString(SONG_NAME, currentSong.title)
-                    editor.apply()
-
-                    val preferences = act.getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE)
-                    val path = preferences.getString(MUSIC_FILE, null)
-                    val artistName = preferences.getString(ARTIST_NAME, null)
-                    val songName = preferences.getString(SONG_NAME, null)
-
-                    if (path != null) {
-                        MainActivity.SHOW_MINI_PLAYER = true
-                        MainActivity.PATH_TO_FRAG = path
-                        MainActivity.ARTIST_TO_FRAG = artistName
-                        MainActivity.SONG_NAME_TO_FRAG = songName
-                    } else {
-                        MainActivity.SHOW_MINI_PLAYER = false
-                        MainActivity.PATH_TO_FRAG = null
-                        MainActivity.ARTIST_TO_FRAG = null
-                        MainActivity.SONG_NAME_TO_FRAG = null
-                    }
-                }
-
-                if (MainActivity.SHOW_MINI_PLAYER) {
-                    MainActivity.PATH_TO_FRAG?.let { path ->
-                        val art = getAlbumArt(path)
-                        binding.albumArt.load(art ?: R.drawable.logo) {
-                            crossfade(true)
-                        }
-                        binding.name.text = MainActivity.SONG_NAME_TO_FRAG
-                        binding.artist.text = MainActivity.ARTIST_TO_FRAG
-                    }
+                    viewModel.saveAndBroadcastNextSong(currentSong)
                 }
             }
         }
@@ -102,15 +77,27 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         binding.playPauseBtn.setOnClickListener {
             musicService?.let { service ->
                 service.playPauseBtnClicked()
-                if (service.isPlaying()) {
-                    binding.playPauseBtn.setImageResource(R.drawable.ic_pause)
-                } else {
-                    binding.playPauseBtn.setImageResource(R.drawable.ic_play)
+                viewModel.updatePlaybackState(service.isPlaying())
+            }
+        }
+    }
+
+    private fun observeViewModel() {
+        viewModel.currentPlayingSong.observe(viewLifecycleOwner) { song ->
+            song?.let {
+                val art = getAlbumArt(it.path)
+                binding.albumArt.load(art ?: R.drawable.logo) {
+                    crossfade(true)
                 }
+                binding.name.text = it.title
+                binding.artist.text = it.artist
             }
         }
 
-        return binding.root
+        viewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
+            val icon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            binding.playPauseBtn.setImageResource(icon)
+        }
     }
 
     override fun onResume() {
@@ -136,7 +123,8 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         handler.removeCallbacks(progressUpdater)
     }
 
-    private fun getAlbumArt(uri: String): ByteArray? {
+    private fun getAlbumArt(uri: String?): ByteArray? {
+        if (uri.isNullOrEmpty()) return null
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(uri)
@@ -154,11 +142,7 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         musicService = binder?.service
 
         musicService?.let {
-            if (it.isPlaying()) {
-                binding.playPauseBtn.setImageResource(R.drawable.ic_pause)
-            } else {
-                binding.playPauseBtn.setImageResource(R.drawable.ic_play)
-            }
+            viewModel.updatePlaybackState(it.isPlaying())
         }
     }
 
@@ -169,12 +153,5 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    companion object {
-        const val MUSIC_LAST_PLAYED = "LAST_PLAYED"
-        const val MUSIC_FILE = "STORED_MUSIC"
-        const val ARTIST_NAME = "ARTIST NAME"
-        const val SONG_NAME = "SONG NAME"
     }
 }

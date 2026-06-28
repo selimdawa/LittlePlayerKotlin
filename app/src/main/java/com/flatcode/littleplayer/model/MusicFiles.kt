@@ -1,10 +1,25 @@
 package com.flatcode.littleplayer.model
 
+import android.net.Uri
+import androidx.core.net.toUri
+
 data class MusicFiles(
-    var path: String? = null,
-    var title: String? = null,
-    var artist: String? = null,
-    var album: String? = null,
-    var duration: String? = null,
-    var id: String? = null
-)
+    val path: String? = null,
+    val title: String? = null,
+    val artist: String? = null,
+    val album: String? = null,
+    val duration: String? = null,
+    val id: String? = null
+) {
+    val safeTitle: String
+        get() = title ?: "Unknown Track"
+
+    val safeArtist: String
+        get() = artist ?: "Unknown Artist"
+
+    val safeUri: Uri?
+        get() = path?.toUri()
+
+    val durationLong: Long
+        get() = duration?.toLongOrNull() ?: 0L
+}

@@ -6,12 +6,12 @@ import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
@@ -24,15 +24,13 @@ import com.google.android.material.tabs.TabLayoutMediator
 class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var viewModel: MusicViewModel
+    private val viewModel: MusicViewModel by viewModels()
     private val MY_SORT = "SortOrder"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        viewModel = ViewModelProvider(this)[MusicViewModel::class.java]
 
         permission()
     }

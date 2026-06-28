@@ -13,10 +13,13 @@ import com.flatcode.littleplayer.databinding.ActivitySplashBinding
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySplashBinding
-    var context: Context = this@SplashActivity
+    private val context: Context = this@SplashActivity
 
-    var time_per_second = 2
-    var time_final = time_per_millis * time_per_second
+    private val timePerSecond = 2
+    private val timeFinal = TIME_PER_MILLIS * timePerSecond
+    private val handler = Handler(Looper.getMainLooper())
+
+    private val launchRunnable = Runnable { launch() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         THEME.setThemeOfApp(context)
@@ -24,7 +27,7 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        Handler(Looper.getMainLooper()).postDelayed({ launch() }, time_final.toLong())
+        handler.postDelayed(launchRunnable, timeFinal.toLong())
     }
 
     private fun launch() {
@@ -32,7 +35,12 @@ class SplashActivity : AppCompatActivity() {
         finish()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(launchRunnable)
+    }
+
     companion object {
-        const val time_per_millis = 1000
+        const val TIME_PER_MILLIS = 1000
     }
 }

@@ -15,42 +15,56 @@ import android.os.Looper
 import android.view.WindowManager
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
 import com.flatcode.littleplayer.adapter.MusicAdapter
-import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
-import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
-import java.util.ArrayList
-import java.util.Random
+import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 
 class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     private lateinit var binding: ActivityPlayerBinding
     private val context: Context = this@PlayerActivity
+    private val viewModel: PlayerViewModel by viewModels()
 
-    private var position = -1
     private val handler = Handler(Looper.getMainLooper())
-    private var playThread: Thread? = null
-    private var prevThread: Thread? = null
-    private var nextThread: Thread? = null
     var musicService: MusicService? = null
+
+    private val progressUpdater = object : Runnable {
+        override fun run() {
+            musicService?.let { service ->
+                val mCurrentPosition = service.getCurrentPosition() / 1000
+                binding.seekBar.progress = mCurrentPosition
+                binding.durationPlayed.text = formattedTime(mCurrentPosition)
+            }
+            handler.postDelayed(this, 1000)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setFullScreen()
         binding = ActivityPlayerBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        setContentView(binding.root)
 
         supportActionBar?.hide()
-        getIntentMethod()
 
+        getIntentMethod()
+        setupListeners()
+        observeViewModel()
+
+        handler.post(progressUpdater)
+    }
+
+    private fun setupListeners() {
         binding.back.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (musicService != null && fromUser) {
@@ -62,36 +76,114 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        this.runOnUiThread(object : Runnable {
-            override fun run() {
-                musicService?.let { service ->
-                    val mCurrentPosition = service.getCurrentPosition() / 1000
-                    binding.seekBar.progress = mCurrentPosition
-                    binding.durationPlayed.text = formattedTime(mCurrentPosition)
-                }
-                handler.postDelayed(this, 1000)
-            }
-        })
+        binding.shuffle.setOnClickListener { viewModel.toggleShuffle() }
+        binding.repeat.setOnClickListener { viewModel.toggleRepeat() }
 
-        binding.shuffle.setOnClickListener {
-            if (MainActivity.shuffleBoolean) {
-                MainActivity.shuffleBoolean = false
-                binding.shuffle.setImageResource(R.drawable.ic_shuffle_off)
-            } else {
-                MainActivity.shuffleBoolean = true
-                binding.shuffle.setImageResource(R.drawable.ic_shuffle_on)
-            }
+        binding.prev.setOnClickListener { prevBtn() }
+        binding.next.setOnClickListener { nextBtn() }
+        binding.playPauseBtn.setOnClickListener { playPauseBtn() }
+    }
+
+    private fun observeViewModel() {
+        viewModel.isShuffle.observe(this) { isShuffle ->
+            val icon = if (isShuffle) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_off
+            binding.shuffle.setImageResource(icon)
         }
 
-        binding.repeat.setOnClickListener {
-            if (MainActivity.repeatBoolean) {
-                MainActivity.repeatBoolean = false
-                binding.repeat.setImageResource(R.drawable.ic_repeat_off)
-            } else {
-                MainActivity.repeatBoolean = true
-                binding.repeat.setImageResource(R.drawable.ic_repeat_on)
+        viewModel.isRepeat.observe(this) { isRepeat ->
+            val icon = if (isRepeat) R.drawable.ic_repeat_on else R.drawable.ic_repeat_off
+            binding.repeat.setImageResource(icon)
+        }
+
+        viewModel.currentSong.observe(this) { song ->
+            song?.let {
+                binding.songName.text = it.title
+                binding.songArtist.text = it.artist
+                metaData(viewModel.uri)
             }
         }
+    }
+
+    private fun getIntentMethod() {
+        val position = intent.getIntExtra(DATA.POSITION, -1)
+        val sender = intent.getStringExtra(DATA.SENDER)
+
+        viewModel.listSongs = if (sender != null && sender == DATA.ALBUM_DETAILS) {
+            AlbumDetailsAdapter.albumFiles ?: ArrayList()
+        } else {
+            MusicAdapter.mFiles ?: ArrayList()
+        }
+
+        if (viewModel.listSongs.isNotEmpty() && position != -1) {
+            binding.playPause.setImageResource(R.drawable.ic_pause)
+            viewModel.updatePositionAndSong(position)
+        }
+
+        val intentService = Intent(context, MusicService::class.java).apply {
+            putExtra(DATA.SERVICE_POSITION, viewModel.position)
+        }
+        startService(intentService)
+    }
+
+    override fun prevBtn() {
+        musicService?.let { service ->
+            service.stop()
+            service.release()
+
+            val prevPos = viewModel.calculatePrevPosition()
+            viewModel.updatePositionAndSong(prevPos)
+
+            service.createMediaPlayer(viewModel.position)
+            service.start()
+            binding.seekBar.max = service.getDuration() / 1000
+
+            resetProgressLoop()
+            service.onCompleted()
+
+            binding.playPause.setBackgroundResource(R.drawable.ic_pause)
+            binding.playPause.setImageResource(R.drawable.ic_pause)
+        }
+    }
+
+    override fun nextBtn() {
+        musicService?.let { service ->
+            service.stop()
+            service.release()
+
+            val nextPos = viewModel.calculateNextPosition()
+            viewModel.updatePositionAndSong(nextPos)
+
+            service.createMediaPlayer(viewModel.position)
+            service.start()
+            binding.seekBar.max = service.getDuration() / 1000
+
+            resetProgressLoop()
+            service.onCompleted()
+
+            binding.playPause.setBackgroundResource(R.drawable.ic_pause)
+            binding.playPause.setImageResource(R.drawable.ic_pause)
+        }
+    }
+
+    override fun playPauseBtn() {
+        musicService?.let { service ->
+            if (service.isPlaying()) {
+                binding.playPause.setBackgroundResource(R.drawable.ic_play)
+                binding.playPause.setImageResource(R.drawable.ic_play)
+                service.pause()
+            } else {
+                binding.playPause.setBackgroundResource(R.drawable.ic_pause)
+                binding.playPause.setImageResource(R.drawable.ic_pause)
+                service.start()
+            }
+            binding.seekBar.max = service.getDuration() / 1000
+            resetProgressLoop()
+        }
+    }
+
+    private fun resetProgressLoop() {
+        handler.removeCallbacks(progressUpdater)
+        handler.post(progressUpdater)
     }
 
     private fun setFullScreen() {
@@ -102,12 +194,9 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun onResume() {
+        super.onResume()
         val intent = Intent(context, MusicService::class.java)
         bindService(intent, this, BIND_AUTO_CREATE)
-        playThreadBtn()
-        nextThreadBtn()
-        prevThreadBtn()
-        super.onResume()
     }
 
     override fun onPause() {
@@ -115,185 +204,28 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         unbindService(this)
     }
 
-    private fun prevThreadBtn() {
-        prevThread = Thread {
-            binding.prev.setOnClickListener { prevBtn() }
-        }.apply { start() }
-    }
-
-    override fun prevBtn() {
-        musicService?.let { service ->
-            val playing = service.isPlaying()
-            service.stop()
-            service.release()
-
-            if (MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
-                position = getRandom(listSongs.size - 1)
-            } else if (!MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
-                position = if (position - 1 < 0) listSongs.size - 1 else position - 1
-            }
-
-            uri = Uri.parse(listSongs[position].path)
-            service.createMediaPlayer(position)
-            metaData(uri)
-
-            binding.songName.text = listSongs[position].title
-            binding.songArtist.text = listSongs[position].artist
-            binding.seekBar.max = service.getDuration() / 1000
-
-            this.runOnUiThread(object : Runnable {
-                override fun run() {
-                    musicService?.let {
-                        val currentPosition = it.getCurrentPosition() / 1000
-                        binding.seekBar.progress = currentPosition
-                    }
-                    handler.postDelayed(this, 1000)
-                }
-            })
-
-            service.onCompleted()
-            if (playing) {
-                binding.playPause.setBackgroundResource(R.drawable.ic_pause)
-                service.start()
-            } else {
-                binding.playPause.setBackgroundResource(R.drawable.ic_play)
-            }
-        }
-    }
-
-    private fun nextThreadBtn() {
-        nextThread = Thread {
-            binding.next.setOnClickListener { nextBtn() }
-        }.apply { start() }
-    }
-
-    override fun nextBtn() {
-        musicService?.let { service ->
-            val playing = service.isPlaying()
-            service.stop()
-            service.release()
-
-            if (MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
-                position = getRandom(listSongs.size - 1)
-            } else if (!MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
-                position = (position + 1) % listSongs.size
-            }
-
-            uri = Uri.parse(listSongs[position].path)
-            service.createMediaPlayer(position)
-            metaData(uri)
-
-            binding.songName.text = listSongs[position].title
-            binding.songArtist.text = listSongs[position].artist
-            binding.seekBar.max = service.getDuration() / 1000
-
-            this.runOnUiThread(object : Runnable {
-                override fun run() {
-                    musicService?.let {
-                        val currentPosition = it.getCurrentPosition() / 1000
-                        binding.seekBar.progress = currentPosition
-                    }
-                    handler.postDelayed(this, 1000)
-                }
-            })
-
-            service.onCompleted()
-            if (playing) {
-                binding.playPause.setBackgroundResource(R.drawable.ic_pause)
-                service.start()
-            } else {
-                binding.playPause.setBackgroundResource(R.drawable.ic_play)
-            }
-        }
-    }
-
-    private fun getRandom(i: Int): Int {
-        val random = Random()
-        return if (i > 0) random.nextInt(i + 1) else 0
-    }
-
-    private fun playThreadBtn() {
-        playThread = Thread {
-            binding.playPauseBtn.setOnClickListener { playPauseBtn() }
-        }.apply { start() }
-    }
-
-    override fun playPauseBtn() {
-        musicService?.let { service ->
-            if (service.isPlaying()) {
-                binding.playPause.setImageResource(R.drawable.ic_play)
-                service.pause()
-                binding.seekBar.max = service.getDuration() / 1000
-                this.runOnUiThread(object : Runnable {
-                    override fun run() {
-                        musicService?.let {
-                            val currentPosition = it.getCurrentPosition() / 1000
-                            binding.seekBar.progress = currentPosition
-                        }
-                        handler.postDelayed(this, 1000)
-                    }
-                })
-            } else {
-                binding.playPause.setImageResource(R.drawable.ic_pause)
-                service.start()
-                binding.seekBar.max = service.getDuration() / 1000
-                this.runOnUiThread(object : Runnable {
-                    override fun run() {
-                        musicService?.let {
-                            val currentPosition = it.getCurrentPosition() / 1000
-                            binding.seekBar.progress = currentPosition
-                        }
-                        handler.postDelayed(this, 1000)
-                    }
-                })
-            }
-        }
-    }
-
     private fun formattedTime(currentPosition: Int): String {
         val seconds = (currentPosition % 60).toString()
         val minutes = (currentPosition / 60).toString()
-        val totalOut = "$minutes:$seconds"
-        val totalNew = "$minutes:0$seconds"
-        return if (seconds.length == 1) totalNew else totalOut
-    }
-
-    private fun getIntentMethod() {
-        position = intent.getIntExtra(DATA.POSITION, -1)
-        val sender = intent.getStringExtra(DATA.SENDER)
-
-        listSongs = if (sender != null && sender == DATA.ALBUM_DETAILS) {
-            AlbumDetailsAdapter.albumFiles ?: ArrayList()
-        } else {
-            MusicAdapter.mFiles ?: ArrayList()
-        }
-
-        if (listSongs.isNotEmpty() && position != -1) {
-            binding.playPause.setImageResource(R.drawable.ic_pause)
-            uri = Uri.parse(listSongs[position].path)
-        }
-
-        val intentService = Intent(context, MusicService::class.java).apply {
-            putExtra(DATA.SERVICE_POSITION, position)
-        }
-        startService(intentService)
+        return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
     }
 
     private fun metaData(uri: Uri?) {
         if (uri == null) return
         val retriever = MediaMetadataRetriever()
         try {
-            retriever.setDataSource(uri.toString())
-            val durationTotal = (listSongs[position].duration?.toInt() ?: 0) / 1000
-            binding.durationTotal.text = formattedTime(durationTotal)
+            retriever.setDataSource(context, uri)
+            val durationTotal =
+                (viewModel.listSongs[viewModel.position].duration?.toLong() ?: 0L) / 1000
+            binding.durationTotal.text = formattedTime(durationTotal.toInt())
 
             val art = retriever.embeddedPicture
             if (art != null) {
                 val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
-                VOID.coilBitmap(context, bitmap, binding.image)
+                VOID.coilBitmap(bitmap, binding.image)
                 VOID.coilBlurBitmap(context, bitmap, binding.imageBlur, 10)
             } else {
-                VOID.coil(context, null, binding.image)
+                VOID.coil(null, binding.image)
                 binding.songName.setTextColor(Color.WHITE)
                 binding.songArtist.setTextColor(Color.DKGRAY)
             }
@@ -307,13 +239,19 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         val myBinder = service as? MusicService.MyBinder
         musicService = myBinder?.service
         musicService?.setCallBack(this)
-        Toast.makeText(context, "Connected$musicService", Toast.LENGTH_SHORT).show()
+        musicService?.musicFiles = viewModel.listSongs
+
+        Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
 
         musicService?.let {
+            if (!it.isPlaying()) {
+                it.createMediaPlayer(viewModel.position)
+                it.start()
+            }
             binding.seekBar.max = it.getDuration() / 1000
-            metaData(uri)
-            binding.songName.text = listSongs[position].title
-            binding.songArtist.text = listSongs[position].artist
+            metaData(viewModel.uri)
+            binding.songName.text = viewModel.listSongs[viewModel.position].title
+            binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
             it.onCompleted()
         }
     }
@@ -322,8 +260,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         musicService = null
     }
 
-    companion object {
-        var listSongs = ArrayList<MusicFiles>()
-        var uri: Uri? = null
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(progressUpdater)
     }
 }

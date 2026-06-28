@@ -13,7 +13,6 @@ class ApplicationClass : Application() {
     }
 
     private fun createNotificationChannel() {
-        // Modern version checks look much cleaner in Kotlin
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel1 = NotificationChannel(
                 CHANNEL_ID_1,
@@ -37,7 +36,6 @@ class ApplicationClass : Application() {
         }
     }
 
-    // Companion object holds your static constants
     companion object {
         const val CHANNEL_ID_1 = "channel1"
         const val CHANNEL_ID_2 = "channel2"

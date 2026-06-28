@@ -8,15 +8,17 @@ import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
-import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
+import androidx.core.net.toUri
+import androidx.core.content.edit
 
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     private val binder: IBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
+
     var musicFiles = ArrayList<MusicFiles>()
 
     var uri: Uri? = null
@@ -41,7 +43,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
-            val myPosition = it.getIntExtra(DATA.SERVICE_POSITION, -1)
+            val myPosition = it.getSerializableExtra(DATA.SERVICE_POSITION) as? Int ?: -1
             val actionName = it.getStringExtra(DATA.ACTION_NAME)
 
             if (myPosition != -1) {
@@ -60,17 +62,14 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     private fun playMedia(startPosition: Int) {
-        musicFiles = PlayerActivity.listSongs ?: ArrayList()
         position = startPosition
 
         mediaPlayer?.let {
             it.stop()
             it.release()
-            if (musicFiles.isNotEmpty()) {
-                createMediaPlayer(position)
-                mediaPlayer?.start()
-            }
-        } ?: run {
+        }
+
+        if (musicFiles.isNotEmpty() && position in musicFiles.indices) {
             createMediaPlayer(position)
             mediaPlayer?.start()
         }
@@ -105,15 +104,17 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     fun createMediaPlayer(positionInner: Int) {
-        position = positionInner
-        val path = musicFiles[position].path
-        uri = Uri.parse(path)
+        if (musicFiles.isEmpty() || positionInner !in musicFiles.indices) return
 
-        val editor = getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit()
-        editor.putString(MUSIC_FILE, uri.toString())
-        editor.putString(ARTIST_NAME, musicFiles[position].artist)
-        editor.putString(SONG_NAME, musicFiles[position].title)
-        editor.apply()
+        position = positionInner
+        val path = musicFiles[position].path ?: return
+        uri = path.toUri()
+
+        getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit {
+            putString(MUSIC_FILE, uri.toString())
+            putString(ARTIST_NAME, musicFiles[position].artist)
+            putString(SONG_NAME, musicFiles[position].title)
+        }
 
         mediaPlayer = MediaPlayer.create(baseContext, uri)
     }
@@ -128,7 +129,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     override fun onCompletion(mp: MediaPlayer?) {
         actionPlaying?.nextBtn()
-        if (mediaPlayer != null) {
+        if (mediaPlayer != null && musicFiles.isNotEmpty() && position in musicFiles.indices) {
             createMediaPlayer(position)
             mediaPlayer?.start()
             onCompleted()
@@ -142,7 +143,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     private fun getAlbumArt(uri: String): ByteArray? {
         val retriever = MediaMetadataRetriever()
         return try {
-            retriever.setDataSource(uri)
+            retriever.setDataSource(baseContext, uri.toUri())
             val art = retriever.embeddedPicture
             retriever.release()
             art

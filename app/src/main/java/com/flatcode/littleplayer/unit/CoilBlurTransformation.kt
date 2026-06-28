@@ -8,6 +8,7 @@ import android.renderscript.RenderScript
 import android.renderscript.ScriptIntrinsicBlur
 import coil.size.Size
 import coil.transform.Transformation
+import androidx.core.graphics.createBitmap
 
 class CoilBlurTransformation(
     private val context: Context,
@@ -17,7 +18,8 @@ class CoilBlurTransformation(
     override val cacheKey: String = "CoilBlurTransformation-$radius"
 
     override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-        val output = Bitmap.createBitmap(input.width, input.height, input.config ?: Bitmap.Config.ARGB_8888)
+        val output =
+            createBitmap(input.width, input.height, input.config ?: Bitmap.Config.ARGB_8888)
         val rs = RenderScript.create(context)
         val blurScript = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
         val allIn = Allocation.createFromBitmap(rs, input)

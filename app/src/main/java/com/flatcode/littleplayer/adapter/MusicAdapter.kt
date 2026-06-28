@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.R
@@ -97,8 +98,25 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
     }
 
     fun updateList(musicFilesArrayList: ArrayList<MusicFiles>) {
-        mFiles = ArrayList(musicFilesArrayList)
-        notifyDataSetChanged()
+        val oldList = mFiles ?: ArrayList()
+        val newList = ArrayList(musicFilesArrayList)
+
+        val diffCallback = object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = oldList.size
+            override fun getNewListSize(): Int = newList.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldList[oldItemPosition].id == newList[newItemPosition].id
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldList[oldItemPosition] == newList[newItemPosition]
+            }
+        }
+
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        mFiles = newList
+        diffResult.dispatchUpdatesTo(this)
     }
 
     companion object {
