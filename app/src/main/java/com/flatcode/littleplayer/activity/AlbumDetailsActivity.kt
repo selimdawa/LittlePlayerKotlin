@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
@@ -12,6 +13,9 @@ import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -41,13 +45,17 @@ class AlbumDetailsActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.albumSongs.observe(this) { songs ->
-            if (!songs.isNullOrEmpty() && songs.isNotEmpty()) {
+            if (!songs.isNullOrEmpty()) {
                 val firstSong = songs[0]
                 val firstSongId = firstSong.id
                 val songPath = firstSong.path
 
-                VOID.coilAlbumImage(songPath, binding.image)
-                VOID.coilImageBlur(context, firstSongId, binding.imageBlur, 50)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        VOID.coilAlbumImage(songPath, binding.image)
+                        VOID.coilImageBlur(context, firstSongId, binding.imageBlur, 50)
+                    }
+                }
 
                 adapter = AlbumDetailsAdapter(context, songs)
                 binding.recyclerView.adapter = adapter

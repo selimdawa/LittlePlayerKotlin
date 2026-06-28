@@ -3,4 +3,5 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.daggerHiltAndroid) apply false
     alias(libs.plugins.ksp.processor) apply false
+    alias(libs.plugins.navigation.safeargs) apply false
 }

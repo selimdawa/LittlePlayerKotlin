@@ -18,6 +18,12 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @UnstableApi
 @AndroidEntryPoint
@@ -33,6 +39,8 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     private var actionPlaying: ActionPlaying? = null
     private var mediaSession: MediaSession? = null
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
@@ -62,10 +70,9 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             val myPosition = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                it.getSerializableExtra(DATA.SERVICE_POSITION, Integer::class.java) as? Int ?: -1
+                it.getSerializableExtra(DATA.SERVICE_POSITION, Int::class.java) ?: -1
             } else {
-                @Suppress("DEPRECATION")
-                it.getSerializableExtra(DATA.SERVICE_POSITION) as? Int ?: -1
+                it.getIntExtra(DATA.SERVICE_POSITION, -1)
             }
             val actionName = it.getStringExtra(DATA.ACTION_NAME)
 
@@ -133,10 +140,19 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         val path = musicFiles[position].path ?: return
         uri = path.toUri()
 
-        getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit {
-            putString(MUSIC_FILE, uri.toString())
-            putString(ARTIST_NAME, musicFiles[position].artist)
-            putString(SONG_NAME, musicFiles[position].title)
+        mediaPlayer?.let {
+            if (it.isPlaying) {
+                it.stop()
+            }
+            it.release()
+        }
+
+        serviceScope.launch(Dispatchers.IO) {
+            getSharedPreferences(MUSIC_LAST_PLAYED, MODE_PRIVATE).edit {
+                putString(MUSIC_FILE, uri.toString())
+                putString(ARTIST_NAME, musicFiles[position].artist)
+                putString(SONG_NAME, musicFiles[position].title)
+            }
         }
 
         mediaPlayer = MediaPlayer.create(baseContext, uri)
@@ -164,16 +180,22 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     private fun getAlbumArt(uri: String): ByteArray? {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(baseContext, uri.toUri())
-            val art = retriever.embeddedPicture
-            retriever.release()
-            art
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
+        var art: ByteArray? = null
+        serviceScope.launch {
+            art = withContext(Dispatchers.IO) {
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(baseContext, uri.toUri())
+                    val embeddedPicture = retriever.embeddedPicture
+                    retriever.release()
+                    embeddedPicture
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
         }
+        return art
     }
 
     fun nextBtnClicked() {
@@ -193,6 +215,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaSession?.release()
+        serviceScope.cancel()
     }
 
     companion object {

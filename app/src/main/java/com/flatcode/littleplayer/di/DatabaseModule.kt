@@ -25,7 +25,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "little_player_db"
-        ).fallbackToDestructiveMigration().build()
+        ).fallbackToDestructiveMigration(dropAllTables = true).build()
     }
 
     @Provides

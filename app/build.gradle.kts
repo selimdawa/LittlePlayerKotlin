@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.daggerHiltAndroid)
     alias(libs.plugins.ksp.processor)
+    alias(libs.plugins.navigation.safeargs)
 }
 
 android {
@@ -62,6 +63,10 @@ dependencies {
     //Coroutines
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
+    //Navigation
+    //implementation(libs.navigation.fragment.ktx)
+    //implementation(libs.navigation.ui.ktx)
+    //implementation(libs.hilt.navigation.fragment)
     //Other's
     //Needed #1
     implementation(libs.androidx.media)

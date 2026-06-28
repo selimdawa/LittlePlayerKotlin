@@ -4,9 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import java.util.ArrayList
 
@@ -20,16 +24,21 @@ class AlbumDetailsViewModel @Inject constructor(
     val albumSongs: LiveData<ArrayList<MusicFiles>> get() = _albumSongs
 
     fun filterSongsByAlbum(albumName: String?) {
-        val filteredList = ArrayList<MusicFiles>()
-        val allSongs = repository.getAllAudio()
+        viewModelScope.launch {
+            val filteredList = withContext(Dispatchers.IO) {
+                val list = ArrayList<MusicFiles>()
+                val allSongs = repository.getAllAudio() ?: emptyList()
 
-        if (albumName != null) {
-            for (song in allSongs) {
-                if (albumName == song.album) {
-                    filteredList.add(song)
+                if (albumName != null) {
+                    for (song in allSongs) {
+                        if (albumName == song.album) {
+                            list.add(song)
+                        }
+                    }
                 }
+                list
             }
+            _albumSongs.value = filteredList
         }
-        _albumSongs.value = filteredList
     }
 }

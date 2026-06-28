@@ -6,17 +6,15 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.view.WindowManager
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
@@ -28,6 +26,13 @@ import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @AndroidEntryPoint
@@ -37,19 +42,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     private val context: Context = this@PlayerActivity
     private val viewModel: PlayerViewModel by viewModels()
 
-    private val handler = Handler(Looper.getMainLooper())
+    private var progressJob: Job? = null
     var musicService: MusicService? = null
-
-    private val progressUpdater = object : Runnable {
-        override fun run() {
-            musicService?.let { service ->
-                val mCurrentPosition = service.getCurrentPosition() / 1000
-                binding.seekBar.progress = mCurrentPosition
-                binding.durationPlayed.text = formattedTime(mCurrentPosition)
-            }
-            handler.postDelayed(this, 1000)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,8 +56,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         getIntentMethod()
         setupListeners()
         observeViewModel()
-
-        handler.post(progressUpdater)
     }
 
     private fun setupListeners() {
@@ -121,6 +113,12 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         if (viewModel.listSongs.isNotEmpty() && position != -1) {
             binding.playPause.setImageResource(R.drawable.ic_pause)
             viewModel.updatePositionAndSong(position)
+
+            musicService?.let { service ->
+                service.musicFiles = viewModel.listSongs
+                service.createMediaPlayer(position)
+                service.start()
+            }
         }
 
         val intentService = Intent(context, MusicService::class.java).apply {
@@ -131,15 +129,16 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     override fun prevBtn() {
         musicService?.let { service ->
-            service.stop()
-            service.release()
-
             val prevPos = viewModel.calculatePrevPosition()
             viewModel.updatePositionAndSong(prevPos)
 
             service.createMediaPlayer(viewModel.position)
             service.start()
+
             binding.seekBar.max = service.getDuration() / 1000
+            binding.songName.text = viewModel.listSongs[viewModel.position].title
+            binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
+            metaData(viewModel.uri)
 
             resetProgressLoop()
             service.onCompleted()
@@ -151,15 +150,16 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     override fun nextBtn() {
         musicService?.let { service ->
-            service.stop()
-            service.release()
-
             val nextPos = viewModel.calculateNextPosition()
             viewModel.updatePositionAndSong(nextPos)
 
             service.createMediaPlayer(viewModel.position)
             service.start()
+
             binding.seekBar.max = service.getDuration() / 1000
+            binding.songName.text = viewModel.listSongs[viewModel.position].title
+            binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
+            metaData(viewModel.uri)
 
             resetProgressLoop()
             service.onCompleted()
@@ -175,19 +175,38 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 binding.playPause.setBackgroundResource(R.drawable.ic_play)
                 binding.playPause.setImageResource(R.drawable.ic_play)
                 service.pause()
+                stopProgressUpdater()
             } else {
                 binding.playPause.setBackgroundResource(R.drawable.ic_pause)
                 binding.playPause.setImageResource(R.drawable.ic_pause)
                 service.start()
+                startProgressUpdater()
             }
             binding.seekBar.max = service.getDuration() / 1000
-            resetProgressLoop()
         }
     }
 
     private fun resetProgressLoop() {
-        handler.removeCallbacks(progressUpdater)
-        handler.post(progressUpdater)
+        stopProgressUpdater()
+        startProgressUpdater()
+    }
+
+    private fun startProgressUpdater() {
+        progressJob = lifecycleScope.launch {
+            while (isActive) {
+                musicService?.let { service ->
+                    val mCurrentPosition = service.getCurrentPosition() / 1000
+                    binding.seekBar.progress = mCurrentPosition
+                    binding.durationPlayed.text = formattedTime(mCurrentPosition)
+                }
+                delay(1000.milliseconds)
+            }
+        }
+    }
+
+    private fun stopProgressUpdater() {
+        progressJob?.cancel()
+        progressJob = null
     }
 
     private fun setFullScreen() {
@@ -201,11 +220,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         super.onResume()
         val intent = Intent(context, MusicService::class.java)
         bindService(intent, this, BIND_AUTO_CREATE)
+        startProgressUpdater()
     }
 
     override fun onPause() {
         super.onPause()
         unbindService(this)
+        stopProgressUpdater()
     }
 
     private fun formattedTime(currentPosition: Int): String {
@@ -216,14 +237,22 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     private fun metaData(uri: Uri?) {
         if (uri == null) return
-        val retriever = MediaMetadataRetriever()
-        try {
-            retriever.setDataSource(context, uri)
+        lifecycleScope.launch {
+            val retriever = android.media.MediaMetadataRetriever()
+            val art = withContext(Dispatchers.IO) {
+                try {
+                    retriever.setDataSource(context, uri)
+                    retriever.embeddedPicture
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+
             val durationTotal =
                 (viewModel.listSongs[viewModel.position].duration?.toLong() ?: 0L) / 1000
             binding.durationTotal.text = formattedTime(durationTotal.toInt())
 
-            val art = retriever.embeddedPicture
             if (art != null) {
                 val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
                 VOID.coilBitmap(bitmap, binding.image)
@@ -233,30 +262,36 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 binding.songName.setTextColor(Color.WHITE)
                 binding.songArtist.setTextColor(Color.DKGRAY)
             }
-            retriever.release()
-        } catch (e: Exception) {
-            e.printStackTrace()
+
+            try {
+                retriever.release()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         val myBinder = service as? MusicService.MyBinder
         musicService = myBinder?.service
-        musicService?.setCallBack(this)
-        musicService?.musicFiles = viewModel.listSongs
 
-        Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
+        musicService?.let { serviceInstance ->
+            serviceInstance.setCallBack(this)
+            serviceInstance.musicFiles = viewModel.listSongs
 
-        musicService?.let {
-            if (!it.isPlaying()) {
-                it.createMediaPlayer(viewModel.position)
-                it.start()
+            Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
+
+            if (serviceInstance.position != viewModel.position) {
+                serviceInstance.createMediaPlayer(viewModel.position)
+                serviceInstance.start()
             }
-            binding.seekBar.max = it.getDuration() / 1000
+
+            binding.seekBar.max = serviceInstance.getDuration() / 1000
             metaData(viewModel.uri)
+
             binding.songName.text = viewModel.listSongs[viewModel.position].title
             binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
-            it.onCompleted()
+            serviceInstance.onCompleted()
         }
     }
 
@@ -266,6 +301,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     override fun onDestroy() {
         super.onDestroy()
-        handler.removeCallbacks(progressUpdater)
+        stopProgressUpdater()
     }
 }

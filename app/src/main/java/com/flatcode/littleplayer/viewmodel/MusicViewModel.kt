@@ -4,9 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,20 +29,26 @@ class MusicViewModel @Inject constructor(
     val filteredMusicFiles: LiveData<List<MusicFiles>> get() = _filteredMusicFiles
 
     fun loadAudioData() {
-        val allAudio = repository.getAllAudio()
-        _musicFiles.value = allAudio
-        _filteredMusicFiles.value = allAudio
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val allAudio = repository.getAllAudio() ?: emptyList()
+                val uniqueAlbums = ArrayList<MusicFiles>()
+                val duplicates = HashSet<String>()
 
-        val uniqueAlbums = ArrayList<MusicFiles>()
-        val duplicates = HashSet<String>()
-        for (song in allAudio) {
-            val albumName = song.album ?: "Unknown"
-            if (!duplicates.contains(albumName)) {
-                uniqueAlbums.add(song)
-                duplicates.add(albumName)
+                for (song in allAudio) {
+                    val albumName = song.album ?: "Unknown"
+                    if (!duplicates.contains(albumName)) {
+                        uniqueAlbums.add(song)
+                        duplicates.add(albumName)
+                    }
+                }
+                Pair(allAudio, uniqueAlbums)
             }
+
+            _musicFiles.value = result.first
+            _filteredMusicFiles.value = result.first
+            _albumFiles.value = result.second
         }
-        _albumFiles.value = uniqueAlbums
     }
 
     fun filterSongs(query: String) {
@@ -57,6 +67,8 @@ class MusicViewModel @Inject constructor(
     }
 
     fun updateSortOrder(sortType: String) {
-        repository.saveSortOrder(sortType)
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.saveSortOrder(sortType)
+        }
     }
 }

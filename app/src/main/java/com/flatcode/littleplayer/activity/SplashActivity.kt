@@ -2,26 +2,24 @@ package com.flatcode.littleplayer.activity
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.flatcode.littleplayer.unit.THEME
-import com.flatcode.littleplayer.unit.CLASS
-import com.flatcode.littleplayer.unit.VOID
+import androidx.lifecycle.lifecycleScope
 import com.flatcode.littleplayer.databinding.ActivitySplashBinding
+import com.flatcode.littleplayer.unit.CLASS
+import com.flatcode.littleplayer.unit.THEME
+import com.flatcode.littleplayer.unit.VOID
+import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySplashBinding
     private val context: Context = this@SplashActivity
-
-    private val timePerSecond = 2
-    private val timeFinal = TIME_PER_MILLIS * timePerSecond
-    private val handler = Handler(Looper.getMainLooper())
-
-    private val launchRunnable = Runnable { launch() }
+    private val viewModel: MusicViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         THEME.setThemeOfApp(context)
@@ -29,20 +27,12 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        handler.postDelayed(launchRunnable, timeFinal.toLong())
-    }
+        viewModel.loadAudioData()
 
-    private fun launch() {
-        VOID.intent1(context, CLASS.MAIN)
-        finish()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        handler.removeCallbacks(launchRunnable)
-    }
-
-    companion object {
-        const val TIME_PER_MILLIS = 1000
+        lifecycleScope.launch {
+            delay(2000)
+            VOID.intent1(context, CLASS.MAIN)
+            finish()
+        }
     }
 }

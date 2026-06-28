@@ -6,8 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.flatcode.littleplayer.model.MusicFiles
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import java.util.Random
+import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor() : ViewModel() {
@@ -48,9 +48,11 @@ class PlayerViewModel @Inject constructor() : ViewModel() {
             true if _isRepeat.value == false -> {
                 getRandom(listSongs.size - 1)
             }
+
             false if _isRepeat.value == false -> {
                 (position + 1) % listSongs.size
             }
+
             else -> {
                 position
             }

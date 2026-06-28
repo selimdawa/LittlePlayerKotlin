@@ -6,14 +6,13 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import coil.load
 import com.flatcode.littleplayer.R
@@ -22,6 +21,13 @@ import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @AndroidEntryPoint
@@ -31,25 +37,9 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
     private val binding get() = _binding!!
 
     private var musicService: MusicService? = null
-    private val handler = Handler(Looper.getMainLooper())
+    private var progressJob: Job? = null
 
     private val viewModel: NowPlayerViewModel by activityViewModels()
-
-    private val progressUpdater = object : Runnable {
-        override fun run() {
-            musicService?.let { service ->
-                if (service.isPlaying()) {
-                    val duration = service.getDuration()
-                    if (duration > 0) {
-                        val currentPosition = service.getCurrentPosition()
-                        val progress = (currentPosition.toLong() * 100 / duration).toInt()
-                        binding.miniProgressBar.progress = progress
-                    }
-                }
-            }
-            handler.postDelayed(this, 1000)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -89,9 +79,11 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.observe(viewLifecycleOwner) { song ->
             song?.let {
-                val art = getAlbumArt(it.path)
-                binding.albumArt.load(art ?: R.drawable.logo) {
-                    crossfade(true)
+                lifecycleScope.launch {
+                    val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
+                    binding.albumArt.load(art ?: R.drawable.logo) {
+                        crossfade(true)
+                    }
                 }
                 binding.name.text = it.title
                 binding.artist.text = it.artist
@@ -108,9 +100,11 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
         super.onResume()
         if (MainActivity.SHOW_MINI_PLAYER) {
             MainActivity.PATH_TO_FRAG?.let { path ->
-                val art = getAlbumArt(path)
-                binding.albumArt.load(art ?: R.drawable.logo) {
-                    crossfade(true)
+                lifecycleScope.launch {
+                    val art = withContext(Dispatchers.IO) { getAlbumArt(path) }
+                    binding.albumArt.load(art ?: R.drawable.logo) {
+                        crossfade(true)
+                    }
                 }
                 binding.name.text = MainActivity.SONG_NAME_TO_FRAG
                 binding.artist.text = MainActivity.ARTIST_TO_FRAG
@@ -119,12 +113,36 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection {
                 context?.bindService(intent, this, Context.BIND_AUTO_CREATE)
             }
         }
-        handler.post(progressUpdater)
+        startProgressUpdater()
     }
 
     override fun onPause() {
         super.onPause()
-        handler.removeCallbacks(progressUpdater)
+        stopProgressUpdater()
+    }
+
+    private fun startProgressUpdater() {
+        stopProgressUpdater()
+        progressJob = lifecycleScope.launch {
+            while (isActive) {
+                musicService?.let { service ->
+                    if (service.isPlaying()) {
+                        val duration = service.getDuration()
+                        if (duration > 0) {
+                            val currentPosition = service.getCurrentPosition()
+                            val progress = (currentPosition.toLong() * 100 / duration).toInt()
+                            binding.miniProgressBar.progress = progress
+                        }
+                    }
+                }
+                delay(1000.milliseconds)
+            }
+        }
+    }
+
+    private fun stopProgressUpdater() {
+        progressJob?.cancel()
+        progressJob = null
     }
 
     private fun getAlbumArt(uri: String?): ByteArray? {

@@ -8,6 +8,8 @@ import androidx.core.content.edit
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.DATA
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,7 +19,7 @@ class MusicRepository @Inject constructor(
 ) {
     private val mySortPref = "SortOrder"
 
-    fun getAllAudio(): ArrayList<MusicFiles> {
+    suspend fun getAllAudio(): ArrayList<MusicFiles> = withContext(Dispatchers.IO) {
         val preferences = context.getSharedPreferences(mySortPref, Context.MODE_PRIVATE)
         val sortOrder = preferences.getString(DATA.SORTING, DATA.SORT_BY_NAME)
         val tempAudioList = ArrayList<MusicFiles>()
@@ -53,10 +55,10 @@ class MusicRepository @Inject constructor(
                 tempAudioList.add(MusicFiles(path, title, artist, album, duration, id))
             }
         }
-        return tempAudioList
+        tempAudioList
     }
 
-    fun saveSortOrder(sortType: String) {
+    suspend fun saveSortOrder(sortType: String) = withContext(Dispatchers.IO) {
         context.getSharedPreferences(mySortPref, Context.MODE_PRIVATE).edit {
             putString(DATA.SORTING, sortType)
         }

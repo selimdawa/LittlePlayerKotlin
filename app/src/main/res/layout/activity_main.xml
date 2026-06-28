@@ -3,36 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="40sp"
+        android:layout_height="40dp"
+        android:layout_alignParentTop="true"
         android:background="@color/dark"
         app:tabIndicator="@drawable/tab_indicator"
         app:tabIndicatorColor="?trackColor"
         app:tabIndicatorFullWidth="true"
         app:tabIndicatorGravity="center"
-        app:tabIndicatorHeight="40sp"
+        app:tabIndicatorHeight="40dp"
         app:tabTextColor="@color/white" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_above="@+id/fragBottomPlayer"
-        android:layout_below="@+id/tabLayout"
-        android:layout_height="wrap_content" />
+        android:layout_below="@+id/tabLayout" />
 
     <FrameLayout
         android:id="@+id/fragBottomPlayer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/tabLayout"
         android:layout_alignParentBottom="true">
 
         <fragment
+            android:id="@+id/nowPlayerBottom"
             android:name="com.flatcode.littleplayer.fragment.NowPlayerFragmentBottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
