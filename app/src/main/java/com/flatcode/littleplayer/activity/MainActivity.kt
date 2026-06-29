@@ -16,7 +16,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
 import com.flatcode.littleplayer.fragment.AlbumsFragment
@@ -91,10 +93,14 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     private fun setupAppFlow() {
         viewModel.loadAudioData()
-        initViewPager()
+        initNavigationWithViewPager()
     }
 
-    private fun initViewPager() {
+    private fun initNavigationWithViewPager() {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.navHostFragment) as NavHostFragment
+        val navController = navHostFragment.navController
+
         val viewPagerAdapter = ViewPagerAdapter(this)
         viewPagerAdapter.addFragment(SongsFragment(), DATA.SONGS)
         viewPagerAdapter.addFragment(AlbumsFragment(), DATA.ALBUMS)
@@ -105,6 +111,18 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = viewPagerAdapter.getPageTitle(position)
         }.attach()
+
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                when (position) {
+                    0 -> navController.navigate(R.id.songsFragment)
+                    1 -> navController.navigate(R.id.albumsFragment)
+                    2 -> navController.navigate(R.id.artistsFragment)
+                    3 -> navController.navigate(R.id.foldersFragment)
+                }
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

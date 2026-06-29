@@ -4,8 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.FolderAdapter
 import com.flatcode.littleplayer.databinding.FragmentFoldersBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -33,7 +36,15 @@ class FoldersFragment : Fragment() {
         viewModel.folderFiles.observe(viewLifecycleOwner) { folderList ->
             if (!folderList.isNullOrEmpty()) {
                 val arrayListFolders = ArrayList(folderList)
-                adapter = FolderAdapter(requireContext(), arrayListFolders)
+
+                adapter = FolderAdapter(requireContext(), arrayListFolders) { folderName, folderPath ->
+                    val bundle = bundleOf(
+                        "FOLDER_NAME" to folderName,
+                        "FOLDER_PATH" to folderPath
+                    )
+                    findNavController().navigate(R.id.musicFolderActivity, bundle)
+                }
+
                 binding.recyclerView.adapter = adapter
             }
         }

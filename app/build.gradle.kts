@@ -66,15 +66,15 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     //Navigation
-    //implementation(libs.navigation.fragment.ktx)
-    //implementation(libs.navigation.ui.ktx)
-    //implementation(libs.hilt.navigation.fragment)
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
+    implementation(libs.hilt.navigation.fragment)
     //Media Player
     implementation(libs.androidx.media)
     implementation(libs.androidx.media3.exoplayer)
     //Other's
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.zhanghai.fastscroll)
+    implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable
     //Needed #6
     implementation(libs.bogerchan.niervisualizer)
     implementation(libs.google.flexbox)

@@ -8,7 +8,9 @@ import com.flatcode.littleplayer.databinding.ItemFolderBinding
 import com.flatcode.littleplayer.model.Folder
 
 class FolderAdapter(
-    private val context: Context, private val folderList: ArrayList<Folder>
+    private val context: Context,
+    private val folderList: ArrayList<Folder>,
+    private val onItemClick: (String, String) -> Unit
 ) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>() {
 
     class FolderViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
@@ -22,6 +24,10 @@ class FolderAdapter(
         val folder = folderList[position]
         holder.binding.folderName.text = folder.name
         holder.binding.folderDetails.text = "${folder.songsCount} songs | ${folder.path}"
+
+        holder.itemView.setOnClickListener {
+            onItemClick(folder.name, folder.path)
+        }
     }
 
     override fun getItemCount(): Int = folderList.size

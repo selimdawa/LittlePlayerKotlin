@@ -5,8 +5,6 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
@@ -18,7 +16,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -44,7 +41,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
         viewModel.uiState.observe(this) { state ->
             if (state.songs.isNotEmpty()) {
                 if (!state.imagePath.isNullOrEmpty()) {
-                    VOID.coilAlbumImage( state.imagePath, binding.image)
+                    VOID.coilAlbumImage(state.imagePath, binding.image)
                 } else if (!state.firstSongPath.isNullOrEmpty()) {
                     lifecycleScope.launch {
                         val bitmap = withContext(Dispatchers.IO) {

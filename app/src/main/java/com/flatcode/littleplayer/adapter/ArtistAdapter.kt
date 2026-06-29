@@ -12,7 +12,8 @@ import me.zhanghai.android.fastscroll.PopupTextProvider
 
 class ArtistAdapter(
     private val context: Context,
-    private val artistList: ArrayList<Artist>
+    private val artistList: ArrayList<Artist>,
+    private val onItemClick: (String) -> Unit
 ) : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>(), PopupTextProvider {
 
     class ArtistViewHolder(val binding: ItemArtistBinding) : RecyclerView.ViewHolder(binding.root)
@@ -26,6 +27,10 @@ class ArtistAdapter(
         val artist = artistList[position]
         holder.binding.artistName.text = artist.name
         holder.binding.songsCount.text = if (artist.songsCount == 1) "1 song" else "${artist.songsCount} songs"
+
+        holder.itemView.setOnClickListener {
+            onItemClick(artist.name)
+        }
     }
 
     override fun getItemCount(): Int = artistList.size

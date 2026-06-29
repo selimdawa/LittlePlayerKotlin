@@ -4,9 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -37,7 +40,12 @@ class ArtistsFragment : Fragment() {
         viewModel.artistFiles.observe(viewLifecycleOwner) { artistList ->
             if (!artistList.isNullOrEmpty()) {
                 val arrayListArtists = ArrayList(artistList)
-                adapter = ArtistAdapter(requireContext(), arrayListArtists)
+
+                adapter = ArtistAdapter(requireContext(), arrayListArtists) { artistName ->
+                    val bundle = bundleOf("ARTIST_NAME" to artistName)
+                    findNavController().navigate(R.id.musicArtistActivity, bundle)
+                }
+
                 binding.recyclerView.adapter = adapter
 
                 FastScrollerBuilder(binding.recyclerView)
