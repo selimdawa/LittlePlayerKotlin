@@ -83,21 +83,28 @@
                 app:layout_constraintStart_toEndOf="@+id/albumArt"
                 app:layout_constraintTop_toBottomOf="@+id/name" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
+            <FrameLayout
                 android:id="@+id/playPauseBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="8dp"
-                android:contentDescription="@string/play_or_pause"
-                android:src="@drawable/ic_play"
-                app:backgroundTint="?attr/colorSecondaryContainer"
-                app:elevation="0dp"
-                app:fabCustomSize="40dp"
+                android:background="@drawable/play_pause"
+                android:clickable="true"
+                android:focusable="true"
                 app:layout_constraintBottom_toBottomOf="@+id/albumArt"
                 app:layout_constraintEnd_toStartOf="@+id/nextBtn"
-                app:layout_constraintTop_toTopOf="@+id/albumArt"
-                app:maxImageSize="24dp"
-                app:tint="?attr/colorOnSecondaryContainer" />
+                app:layout_constraintTop_toTopOf="@+id/albumArt">
+
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/playPauseAnimView"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="center"
+                    app:lottie_rawRes="@raw/play_pause_morph"
+                    app:lottie_loop="false"
+                    app:lottie_autoPlay="false" />
+
+            </FrameLayout>
 
             <ImageView
                 android:id="@+id/nextBtn"

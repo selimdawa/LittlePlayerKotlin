@@ -2,7 +2,6 @@ package com.flatcode.littleplayer.service
 
 import android.app.Service
 import android.content.Intent
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -27,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @UnstableApi

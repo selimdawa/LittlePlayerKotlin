@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import com.flatcode.littleplayer.unit.DATA
@@ -16,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -44,20 +47,35 @@ class AlbumDetailsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.albumSongs.observe(this) { songs ->
-            if (!songs.isNullOrEmpty()) {
-                val firstSong = songs[0]
-                val firstSongId = firstSong.id
-                val songPath = firstSong.path
-
-                lifecycleScope.launch {
-                    withContext(Dispatchers.IO) {
-                        VOID.coilAlbumImage(songPath, binding.image)
-                        VOID.coilImageBlur(context, firstSongId, binding.imageBlur, 50)
+        viewModel.uiState.observe(this) { state ->
+            if (state.songs.isNotEmpty()) {
+                if (!state.imagePath.isNullOrEmpty()) {
+                    VOID.coilAlbumImage(context, state.imagePath, binding.image)
+                } else if (!state.firstSongPath.isNullOrEmpty()) {
+                    lifecycleScope.launch {
+                        val bitmap = withContext(Dispatchers.IO) {
+                            VOID.loadRawAlbumArt(state.firstSongPath)
+                        }
+                        if (bitmap != null) {
+                            binding.image.load(bitmap) {
+                                scale(coil.size.Scale.FILL)
+                                crossfade(true)
+                            }
+                        } else {
+                            binding.image.load(R.drawable.logo)
+                        }
                     }
                 }
 
-                adapter = AlbumDetailsAdapter(context, songs)
+                if (!state.firstSongId.isNullOrEmpty()) {
+                    lifecycleScope.launch {
+                        withContext(Dispatchers.IO) {
+                            VOID.coilImageBlur(context, state.firstSongId, binding.imageBlur, 50)
+                        }
+                    }
+                }
+
+                adapter = AlbumDetailsAdapter(context, ArrayList(state.songs))
                 binding.recyclerView.adapter = adapter
             }
         }

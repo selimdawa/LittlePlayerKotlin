@@ -29,6 +29,10 @@ class MusicRoomRepository @Inject constructor(
         albumImageDao.insertAlbumImage(albumImage)
     }
 
+    suspend fun getAlbumImageByName(albumName: String): AlbumImageEntity? = withContext(Dispatchers.IO) {
+        albumImageDao.getAlbumImageByName(albumName)
+    }
+
     suspend fun insertFavorite(song: FavoriteEntity) = withContext(Dispatchers.IO) {
         musicDao.insertFavorite(song)
     }

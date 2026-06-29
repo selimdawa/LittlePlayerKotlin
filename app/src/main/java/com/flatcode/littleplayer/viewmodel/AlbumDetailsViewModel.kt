@@ -6,35 +6,48 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import com.flatcode.littleplayer.repository.MusicRoomRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-@HiltViewModel
-class AlbumDetailsViewModel @Inject constructor(private val repository: MusicRepository) :
-    ViewModel() {
+data class AlbumDetailsUiState(
+    val songs: List<MusicFiles> = emptyList(),
+    val imagePath: String? = null,
+    val firstSongId: String? = null,
+    val firstSongPath: String? = null
+)
 
-    private val _albumSongs = MutableLiveData<ArrayList<MusicFiles>>()
-    val albumSongs: LiveData<ArrayList<MusicFiles>> get() = _albumSongs
+@HiltViewModel
+class AlbumDetailsViewModel @Inject constructor(
+    private val repository: MusicRepository,
+    private val roomRepository: MusicRoomRepository
+) : ViewModel() {
+
+    private val _uiState = MutableLiveData<AlbumDetailsUiState>()
+    val uiState: LiveData<AlbumDetailsUiState> get() = _uiState
 
     fun filterSongsByAlbum(albumName: String?) {
+        if (albumName == null) return
+
         viewModelScope.launch {
-            val filteredList = withContext(Dispatchers.IO) {
-                val list = ArrayList<MusicFiles>()
+            val state = withContext(Dispatchers.IO) {
+                val cachedImage = roomRepository.getAlbumImageByName(albumName)?.imagePath
                 val allSongs = repository.getAllAudio()
 
-                if (albumName != null) {
-                    for (song in allSongs) {
-                        if (albumName == song.album) {
-                            list.add(song)
-                        }
-                    }
-                }
-                list
+                val filteredList = allSongs.filter { it.album == albumName }
+                val firstSong = filteredList.firstOrNull()
+
+                AlbumDetailsUiState(
+                    songs = filteredList,
+                    imagePath = cachedImage,
+                    firstSongId = firstSong?.id,
+                    firstSongPath = firstSong?.path
+                )
             }
-            _albumSongs.value = filteredList
+            _uiState.value = state
         }
     }
 }

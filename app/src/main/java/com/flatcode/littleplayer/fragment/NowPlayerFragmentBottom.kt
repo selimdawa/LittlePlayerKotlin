@@ -38,13 +38,12 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
 
     private var musicService: MusicService? = null
     private var progressJob: Job? = null
+    private var lastLoadedPath: String? = null
 
     private val viewModel: NowPlayerViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentNowPlayerBottomBinding.inflate(inflater, container, false)
         return binding.root
@@ -75,9 +74,12 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.observe(viewLifecycleOwner) { song ->
             song?.let {
-                lifecycleScope.launch {
-                    val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
-                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
+                if (lastLoadedPath != it.path) {
+                    lastLoadedPath = it.path
+                    lifecycleScope.launch {
+                        val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
+                        binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
+                    }
                 }
                 binding.name.text = it.title
                 binding.artist.text = it.artist
@@ -85,8 +87,13 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
         }
 
         viewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
-            val icon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-            binding.playPauseBtn.setImageResource(icon)
+            if (isPlaying) {
+                binding.playPauseAnimView.speed = 5f
+                binding.playPauseAnimView.playAnimation()
+            } else {
+                binding.playPauseAnimView.speed = -5f
+                binding.playPauseAnimView.playAnimation()
+            }
         }
     }
 
@@ -101,13 +108,19 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
             binding.name.text = title
             binding.artist.text = artist
 
-            lifecycleScope.launch {
-                val art = withContext(Dispatchers.IO) { getAlbumArt(path) }
-                binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
+            if (lastLoadedPath != path) {
+                lastLoadedPath = path
+                lifecycleScope.launch {
+                    val art = withContext(Dispatchers.IO) { getAlbumArt(path) }
+                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
+                }
             }
         }
-        val icon = if (player.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-        binding.playPauseBtn.setImageResource(icon)
+        if (player.isPlaying) {
+            binding.playPauseAnimView.progress = 1f
+        } else {
+            binding.playPauseAnimView.progress = 0f
+        }
     }
 
     override fun onResume() {
@@ -179,7 +192,19 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
 
     override fun onEvents(player: Player, events: Player.Events) {
         if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION) || events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
-            musicService?.let { updateUiFromService(it) }
+            musicService?.let { service ->
+                if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+                    updateUiFromService(service)
+                } else {
+                    if (player.isPlaying) {
+                        binding.playPauseAnimView.speed = 1f
+                        binding.playPauseAnimView.playAnimation()
+                    } else {
+                        binding.playPauseAnimView.speed = -1f
+                        binding.playPauseAnimView.playAnimation()
+                    }
+                }
+            }
         }
     }
 

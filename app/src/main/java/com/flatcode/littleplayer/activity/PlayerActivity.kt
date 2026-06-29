@@ -302,7 +302,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         }
     }
 
-
     override fun onServiceDisconnected(name: ComponentName?) {
         musicService = null
     }

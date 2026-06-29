@@ -4,13 +4,17 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
 import android.widget.ImageView
 import androidx.core.net.toUri
 import coil.load
+import coil.size.Scale
 import com.flatcode.littleplayer.R
+import java.io.File
 
 object VOID {
 
@@ -145,32 +149,37 @@ object VOID {
         }
     }
 
-    fun coilAlbumImage(songPath: String?, image: ImageView) {
-        if (!songPath.isNullOrEmpty()) {
-            val retriever = android.media.MediaMetadataRetriever()
-            try {
-                retriever.setDataSource(songPath)
-                val art = retriever.embeddedPicture
-                if (art != null) {
-                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(art, 0, art.size)
-                    image.load(bitmap) {
-                        scale(coil.size.Scale.FILL)
-                        crossfade(true)
-                        placeholder(R.drawable.logo)
-                        error(R.drawable.logo)
-                    }
-                } else {
-                    image.load(R.drawable.logo)
-                }
-            } catch (_: Exception) {
-                image.load(R.drawable.logo)
-            } finally {
-                try {
-                    retriever.release()
-                } catch (_: Exception) {}
+    fun coilAlbumImage(context: Context, cachedPath: String?, image: ImageView) {
+        if (!cachedPath.isNullOrEmpty()) {
+            image.load(File(cachedPath)) {
+                scale(Scale.FILL)
+                crossfade(true)
+                placeholder(R.drawable.logo)
+                error(R.drawable.logo)
             }
         } else {
             image.load(R.drawable.logo)
+        }
+    }
+
+    fun loadRawAlbumArt(songPath: String?): Bitmap? {
+        if (songPath.isNullOrEmpty()) return null
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(songPath)
+            val art = retriever.embeddedPicture
+            if (art != null) {
+                BitmapFactory.decodeByteArray(art, 0, art.size)
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        } finally {
+            try {
+                retriever.release()
+            } catch (_: Exception) {
+            }
         }
     }
 }

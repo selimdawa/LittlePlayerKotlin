@@ -27,8 +27,9 @@ class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<Mu
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val filesList = albumFiles ?: return
-        val currentFile = filesList[position]
+        if (position !in filesList.indices) return
 
+        val currentFile = filesList[position]
         holder.name.text = currentFile.title
 
         VOID.coilImage(context, currentFile.id, holder.image, 150)
@@ -42,9 +43,7 @@ class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<Mu
         }
     }
 
-    override fun getItemCount(): Int {
-        return albumFiles?.size ?: 0
-    }
+    override fun getItemCount(): Int = albumFiles?.size ?: 0
 
     class ViewHolder(binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root) {
         val name: TextView = binding.name
