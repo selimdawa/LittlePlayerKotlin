@@ -6,11 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import com.flatcode.littleplayer.adapter.AlbumAdapter
-import com.flatcode.littleplayer.databinding.FragmentAlbumsBinding
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
 
 @AndroidEntryPoint
 class ArtistsFragment : Fragment() {
@@ -18,8 +19,8 @@ class ArtistsFragment : Fragment() {
     private var _binding: FragmentArtistsBinding? = null
     private val binding get() = _binding!!
 
-    //private var adapter: ArtistAdapter? = null
-    //private val viewModel: MusicViewModel by activityViewModels()
+    private var adapter: ArtistAdapter? = null
+    private val viewModel: MusicViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -31,13 +32,19 @@ class ArtistsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //viewModel.artistFiles.observe(viewLifecycleOwner) { artistList ->
-        //    if (!artistList.isNullOrEmpty()) {
-        //        val arrayListArtists = ArrayList(.artistList)
-        //        adapter = ArtistAdapter(requireContext(), arrayListArtist)
-        //        binding.recyclerView.adapter = adapter
-        //    }
-        //}
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        viewModel.artistFiles.observe(viewLifecycleOwner) { artistList ->
+            if (!artistList.isNullOrEmpty()) {
+                val arrayListArtists = ArrayList(artistList)
+                adapter = ArtistAdapter(requireContext(), arrayListArtists)
+                binding.recyclerView.adapter = adapter
+
+                FastScrollerBuilder(binding.recyclerView)
+                    .setPopupTextProvider(adapter as me.zhanghai.android.fastscroll.PopupTextProvider)
+                    .build()
+            }
+        }
     }
 
     override fun onDestroyView() {

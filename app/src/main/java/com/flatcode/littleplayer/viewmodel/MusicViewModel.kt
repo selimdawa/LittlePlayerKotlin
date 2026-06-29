@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flatcode.littleplayer.model.Artist
 import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
@@ -24,6 +25,9 @@ class MusicViewModel @Inject constructor(
 
     private val _folderFiles = MutableLiveData<List<Folder>>()
     val folderFiles: LiveData<List<Folder>> get() = _folderFiles
+
+    private val _artistFiles = MutableLiveData<List<Artist>>()
+    val artistFiles: LiveData<List<Artist>> get() = _artistFiles
 
     private val _filteredMusicFiles = MutableLiveData<List<MusicFiles>>()
     val filteredMusicFiles: LiveData<List<MusicFiles>> get() = _filteredMusicFiles
@@ -55,6 +59,7 @@ class MusicViewModel @Inject constructor(
             _albumFiles.value = uniqueAlbums
 
             generateFolderList(allAudio)
+            generateArtistList(allAudio)
         }
     }
 
@@ -88,6 +93,22 @@ class MusicViewModel @Inject constructor(
         }.sortedBy { it.name }
 
         _folderFiles.value = foldersList
+    }
+
+    private fun generateArtistList(songsList: List<MusicFiles>) {
+        val artistsMap = HashMap<String, Int>()
+
+        for (song in songsList) {
+            val artistName = song.artist ?: "Unknown"
+            val currentCount = artistsMap[artistName] ?: 0
+            artistsMap[artistName] = currentCount + 1
+        }
+
+        val artistsList = artistsMap.map { (name, count) ->
+            Artist(name = name, songsCount = count)
+        }.sortedBy { it.name }
+
+        _artistFiles.value = artistsList
     }
 
     fun filterSongs(query: String) {

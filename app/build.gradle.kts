@@ -74,7 +74,6 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     //Other's
     implementation(libs.androidx.datastore.preferences)
-    //Needed #4
     implementation(libs.zhanghai.fastscroll)
     //Needed #6
     implementation(libs.bogerchan.niervisualizer)
