@@ -17,22 +17,6 @@
             android:scaleType="centerCrop"
             android:src="@drawable/background" />
 
-        <ImageView
-            android:id="@+id/backWhite"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.5"
-            android:src="@color/white"
-            android:visibility="gone" />
-
-        <ImageView
-            android:id="@+id/backBlack"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.5"
-            android:src="@color/black"
-            android:visibility="gone" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

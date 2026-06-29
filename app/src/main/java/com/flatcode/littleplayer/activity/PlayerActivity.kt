@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.view.WindowManager
 import android.widget.SeekBar
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -278,8 +277,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         musicService?.let { serviceInstance ->
             serviceInstance.setCallBack(this)
             serviceInstance.musicFiles = viewModel.listSongs
-
-            Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
 
             val currentPlayingUri = serviceInstance.exoPlayer?.currentMediaItem?.localConfiguration?.uri
             if (currentPlayingUri != viewModel.uri) {

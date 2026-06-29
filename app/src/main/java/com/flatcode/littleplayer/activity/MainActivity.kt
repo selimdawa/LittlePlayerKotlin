@@ -19,7 +19,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
-import com.flatcode.littleplayer.fragment.AlbumFragment
+import com.flatcode.littleplayer.fragment.AlbumsFragment
+import com.flatcode.littleplayer.fragment.ArtistsFragment
+import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -95,7 +97,9 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     private fun initViewPager() {
         val viewPagerAdapter = ViewPagerAdapter(this)
         viewPagerAdapter.addFragment(SongsFragment(), DATA.SONGS)
-        viewPagerAdapter.addFragment(AlbumFragment(), DATA.ALBUMS)
+        viewPagerAdapter.addFragment(AlbumsFragment(), DATA.ALBUMS)
+        viewPagerAdapter.addFragment(ArtistsFragment(), DATA.ARTISTS)
+        viewPagerAdapter.addFragment(FoldersFragment(), DATA.FOLDERS)
         binding.viewPager.adapter = viewPagerAdapter
 
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->

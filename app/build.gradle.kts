@@ -74,14 +74,8 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     //Other's
     implementation(libs.androidx.datastore.preferences)
-    //Needed #3
-    implementation(libs.jakewharton.timber)
-    debugImplementation(libs.squareup.leakcanary.android)
     //Needed #4
-    implementation(libs.jp.wasabeef.blurry)
     implementation(libs.zhanghai.fastscroll)
-    //Needed #5
-    implementation(libs.facebook.shimmer)
     //Needed #6
     implementation(libs.bogerchan.niervisualizer)
     implementation(libs.google.flexbox)
@@ -91,4 +85,6 @@ dependencies {
     //Needed #8
     implementation(libs.zetbaitsu.compressor)
     implementation(libs.waveformseekbar)
+    //Memory Leaks
+    debugImplementation(libs.squareup.leakcanary.android)
 }

@@ -13,6 +13,8 @@ object DATA {
     const val SORT_BY_SIZE = "sortBySize"
     const val SONGS = "Songs"
     const val ALBUMS = "Albums"
+    const val ARTISTS = "Artists"
+    const val FOLDERS = "Folders"
     const val POSITION = "position"
     const val SENDER = "sender"
     const val ALBUM_DETAILS = "albumDetails"
