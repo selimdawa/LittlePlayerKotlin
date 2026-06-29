@@ -50,6 +50,8 @@ dependencies {
     //Image
     implementation(libs.circleimageview)                   //Circle Image
     implementation(libs.coil)                              //Coil Image
+    implementation(libs.airbnb.lottie)                     //Animation
+    implementation(libs.androidx.palette.ktx)              //Background Color
     //Lifecycle
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.livedata.ktx)
@@ -72,9 +74,6 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     //Other's
     implementation(libs.androidx.datastore.preferences)
-    //Needed #2
-    implementation(libs.airbnb.lottie)
-    implementation(libs.androidx.palette.ktx)
     //Needed #3
     implementation(libs.jakewharton.timber)
     debugImplementation(libs.squareup.leakcanary.android)

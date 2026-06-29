@@ -250,14 +250,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 }
             }
 
-            val durationTotal =
-                (viewModel.listSongs[viewModel.position].duration?.toLong() ?: 0L) / 1000
+            val durationTotal = (viewModel.listSongs[viewModel.position].duration?.toLong() ?: 0L) / 1000
             binding.durationTotal.text = formattedTime(durationTotal.toInt())
 
             if (art != null) {
                 val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
                 VOID.coilBitmap(bitmap, binding.image)
-                VOID.coilBlurBitmap(context, bitmap, binding.imageBlur, 10)
+                VOID.paletteGradient(bitmap, binding.imageBlur)
             } else {
                 VOID.coil(null, binding.image)
                 binding.songName.setTextColor(Color.WHITE)

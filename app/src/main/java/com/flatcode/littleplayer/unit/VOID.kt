@@ -60,16 +60,6 @@ object VOID {
         }
     }
 
-    fun coilBlurBitmap(context: Context, url: Bitmap?, image: ImageView, level: Int) {
-        val radius = (level / 4f).coerceIn(1f, 25f)
-        image.load(url ?: R.drawable.logo) {
-            crossfade(true)
-            placeholder(if (url != null) R.color.image_profile else R.drawable.logo)
-            error(R.drawable.logo)
-            transformations(CoilBlurTransformation(context, radius))
-        }
-    }
-
     fun coilImage(context: Context, songId: String?, image: ImageView, size: Int) {
         if (!songId.isNullOrEmpty()) {
             try {
@@ -149,7 +139,7 @@ object VOID {
         }
     }
 
-    fun coilAlbumImage(context: Context, cachedPath: String?, image: ImageView) {
+    fun coilAlbumImage(cachedPath: String?, image: ImageView) {
         if (!cachedPath.isNullOrEmpty()) {
             image.load(File(cachedPath)) {
                 scale(Scale.FILL)
@@ -179,6 +169,21 @@ object VOID {
             try {
                 retriever.release()
             } catch (_: Exception) {
+            }
+        }
+    }
+
+    fun paletteGradient(bitmap: Bitmap, imageViewBlur: ImageView) {
+        androidx.palette.graphics.Palette.from(bitmap).generate { palette ->
+            palette?.let {
+                val startColor = it.getDarkVibrantColor(0xFF212121.toInt())
+                val endColor = it.getDarkMutedColor(0xFF121212.toInt())
+                val gradientDrawable = android.graphics.drawable.GradientDrawable(
+                    android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                    intArrayOf(startColor, endColor)
+                )
+                imageViewBlur.setImageDrawable(null)
+                imageViewBlur.background = gradientDrawable
             }
         }
     }

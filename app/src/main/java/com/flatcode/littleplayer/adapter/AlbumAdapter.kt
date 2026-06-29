@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.unit.CLASS
@@ -21,6 +23,7 @@ class AlbumAdapter(private val context: Context, private val albumFiles: ArrayLi
         return ViewHolder(binding)
     }
 
+    @OptIn(UnstableApi::class)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentFile = albumFiles[position]
         holder.name.text = currentFile.album

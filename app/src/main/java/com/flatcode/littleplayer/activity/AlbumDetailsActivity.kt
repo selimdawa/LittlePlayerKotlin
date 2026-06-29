@@ -34,23 +34,17 @@ class AlbumDetailsActivity : AppCompatActivity() {
         setContentView(binding.root)
         supportActionBar?.hide()
 
-        setupRecyclerView()
         observeViewModel()
 
         val albumName = intent.getStringExtra(DATA.ALBUM_NAME)
         viewModel.filterSongsByAlbum(albumName)
     }
 
-    private fun setupRecyclerView() {
-        binding.recyclerView.layoutManager =
-            LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-    }
-
     private fun observeViewModel() {
         viewModel.uiState.observe(this) { state ->
             if (state.songs.isNotEmpty()) {
                 if (!state.imagePath.isNullOrEmpty()) {
-                    VOID.coilAlbumImage(context, state.imagePath, binding.image)
+                    VOID.coilAlbumImage( state.imagePath, binding.image)
                 } else if (!state.firstSongPath.isNullOrEmpty()) {
                     lifecycleScope.launch {
                         val bitmap = withContext(Dispatchers.IO) {
