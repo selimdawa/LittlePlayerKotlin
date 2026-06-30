@@ -4,9 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.flatcode.littleplayer.R
@@ -15,6 +14,7 @@ import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import me.zhanghai.android.fastscroll.FastScrollerBuilder
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class ArtistsFragment : Fragment() {
@@ -22,8 +22,8 @@ class ArtistsFragment : Fragment() {
     private var _binding: FragmentArtistsBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: MusicViewModel by hiltNavGraphViewModels(R.id.nav_graph)
     private var adapter: ArtistAdapter? = null
-    private val viewModel: MusicViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -42,8 +42,10 @@ class ArtistsFragment : Fragment() {
                 val arrayListArtists = ArrayList(artistList)
 
                 adapter = ArtistAdapter(requireContext(), arrayListArtists) { artistName ->
-                    val bundle = bundleOf("ARTIST_NAME" to artistName)
-                    findNavController().navigate(R.id.musicArtistActivity, bundle)
+                    val bundle = Bundle().apply {
+                        putString("ARTIST_NAME", artistName)
+                    }
+                    findNavController().navigate(R.id.artistDetailsActivity, bundle)
                 }
 
                 binding.recyclerView.adapter = adapter

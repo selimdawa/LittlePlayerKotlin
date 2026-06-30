@@ -132,6 +132,10 @@ class MusicService : Service(), Player.Listener {
         return exoPlayer?.currentPosition?.toInt() ?: 0
     }
 
+    fun getAudioSessionId(): Int {
+        return exoPlayer?.audioSessionId ?: 0
+    }
+
     fun createMediaPlayer(positionInner: Int) {
         if (musicFiles.isEmpty() || positionInner !in musicFiles.indices) return
 

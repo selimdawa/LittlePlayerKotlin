@@ -20,7 +20,7 @@
 
     <!-- Required for media playback execution on API 34+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <!-- -->
+    <!-- Nier-Visualizer -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application

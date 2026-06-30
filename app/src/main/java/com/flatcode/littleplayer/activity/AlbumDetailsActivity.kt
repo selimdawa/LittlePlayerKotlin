@@ -5,17 +5,18 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
+import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
-import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -23,7 +24,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAlbumDetailsBinding
     private val context: Context = this@AlbumDetailsActivity
     private val viewModel: AlbumDetailsViewModel by viewModels()
-    private var adapter: AlbumDetailsAdapter? = null
+    private var adapter: ArtistDetailsAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +34,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
 
         observeViewModel()
 
-        val albumName = intent.getStringExtra(DATA.ALBUM_NAME)
+        val albumName = intent.extras?.getString("ALBUM_NAME")
         viewModel.filterSongsByAlbum(albumName)
     }
 
@@ -66,7 +67,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
                     }
                 }
 
-                adapter = AlbumDetailsAdapter(context, ArrayList(state.songs))
+                adapter = ArtistDetailsAdapter(context, ArrayList(state.songs))
                 binding.recyclerView.adapter = adapter
             }
         }

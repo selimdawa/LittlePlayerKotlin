@@ -16,8 +16,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven(url = "https://jitpack.io")
-        maven(url = "https://maven.aliyun.com/repository/jcenter")
+        //maven(url = "https://jitpack.io")
+        //maven(url = "https://maven.aliyun.com/repository/jcenter")
+        maven { url = uri("https://jitpack.io") } // Updated syntax
+        maven { url = uri("https://maven.aliyun.com/repository/jcenter") } // Updated syntax
     }
 }
 

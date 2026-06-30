@@ -5,12 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class SongsFragment : Fragment() {
@@ -18,8 +20,8 @@ class SongsFragment : Fragment() {
     private var _binding: FragmentSongsBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: MusicViewModel by hiltNavGraphViewModels(R.id.nav_graph)
     private var musicAdapter: MusicAdapter? = null
-    private val viewModel: MusicViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -34,7 +36,7 @@ class SongsFragment : Fragment() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         viewModel.filteredMusicFiles.observe(viewLifecycleOwner) { files ->
-            if (!files.isNullOrEmpty()) {
+            if (files != null) {
                 val arrayListFiles = ArrayList(files)
                 if (musicAdapter == null) {
                     musicAdapter = MusicAdapter(requireContext(), arrayListFiles)
@@ -48,6 +50,8 @@ class SongsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.recyclerView.adapter = null
+        musicAdapter = null
         _binding = null
     }
 }

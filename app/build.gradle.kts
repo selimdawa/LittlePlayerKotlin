@@ -13,8 +13,8 @@ android {
         applicationId = "com.flatcode.littleplayer"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,7 +66,7 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     //Navigation
-    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.fragment.ktx)                 //Need New Style |Sswapping Fragments|
     implementation(libs.navigation.ui.ktx)
     implementation(libs.hilt.navigation.fragment)
     //Media Player
@@ -77,6 +77,8 @@ dependencies {
     implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable
     //Needed #6
     implementation(libs.bogerchan.niervisualizer)
+    //implementation("com.github.gauravk95:audio-visualizer-android:1.0.7")
+    implementation("com.github.GautamChibde:android-audio-visualizer:2.2.0")
     implementation(libs.google.flexbox)
     //Needed #7
     implementation(libs.lincollincol.amplituda)
@@ -85,5 +87,5 @@ dependencies {
     implementation(libs.zetbaitsu.compressor)
     implementation(libs.waveformseekbar)
     //Memory Leaks
-    debugImplementation(libs.squareup.leakcanary.android)
+    //debugImplementation(libs.squareup.leakcanary.android)
 }

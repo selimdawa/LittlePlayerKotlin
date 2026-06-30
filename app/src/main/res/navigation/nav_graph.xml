@@ -15,28 +15,45 @@
         android:id="@+id/albumsFragment"
         android:name="com.flatcode.littleplayer.fragment.AlbumsFragment"
         android:label="Albums"
-        tools:layout="@layout/fragment_albums" />
+        tools:layout="@layout/fragment_albums">
+        <action
+            android:id="@+id/action_albumsFragment_to_albumDetailsActivity"
+            app:destination="@id/albumDetailsActivity" />
+    </fragment>
 
     <fragment
         android:id="@+id/artistsFragment"
         android:name="com.flatcode.littleplayer.fragment.ArtistsFragment"
         android:label="Artists"
-        tools:layout="@layout/fragment_artists" />
+        tools:layout="@layout/fragment_artists">
+        <action
+            android:id="@+id/action_artistsFragment_to_artistDetailsActivity"
+            app:destination="@id/artistDetailsActivity" />
+    </fragment>
 
     <fragment
         android:id="@+id/foldersFragment"
         android:name="com.flatcode.littleplayer.fragment.FoldersFragment"
         android:label="Folders"
-        tools:layout="@layout/fragment_folders" />
+        tools:layout="@layout/fragment_folders">
+        <action
+            android:id="@+id/action_foldersFragment_to_folderDetailsActivity"
+            app:destination="@id/folderDetailsActivity" />
+    </fragment>
 
     <activity
-        android:id="@+id/musicArtistActivity"
+        android:id="@+id/albumDetailsActivity"
+        android:name="com.flatcode.littleplayer.activity.AlbumDetailsActivity"
+        android:label="AlbumDetailsActivity" />
+
+    <activity
+        android:id="@+id/artistDetailsActivity"
         android:name="com.flatcode.littleplayer.activity.ArtistDetailsActivity"
-        android:label="MusicArtistActivity" />
+        android:label="ArtistDetailsActivity" />
 
     <activity
-        android:id="@+id/musicFolderActivity"
+        android:id="@+id/folderDetailsActivity"
         android:name="com.flatcode.littleplayer.activity.FolderDetailsActivity"
-        android:label="MusicFolderActivity" />
+        android:label="FolderDetailsActivity" />
 
 </navigation>

@@ -9,14 +9,15 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.unit.CLASS
-import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.databinding.ItemAlbumBinding
 import java.util.ArrayList
 
-class AlbumAdapter(private val context: Context, private val albumFiles: ArrayList<MusicFiles>) :
-    RecyclerView.Adapter<AlbumAdapter.ViewHolder>() {
+class AlbumAdapter(
+    private val context: Context,
+    private val albumFiles: ArrayList<MusicFiles>,
+    private val onItemClick: (String) -> Unit
+) : RecyclerView.Adapter<AlbumAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemAlbumBinding.inflate(LayoutInflater.from(context), parent, false)
@@ -32,7 +33,7 @@ class AlbumAdapter(private val context: Context, private val albumFiles: ArrayLi
         VOID.coilImageBlur(context, currentFile.id, holder.imageBlur, 50)
 
         holder.itemView.setOnClickListener {
-            VOID.intentExtra(context, CLASS.ALBUM_DETAILS, DATA.ALBUM_NAME, currentFile.album)
+            onItemClick(currentFile.album ?: "")
         }
     }
 
