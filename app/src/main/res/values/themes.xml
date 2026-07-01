@@ -1,7 +1,8 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Base.Theme.OneTheme" parent="Theme.Material3.DayNight">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+    <style name="Base.Theme.OneTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_2</item>
@@ -18,7 +19,8 @@
     <style name="Theme.OneTheme" parent="Base.Theme.OneTheme" />
 
     <style name="Base.Theme.TwoTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic</item>
@@ -35,7 +37,8 @@
     <style name="Theme.TwoTheme" parent="Base.Theme.TwoTheme" />
 
     <style name="Base.Theme.ThreeTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_four</item>
@@ -52,7 +55,8 @@
     <style name="Theme.ThreeTheme" parent="Base.Theme.ThreeTheme" />
 
     <style name="Base.Theme.FourTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_five</item>
@@ -69,7 +73,8 @@
     <style name="Theme.FourTheme" parent="Base.Theme.FourTheme" />
 
     <style name="Base.Theme.FiveTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_six</item>
@@ -86,7 +91,8 @@
     <style name="Theme.FiveTheme" parent="Base.Theme.FiveTheme" />
 
     <style name="Base.Theme.SixTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_seven</item>
@@ -103,7 +109,8 @@
     <style name="Theme.SixTheme" parent="Base.Theme.SixTheme" />
 
     <style name="Base.Theme.SevenTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_eight</item>
@@ -120,7 +127,8 @@
     <style name="Theme.SevenTheme" parent="Base.Theme.SevenTheme" />
 
     <style name="Base.Theme.EightTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_two</item>
@@ -137,7 +145,8 @@
     <style name="Theme.EightTheme" parent="Base.Theme.EightTheme" />
 
     <style name="Base.Theme.NineTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/basic_three</item>
@@ -154,7 +163,8 @@
     <style name="Theme.NineTheme" parent="Base.Theme.NineTheme" />
 
     <style name="Base.Theme.GradientOneTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/night_corner</item>
@@ -171,7 +181,8 @@
     <style name="Theme.GradientOneTheme" parent="Base.Theme.GradientOneTheme" />
 
     <style name="Base.Theme.GradientTwoTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/night_corner_one</item>
@@ -188,7 +199,8 @@
     <style name="Theme.GradientTwoTheme" parent="Base.Theme.GradientTwoTheme" />
 
     <style name="Base.Theme.GradientThreeTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/night_corner_two</item>
@@ -205,7 +217,8 @@
     <style name="Theme.GradientThreeTheme" parent="Base.Theme.GradientThreeTheme" />
 
     <style name="Base.Theme.GradientFourTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/night_corner_three</item>
@@ -222,7 +235,8 @@
     <style name="Theme.GradientFourTheme" parent="Base.Theme.GradientFourTheme" />
 
     <style name="Base.Theme.GradientFiveTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/night_corner_four</item>
@@ -239,7 +253,8 @@
     <style name="Theme.GradientFiveTheme" parent="Base.Theme.GradientFiveTheme" />
 
     <style name="Base.Theme.GradientSixTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/night_corner_five</item>
@@ -256,7 +271,8 @@
     <style name="Theme.GradientSixTheme" parent="Base.Theme.GradientSixTheme" />
 
     <style name="Base.Theme.GradientSevenTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <!--  <item name="android:windowFullscreen">true</item>  -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/night_corner_six</item>

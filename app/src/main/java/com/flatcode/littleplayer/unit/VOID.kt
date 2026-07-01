@@ -14,6 +14,7 @@ import androidx.core.net.toUri
 import coil.load
 import coil.size.Scale
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.service.MusicService
 import java.io.File
 
 object VOID {
@@ -184,6 +185,24 @@ object VOID {
                 )
                 imageViewBlur.setImageDrawable(null)
                 imageViewBlur.background = gradientDrawable
+            }
+        }
+    }
+
+    fun playPauseBtn(
+        service: MusicService?, button: ImageView, onPause: () -> Unit, onStart: () -> Unit
+    ) {
+        service?.let {
+            if (it.isPlaying()) {
+                button.setBackgroundResource(R.drawable.ic_play)
+                button.setImageResource(R.drawable.ic_play)
+                it.pause()
+                onPause()
+            } else {
+                button.setBackgroundResource(R.drawable.ic_pause)
+                button.setImageResource(R.drawable.ic_pause)
+                it.start()
+                onStart()
             }
         }
     }

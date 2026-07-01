@@ -88,10 +88,10 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
 
         viewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
             if (isPlaying) {
-                binding.playPauseAnimView.speed = 5f
+                binding.playPauseAnimView.speed = 1f
                 binding.playPauseAnimView.playAnimation()
             } else {
-                binding.playPauseAnimView.speed = -5f
+                binding.playPauseAnimView.speed = -1f
                 binding.playPauseAnimView.playAnimation()
             }
         }

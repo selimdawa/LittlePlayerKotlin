@@ -31,7 +31,7 @@ class SplashActivity : AppCompatActivity() {
         viewModel.loadAudioData()
 
         lifecycleScope.launch {
-            delay(2000.milliseconds)
+            delay(500.milliseconds)
             VOID.intent1(context, CLASS.MAIN)
             finish()
         }

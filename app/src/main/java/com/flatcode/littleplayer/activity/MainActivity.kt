@@ -62,14 +62,11 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
 
         if (ContextCompat.checkSelfPermission(
-                this,
-                permissionToRequest
+                this, permissionToRequest
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
-                this,
-                arrayOf(permissionToRequest),
-                REQUEST_CODE_PERMISSION
+                this, arrayOf(permissionToRequest), REQUEST_CODE_PERMISSION
             )
         } else {
             setupAppFlow()
@@ -77,9 +74,7 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSION) {
@@ -97,8 +92,8 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     }
 
     private fun initNavigationWithViewPager() {
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.navHostFragment) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment
         val navController = navHostFragment.navController
 
         val viewPagerAdapter = ViewPagerAdapter(this)
@@ -140,15 +135,15 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.name -> viewModel.updateSortOrder(DATA.SORT_BY_NAME)
-            R.id.date -> viewModel.updateSortOrder(DATA.SORT_BY_DATE)
-            R.id.size -> viewModel.updateSortOrder(DATA.SORT_BY_SIZE)
-            else -> return super.onOptionsItemSelected(item)
-        }
-        return true
-    }
+    //override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    //    when (item.itemId) {
+    //        R.id.name -> viewModel.updateSortOrder(DATA.SORT_BY_NAME)
+    //        R.id.date -> viewModel.updateSortOrder(DATA.SORT_BY_DATE)
+    //        R.id.size -> viewModel.updateSortOrder(DATA.SORT_BY_SIZE)
+    //        else -> return super.onOptionsItemSelected(item)
+    //    }
+    //    return true
+    //}
 
     override fun onResume() {
         super.onResume()

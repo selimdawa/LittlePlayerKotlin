@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
@@ -48,7 +49,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setFullScreen()
+        window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -144,6 +146,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         startService(intentService)
     }
 
+    override fun playPauseBtn() {
+        VOID.playPauseBtn(
+            musicService, binding.buttonPanel.playPause,
+            { stopProgressUpdater() }, { startProgressUpdater() }
+        )
+    }
+
     override fun prevBtn() {
         musicService?.let { service ->
             val prevPos = viewModel.calculatePrevPosition()
@@ -183,22 +192,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
             binding.buttonPanel.playPause.setBackgroundResource(R.drawable.ic_pause)
             binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
-        }
-    }
-
-    override fun playPauseBtn() {
-        musicService?.let { service ->
-            if (service.isPlaying()) {
-                binding.buttonPanel.playPause.setBackgroundResource(R.drawable.ic_play)
-                binding.buttonPanel.playPause.setImageResource(R.drawable.ic_play)
-                service.pause()
-                stopProgressUpdater()
-            } else {
-                binding.buttonPanel.playPause.setBackgroundResource(R.drawable.ic_pause)
-                binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
-                service.start()
-                startProgressUpdater()
-            }
         }
     }
 
@@ -242,13 +235,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         progressJob = null
     }
 
-    private fun setFullScreen() {
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        )
-    }
-
     override fun onResume() {
         super.onResume()
         val intent = Intent(context, MusicService::class.java)
@@ -271,7 +257,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     private fun metaData(uri: Uri?) {
         if (uri == null) return
         lifecycleScope.launch {
-            val retriever = android.media.MediaMetadataRetriever()
+            val retriever = MediaMetadataRetriever()
             val art = withContext(Dispatchers.IO) {
                 try {
                     retriever.setDataSource(context, uri)
