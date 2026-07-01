@@ -1,10 +1,16 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/item_folder"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="16dp">
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="16dp"
+    app:alignItems="center"
+    app:flexDirection="row"
+    app:justifyContent="flex_start">
 
     <ImageView
         android:id="@+id/folder_icon"
@@ -13,31 +19,36 @@
         android:src="@drawable/ic_folder"
         app:tint="#8A47EB" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
         android:layout_marginStart="16dp"
-        android:orientation="vertical">
+        app:flexDirection="column"
+        app:justifyContent="center"
+        app:layout_flexGrow="1">
 
         <TextView
             android:id="@+id/folder_name"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Songs"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/songs"
             android:textColor="@color/red"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/folder_details"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="12 songs | /storage/emulated/0/Music/Songs/"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:text="@string/_12_songs_storage_emulated_0_music_songs"
             android:textColor="#888888"
             android:textSize="14sp" />
 
-    </LinearLayout>
+    </com.google.android.flexbox.FlexboxLayout>
 
-</LinearLayout>
+</com.google.android.flexbox.FlexboxLayout>

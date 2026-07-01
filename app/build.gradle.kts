@@ -47,11 +47,12 @@ dependencies {
     //Layout
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
+    implementation(libs.google.flexbox)                    //Layout Fix Size
     //Image
-    implementation(libs.circleimageview)                   //Circle Image
     implementation(libs.coil)                              //Coil Image
     implementation(libs.airbnb.lottie)                     //Animation
     implementation(libs.androidx.palette.ktx)              //Background Color
+    implementation(libs.zetbaitsu.compressor)              //Image Compressor
     //Lifecycle
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.livedata.ktx)
@@ -60,32 +61,23 @@ dependencies {
     ksp(libs.hilt.compiler)
     //Room
     implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
     ksp(libs.room.compiler)
     //Coroutines
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     //Navigation
-    implementation(libs.navigation.fragment.ktx)                 //Need New Style |Sswapping Fragments|
+    implementation(libs.navigation.fragment.ktx)                 //Need New Style |Swapping Fragments|
     implementation(libs.navigation.ui.ktx)
     implementation(libs.hilt.navigation.fragment)
     //Media Player
     implementation(libs.androidx.media)
     implementation(libs.androidx.media3.exoplayer)
+    //Waves
+    implementation(libs.lincollincol.amplituda)            //Audio Waves
+    implementation(libs.waveformseekbar)                   //Audio Waves
     //Other's
-    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences)    //New Preference
     implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable
-    //Needed #6
-    implementation(libs.bogerchan.niervisualizer)
-    //implementation("com.github.gauravk95:audio-visualizer-android:1.0.7")
-    implementation("com.github.GautamChibde:android-audio-visualizer:2.2.0")
-    implementation(libs.google.flexbox)
-    //Needed #7
-    implementation(libs.lincollincol.amplituda)
-    implementation(libs.chrisbanes.haze)
-    //Needed #8
-    implementation(libs.zetbaitsu.compressor)
-    implementation(libs.waveformseekbar)
     //Memory Leaks
     //debugImplementation(libs.squareup.leakcanary.android)
 }

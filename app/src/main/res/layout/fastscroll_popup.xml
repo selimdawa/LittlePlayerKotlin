@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView android:id="@android:id/text1"
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/fastscroll_popup_background"
     android:gravity="center"
-    android:textColor="#FFFFFF"
-    android:textSize="32sp"
-    android:textStyle="bold"
     android:minWidth="64dp"
     android:minHeight="64dp"
-    xmlns:android="http://schemas.android.com/apk/res/android" />
+    android:textColor="#FFFFFF"
+    android:textSize="32sp"
+    android:textStyle="bold" />

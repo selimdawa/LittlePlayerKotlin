@@ -19,7 +19,6 @@
     <string name="gradual_seven_theme">Gradual 7</string>
     //App
     <string name="delete">Delete</string>
-    <string name="seacrh">Seacrh</string>
     <string name="sort_by">Sort By</string>
     <string name="name">Name</string>
     <string name="date">Date</string>
@@ -29,6 +28,12 @@
     <string name="artist_name">Artist Name</string>
     <string name="play_or_pause">Play or Pause</string>
     <string name="next_song">Next Song</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="folder_name">Folder Name</string>
+    <string name="songs">Songs</string>
+    <string name="_12_songs_storage_emulated_0_music_songs">12 songs | /storage/emulated/0/Music/Songs/</string>
+    <string name="ace_marino">Ace Marino</string>
+    <string name="_1_song">1 song</string>
+    <string name="albums">Albums</string>
+    <string name="artists">Artists</string>
+    <string name="folders">Folders</string>
 </resources>

@@ -22,7 +22,7 @@
             android:id="@+id/artist_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ace Marino"
+            android:text="@string/ace_marino"
             android:textColor="@color/red"
             android:textSize="18sp" />
 
@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="1 song"
+            android:text="@string/_1_song"
             android:textColor="#888888"
             android:textSize="14sp" />
 

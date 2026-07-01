@@ -24,6 +24,7 @@ import com.flatcode.littleplayer.unit.ActionPlaying
 import com.flatcode.littleplayer.unit.DATA
 import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
+import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -43,6 +44,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     private var progressJob: Job? = null
     var musicService: MusicService? = null
+    private lateinit var amplituda: Amplituda
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +53,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         setContentView(binding.root)
 
         supportActionBar?.hide()
+        amplituda = Amplituda(this)
 
         getIntentMethod()
         setupListeners()
@@ -64,6 +67,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (musicService != null && fromUser) {
                     musicService?.seekTo(progress * 1000)
+                    val duration = musicService?.getDuration() ?: 0
+                    if (duration > 0) {
+                        val progressPercentage =
+                            ((progress * 1000).toFloat() / duration.toFloat()) * 100
+                        binding.audioWaveformView.setProgress(progressPercentage)
+                        binding.waveformSeekBar.progress = progressPercentage
+                    }
                 }
             }
 
@@ -71,23 +81,23 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        binding.shuffle.setOnClickListener { viewModel.toggleShuffle() }
-        binding.repeat.setOnClickListener { viewModel.toggleRepeat() }
+        binding.buttonPanel.shuffle.setOnClickListener { viewModel.toggleShuffle() }
+        binding.buttonPanel.repeat.setOnClickListener { viewModel.toggleRepeat() }
 
-        binding.prev.setOnClickListener { prevBtn() }
-        binding.next.setOnClickListener { nextBtn() }
-        binding.playPauseBtn.setOnClickListener { playPauseBtn() }
+        binding.buttonPanel.prev.setOnClickListener { prevBtn() }
+        binding.buttonPanel.next.setOnClickListener { nextBtn() }
+        binding.buttonPanel.playPauseBtn.setOnClickListener { playPauseBtn() }
     }
 
     private fun observeViewModel() {
         viewModel.isShuffle.observe(this) { isShuffle ->
             val icon = if (isShuffle) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_off
-            binding.shuffle.setImageResource(icon)
+            binding.buttonPanel.shuffle.setImageResource(icon)
         }
 
         viewModel.isRepeat.observe(this) { isRepeat ->
             val icon = if (isRepeat) R.drawable.ic_repeat_on else R.drawable.ic_repeat_off
-            binding.repeat.setImageResource(icon)
+            binding.buttonPanel.repeat.setImageResource(icon)
         }
 
         viewModel.currentSong.observe(this) { song ->
@@ -95,8 +105,22 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 binding.songName.text = it.title
                 binding.songArtist.text = it.artist
                 metaData(viewModel.uri)
+                it.path?.let { path -> loadWaveform(path) }
             }
         }
+    }
+
+    private fun loadWaveform(path: String) {
+        amplituda.processAudio(path).get({ result ->
+            val amplitudesList = result.amplitudesAsList()
+            val amplitudesArray = amplitudesList.toIntArray()
+            runOnUiThread {
+                binding.audioWaveformView.setWaveformData(amplitudesList)
+                binding.waveformSeekBar.setSampleFrom(amplitudesArray)
+            }
+        }, { exception ->
+            exception.printStackTrace()
+        })
     }
 
     private fun getIntentMethod() {
@@ -110,7 +134,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         }
 
         if (viewModel.listSongs.isNotEmpty() && position != -1) {
-            binding.playPause.setImageResource(R.drawable.ic_pause)
+            binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
             viewModel.updatePositionAndSong(position)
         }
 
@@ -128,16 +152,16 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             service.createMediaPlayer(viewModel.position)
             service.start()
 
-            binding.seekBar.max = service.getDuration() / 1000
             binding.songName.text = viewModel.listSongs[viewModel.position].title
             binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
             metaData(viewModel.uri)
+            viewModel.listSongs[viewModel.position].path?.let { loadWaveform(it) }
 
             resetProgressLoop()
             service.onCompleted()
 
-            binding.playPause.setBackgroundResource(R.drawable.ic_pause)
-            binding.playPause.setImageResource(R.drawable.ic_pause)
+            binding.buttonPanel.playPause.setBackgroundResource(R.drawable.ic_pause)
+            binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
         }
     }
 
@@ -149,33 +173,32 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             service.createMediaPlayer(viewModel.position)
             service.start()
 
-            binding.seekBar.max = service.getDuration() / 1000
             binding.songName.text = viewModel.listSongs[viewModel.position].title
             binding.songArtist.text = viewModel.listSongs[viewModel.position].artist
             metaData(viewModel.uri)
+            viewModel.listSongs[viewModel.position].path?.let { loadWaveform(it) }
 
             resetProgressLoop()
             service.onCompleted()
 
-            binding.playPause.setBackgroundResource(R.drawable.ic_pause)
-            binding.playPause.setImageResource(R.drawable.ic_pause)
+            binding.buttonPanel.playPause.setBackgroundResource(R.drawable.ic_pause)
+            binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
         }
     }
 
     override fun playPauseBtn() {
         musicService?.let { service ->
             if (service.isPlaying()) {
-                binding.playPause.setBackgroundResource(R.drawable.ic_play)
-                binding.playPause.setImageResource(R.drawable.ic_play)
+                binding.buttonPanel.playPause.setBackgroundResource(R.drawable.ic_play)
+                binding.buttonPanel.playPause.setImageResource(R.drawable.ic_play)
                 service.pause()
                 stopProgressUpdater()
             } else {
-                binding.playPause.setBackgroundResource(R.drawable.ic_pause)
-                binding.playPause.setImageResource(R.drawable.ic_pause)
+                binding.buttonPanel.playPause.setBackgroundResource(R.drawable.ic_pause)
+                binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
                 service.start()
                 startProgressUpdater()
             }
-            binding.seekBar.max = service.getDuration() / 1000
         }
     }
 
@@ -189,15 +212,25 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         progressJob = lifecycleScope.launch {
             while (isActive) {
                 musicService?.let { service ->
-                    val mCurrentPosition = service.getCurrentPosition() / 1000
-                    val duration = service.getDuration() / 1000
+                    val currentPos = service.getCurrentPosition()
+                    val duration = service.getDuration()
 
-                    if (duration > 0 && binding.seekBar.max != duration) {
-                        binding.seekBar.max = duration
+                    if (duration > 0) {
+                        val mCurrentPositionSec = currentPos / 1000
+                        val durationSec = duration / 1000
+
+                        if (binding.seekBar.max != durationSec) {
+                            binding.seekBar.max = durationSec
+                        }
+
+                        binding.seekBar.progress = mCurrentPositionSec
+
+                        val progressPercentage = (currentPos.toFloat() / duration.toFloat()) * 100
+                        binding.audioWaveformView.setProgress(progressPercentage)
+                        binding.waveformSeekBar.progress = progressPercentage
+
+                        binding.durationPlayed.text = formattedTime(mCurrentPositionSec)
                     }
-
-                    binding.seekBar.progress = mCurrentPosition
-                    binding.durationPlayed.text = formattedTime(mCurrentPosition)
                 }
                 delay(1000.milliseconds)
             }
@@ -249,7 +282,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 }
             }
 
-            val durationTotal = (viewModel.listSongs[viewModel.position].duration?.toLong() ?: 0L) / 1000
+            val durationTotal =
+                (viewModel.listSongs[viewModel.position].duration?.toLong() ?: 0L) / 1000
             binding.durationTotal.text = formattedTime(durationTotal.toInt())
 
             if (art != null) {
@@ -278,7 +312,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             serviceInstance.setCallBack(this)
             serviceInstance.musicFiles = viewModel.listSongs
 
-            val currentPlayingUri = serviceInstance.exoPlayer?.currentMediaItem?.localConfiguration?.uri
+            val currentPlayingUri =
+                serviceInstance.exoPlayer?.currentMediaItem?.localConfiguration?.uri
             if (currentPlayingUri != viewModel.uri) {
                 serviceInstance.createMediaPlayer(viewModel.position)
                 serviceInstance.start()

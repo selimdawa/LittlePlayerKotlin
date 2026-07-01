@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="5sp"
-    android:layout_marginBottom="10sp"
+    android:layout_marginHorizontal="5dp"
+    android:layout_marginBottom="10dp"
     app:cardCornerRadius="10dp"
-    app:cardElevation="0sp"
-    app:strokeWidth="0sp">
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
-    <LinearLayout
+    <com.google.android.flexbox.FlexboxLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="?background"
-        android:orientation="vertical">
+        app:flexDirection="column"
+        app:justifyContent="flex_start">
 
         <FrameLayout
             android:id="@+id/layout_image_profile"
@@ -29,18 +29,25 @@
                 <ImageView
                     android:id="@+id/imageBlur"
                     android:layout_width="match_parent"
-                    android:layout_height="0sp"
+                    android:layout_height="0dp"
                     android:scaleType="centerCrop"
                     android:src="@color/image_profile"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintDimensionRatio="1:1"
-                    tools:ignore="MissingConstraints" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
                     android:id="@+id/image"
                     android:layout_width="match_parent"
-                    android:layout_height="0sp"
+                    android:layout_height="0dp"
+                    android:scaleType="centerCrop"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintDimensionRatio="1:1"
-                    tools:ignore="MissingConstraints" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -50,12 +57,14 @@
             android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5sp"
+            android:layout_margin="5dp"
+            android:ellipsize="end"
             android:gravity="center_horizontal"
+            android:maxLines="3"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
 
-    </LinearLayout>
+    </com.google.android.flexbox.FlexboxLayout>
 
 </com.google.android.material.card.MaterialCardView>
