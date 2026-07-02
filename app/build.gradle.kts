@@ -75,9 +75,11 @@ dependencies {
     //Media Player
     implementation(libs.androidx.media)
     implementation(libs.androidx.media3.exoplayer)
-    //Waves
-    implementation(libs.lincollincol.amplituda)            //Audio Waves
-    implementation(libs.waveformseekbar)                   //Audio Waves
+    //Audio Waves
+    implementation(libs.lincollincol.amplituda)
+    implementation(libs.waveformseekbar)
+    implementation(libs.multiwaveheader)
+
     //Other's
     implementation(libs.androidx.datastore.preferences)    //New Preference
     implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable

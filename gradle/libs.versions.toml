@@ -13,10 +13,10 @@ constraintlayout = "2.2.1"
 media = "1.10.1"
 preferenceKtx = "1.2.1"
 lifecycle = "2.11.0"
-hilt = "2.59.2"
+hilt = "2.60"
 room = "2.8.4"
 navigation = "2.9.8"
-navigation-hilt = "1.3.0"
+navigation-hilt = "1.4.0"
 coroutines = "1.11.0"
 ksp = "2.3.8"
 datastore = "1.2.1"
@@ -29,6 +29,7 @@ flexbox = "3.0.0"
 amplituda = "2.3.1"
 compressor = "3.0.1"
 waveformseekbar = "5.0.2"
+multiwaveheader = "1.0.0-andx"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -70,6 +71,7 @@ androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplaye
 #Waves
 lincollincol-amplituda = { group = "com.github.lincollincol", name = "amplituda", version.ref = "amplituda" }
 waveformseekbar = { module = "com.github.massoudss:waveformSeekBar", version.ref = "waveformseekbar" }
+multiwaveheader = { module = "com.scwang.wave:MultiWaveHeader", version.ref = "multiwaveheader" }
 #Other's
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 zhanghai-fastscroll = { group = "me.zhanghai.android.fastscroll", name = "library", version.ref = "fastscroll" }
