@@ -65,15 +65,12 @@ object VOID {
         if (!songId.isNullOrEmpty()) {
             try {
                 val trackUri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    songId.toLong()
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()
                 )
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val bitmap: Bitmap = context.contentResolver.loadThumbnail(
-                        trackUri,
-                        Size(size, size),
-                        null
+                        trackUri, Size(size, size), null
                     )
                     image.load(bitmap) {
                         crossfade(true)
@@ -101,8 +98,7 @@ object VOID {
         if (!songId.isNullOrEmpty()) {
             try {
                 val trackUri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    songId.toLong()
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()
                 )
                 val coilRadius = (level / 4f).coerceIn(1f, 25f)
 

@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.flatcode.littleplayer.databinding.ActivitySplashBinding
 import com.flatcode.littleplayer.utils.CLASS
-import com.flatcode.littleplayer.utils.THEME
 import com.flatcode.littleplayer.utils.VOID
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,7 +22,6 @@ class SplashActivity : AppCompatActivity() {
     private val viewModel: MusicViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        THEME.setThemeOfApp(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)

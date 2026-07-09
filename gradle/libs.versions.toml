@@ -11,7 +11,6 @@ activityKtx = "1.13.0"
 fragmentKtx = "1.8.9"
 constraintlayout = "2.2.1"
 media = "1.10.1"
-preferenceKtx = "1.2.1"
 lifecycle = "2.11.0"
 hilt = "2.60.1"
 room = "2.8.4"
@@ -33,7 +32,6 @@ multiwaveheader = "1.0.0-andx"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

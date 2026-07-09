@@ -1,24 +1,19 @@
 package com.flatcode.littleplayer.activity
 
 import android.Manifest
-import android.content.Context
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.flatcode.littleplayer.R
@@ -28,159 +23,121 @@ import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.THEME
+import com.flatcode.littleplayer.utils.MusicPreferences
+import com.flatcode.littleplayer.utils.dataStore
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener {
-
-    @Inject
-    lateinit var dataStore: DataStore<Preferences>
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MusicViewModel by viewModels()
-
-    private val MUSIC_FILE_KEY = stringPreferencesKey(MUSIC_FILE)
-    private val ARTIST_NAME_KEY = stringPreferencesKey(ARTIST_NAME)
-    private val SONG_NAME_KEY = stringPreferencesKey(SONG_NAME)
-
-    val context: Context = this@MainActivity
+    private val themeKey = stringPreferencesKey("color_option")
+    private var initialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        PreferenceManager.getDefaultSharedPreferences(baseContext)
-            .registerOnSharedPreferenceChangeListener(this)
-        THEME.setThemeOfApp(context)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportFragmentManager.beginTransaction().replace(R.id.settings, SettingsFragment())
-            .commit()
+        lifecycleScope.launch {
+            dataStore.data.map { it[themeKey] ?: "ONE" }.collectLatest {
+                if (initialized) binding.root.post { recreate() } else initialized = true
+            }
+        }
 
+        binding.toolbar.settings.setOnClickListener {
+            val entries = resources.getStringArray(R.array.reply_entries)
+            val values = resources.getStringArray(R.array.reply_values)
+            AlertDialog.Builder(this)
+                .setTitle("Select Theme")
+                .setItems(entries) { _, which ->
+                    lifecycleScope.launch {
+                        dataStore.edit { prefs -> prefs[themeKey] = values[which] }
+                    }
+                }.show()
+        }
         permission()
     }
 
     private fun permission() {
-        val permissionToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_AUDIO
+        val perm =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO else Manifest.permission.WRITE_EXTERNAL_STORAGE
+        if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(perm), REQUEST_CODE_PERMISSION)
         } else {
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        }
-
-        if (ContextCompat.checkSelfPermission(
-                this, permissionToRequest
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(permissionToRequest), REQUEST_CODE_PERMISSION
-            )
-        } else {
-            setupAppFlow()
+            viewModel.loadAudioData()
+            val navController =
+                (supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment).navController
+            val adapter = ViewPagerAdapter(this).apply {
+                addFragment(SongsFragment(), DATA.SONGS)
+                addFragment(AlbumsFragment(), DATA.ALBUMS)
+                addFragment(ArtistsFragment(), DATA.ARTISTS)
+                addFragment(FoldersFragment(), DATA.FOLDERS)
+            }
+            binding.viewPager.adapter = adapter
+            TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
+                tab.text = adapter.getPageTitle(pos)
+            }.attach()
+            binding.viewPager.registerOnPageChangeCallback(object :
+                ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(pos: Int) {
+                    navController.navigate(
+                        when (pos) {
+                            0 -> R.id.songsFragment; 1 -> R.id.albumsFragment; 2 -> R.id.artistsFragment; else -> R.id.foldersFragment
+                        }
+                    )
+                }
+            })
         }
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSION) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                setupAppFlow()
-            } else {
-                permission()
-            }
-        }
-    }
-
-    private fun setupAppFlow() {
-        viewModel.loadAudioData()
-        initNavigationWithViewPager()
-    }
-
-    private fun initNavigationWithViewPager() {
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment
-        val navController = navHostFragment.navController
-
-        val viewPagerAdapter = ViewPagerAdapter(this)
-        viewPagerAdapter.addFragment(SongsFragment(), DATA.SONGS)
-        viewPagerAdapter.addFragment(AlbumsFragment(), DATA.ALBUMS)
-        viewPagerAdapter.addFragment(ArtistsFragment(), DATA.ARTISTS)
-        viewPagerAdapter.addFragment(FoldersFragment(), DATA.FOLDERS)
-        binding.viewPager.adapter = viewPagerAdapter
-
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = viewPagerAdapter.getPageTitle(position)
-        }.attach()
-
-        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                when (position) {
-                    0 -> navController.navigate(R.id.songsFragment)
-                    1 -> navController.navigate(R.id.albumsFragment)
-                    2 -> navController.navigate(R.id.artistsFragment)
-                    3 -> navController.navigate(R.id.foldersFragment)
-                }
-            }
-        })
+        if (requestCode == REQUEST_CODE_PERMISSION && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) permission() else permission()
     }
 
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
-            val preferences = dataStore.data.first()
-            val path = preferences[MUSIC_FILE_KEY]
-
+            val prefs = dataStore.data.first()
+            val path = prefs[MusicPreferences.MUSIC_FILE_KEY]
             SHOW_MINI_PLAYER = !path.isNullOrEmpty()
             PATH_TO_FRAG = path
-            ARTIST_TO_FRAG = preferences[ARTIST_NAME_KEY]
-            SONG_NAME_TO_FRAG = preferences[SONG_NAME_KEY]
+            ARTIST_TO_FRAG = prefs[MusicPreferences.ARTIST_NAME_KEY]
+            SONG_NAME_TO_FRAG = prefs[MusicPreferences.SONG_NAME_KEY]
         }
     }
 
-    class ViewPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
-        private val fragments = ArrayList<Fragment>()
+    class ViewPagerAdapter(act: AppCompatActivity) : FragmentStateAdapter(act) {
+        private val frags = ArrayList<Fragment>()
         private val titles = ArrayList<String>()
-
-        fun addFragment(fragment: Fragment, title: String) {
-            fragments.add(fragment)
-            titles.add(title)
+        fun addFragment(f: Fragment, t: String) {
+            frags.add(f); titles.add(t)
         }
 
-        override fun getItemCount(): Int = fragments.size
-        override fun createFragment(position: Int): Fragment = fragments[position]
-        fun getPageTitle(position: Int): String = titles[position]
+        override fun getItemCount() = frags.size
+        override fun createFragment(pos: Int) = frags[pos]
+        fun getPageTitle(pos: Int) = titles[pos]
     }
 
     companion object {
         const val REQUEST_CODE_PERMISSION = 1
-        const val MUSIC_FILE = "STORED_MUSIC"
-        const val ARTIST_NAME = "ARTIST NAME"
-        const val SONG_NAME = "SONG NAME"
-
         var SHOW_MINI_PLAYER = false
         var PATH_TO_FRAG: String? = null
         var ARTIST_TO_FRAG: String? = null
         var SONG_NAME_TO_FRAG: String? = null
         var shuffleBoolean = false
         var repeatBoolean = false
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        if (key == "color_option") {
-            recreate()
-        }
-    }
-
-    class SettingsFragment : PreferenceFragmentCompat() {
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            setPreferencesFromResource(R.xml.root_preferences, rootKey)
-        }
     }
 }

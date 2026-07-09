@@ -43,7 +43,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.fragment.ktx)
-    implementation(libs.androidx.preference.ktx)           //Shared Preference
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -79,7 +78,6 @@ dependencies {
     implementation(libs.lincollincol.amplituda)
     implementation(libs.waveformseekbar)
     implementation(libs.multiwaveheader)
-
     //Other's
     implementation(libs.androidx.datastore.preferences)    //New Preference
     implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable
