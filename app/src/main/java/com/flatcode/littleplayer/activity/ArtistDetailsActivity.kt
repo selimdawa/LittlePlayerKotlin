@@ -22,7 +22,6 @@ class ArtistDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityArtistDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        supportActionBar?.hide()
 
         observeViewModel()
 

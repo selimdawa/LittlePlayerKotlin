@@ -35,8 +35,6 @@ class ArtistsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
         viewModel.artistFiles.observe(viewLifecycleOwner) { artistList ->
             if (!artistList.isNullOrEmpty()) {
                 val arrayListArtists = ArrayList(artistList)

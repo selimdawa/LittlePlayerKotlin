@@ -9,7 +9,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.unit.VOID
+import com.flatcode.littleplayer.utils.VOID
 import com.flatcode.littleplayer.databinding.ItemAlbumBinding
 import java.util.ArrayList
 

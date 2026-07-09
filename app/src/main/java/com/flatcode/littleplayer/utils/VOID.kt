@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.unit
+package com.flatcode.littleplayer.utils
 
 import android.content.ContentUris
 import android.content.Context

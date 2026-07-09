@@ -1,4 +1,4 @@
-package com.flatcode.littleplayer.unit
+package com.flatcode.littleplayer.utils
 
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.activity.AlbumDetailsActivity

@@ -8,7 +8,7 @@ import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemArtistDetailsBinding
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.unit.VOID
+import com.flatcode.littleplayer.utils.VOID
 import java.util.ArrayList
 
 class ArtistDetailsAdapter(

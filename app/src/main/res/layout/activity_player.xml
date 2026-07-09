@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/dark"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark">
 
     <ImageView
         android:id="@+id/imageBlur"
@@ -153,12 +153,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp" />
 
-            <com.flatcode.littleplayer.unit.AudioWaveformView
+            <com.flatcode.littleplayer.utils.AudioWaveformView
                 android:id="@+id/audioWaveformView"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="20dp" />
+                android:layout_marginTop="20dp"
+                app:wave_background_color="#44FFFFFF"
+                app:wave_progress_color="?trackColor" />
 
             <com.masoudss.lib.WaveformSeekBar
                 android:id="@+id/waveformSeekBar"
@@ -166,12 +168,12 @@
                 android:layout_height="60dp"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="20dp"
-                app:wave_width="3dp"
-                app:wave_gap="2dp"
-                app:wave_corner_radius="2dp"
                 app:wave_background_color="#44FFFFFF"
-                app:wave_progress_color="#8A47EB"
-                app:wave_gravity="center" />
+                app:wave_corner_radius="2dp"
+                app:wave_gap="2dp"
+                app:wave_gravity="center"
+                app:wave_progress_color="?tickColor"
+                app:wave_width="3dp" />
 
         </LinearLayout>
 

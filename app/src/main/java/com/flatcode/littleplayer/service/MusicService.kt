@@ -18,8 +18,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.unit.ActionPlaying
-import com.flatcode.littleplayer.unit.DATA
+import com.flatcode.littleplayer.utils.ActionPlaying
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

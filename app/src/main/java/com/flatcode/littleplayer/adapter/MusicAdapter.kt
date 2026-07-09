@@ -12,19 +12,19 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.unit.CLASS
-import com.flatcode.littleplayer.unit.DATA
-import com.flatcode.littleplayer.unit.VOID
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
+import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.CLASS
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.VOID
 import com.google.android.material.snackbar.Snackbar
+import com.scwang.wave.MultiWaveHeader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.ArrayList
 
 class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) :
     RecyclerView.Adapter<MusicAdapter.ViewHolder>() {
@@ -44,7 +44,8 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         val filesList = mFiles ?: return
         val currentFile = filesList[position]
 
-        holder.name.text = currentFile.title
+        holder.songName.text = currentFile.title
+        holder.songDetails.text = "${currentFile.safeArtist} | ${currentFile.album ?: "Unknown Album"}"
 
         VOID.coilImage(context, currentFile.id, holder.image, 150)
         VOID.coilImageBlur(context, currentFile.id, holder.imageBlur, 50)
@@ -108,10 +109,12 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
     override fun getItemCount(): Int = mFiles?.size ?: 0
 
     class ViewHolder(binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root) {
-        val name: TextView = binding.name
+        val songName: TextView = binding.songName
+        val songDetails: TextView = binding.songDetails
         val image: ImageView = binding.image
         val imageBlur: ImageView = binding.imageBlur
         val more: ImageView = binding.more
+        var wave: MultiWaveHeader = binding.wave
     }
 
     fun updateList(musicFilesArrayList: ArrayList<MusicFiles>) {
@@ -124,11 +127,17 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
                     override fun getOldListSize(): Int = oldList.size
                     override fun getNewListSize(): Int = newList.size
 
-                    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    override fun areItemsTheSame(
+                        oldItemPosition: Int,
+                        newItemPosition: Int
+                    ): Boolean {
                         return oldList[oldItemPosition].id == newList[newItemPosition].id
                     }
 
-                    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    override fun areContentsTheSame(
+                        oldItemPosition: Int,
+                        newItemPosition: Int
+                    ): Boolean {
                         return oldList[oldItemPosition] == newList[newItemPosition]
                     }
                 })

@@ -21,9 +21,9 @@ import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.service.MusicService
-import com.flatcode.littleplayer.unit.ActionPlaying
-import com.flatcode.littleplayer.unit.DATA
-import com.flatcode.littleplayer.unit.VOID
+import com.flatcode.littleplayer.utils.ActionPlaying
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.VOID
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,7 +54,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportActionBar?.hide()
         amplituda = Amplituda(this)
 
         getIntentMethod()

@@ -1,8 +1,7 @@
-package com.flatcode.littleplayer.unit
+package com.flatcode.littleplayer.utils
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -16,13 +15,11 @@ class AudioWaveformView @JvmOverloads constructor(
     private var progress = 0f
 
     private val wavePaint = Paint().apply {
-        color = Color.LTGRAY
         style = Paint.Style.FILL
         isAntiAlias = true
     }
 
     private val progressPaint = Paint().apply {
-        color = Color.parseColor("#8A47EB")
         style = Paint.Style.FILL
         isAntiAlias = true
     }

@@ -6,11 +6,22 @@
     android:layout_height="match_parent"
     android:background="?colorOnBackground">
 
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar_main" />
+
+    <include
+        android:id="@+id/toolbar2"
+        layout="@layout/toolbar_main_fav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar" />
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:layout_alignParentTop="true"
+        android:layout_below="@id/toolbar2"
         android:background="@color/dark"
         app:tabIndicator="@drawable/tab_indicator"
         app:tabIndicatorColor="?trackColor"
@@ -20,36 +31,38 @@
         app:tabSelectedTextColor="@color/white"
         app:tabTextColor="#99FFFFFF" />
 
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tabLayout" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/navHostFragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="0sp"
+        android:layout_height="0sp"
+        android:layout_below="@id/tabLayout"
+        android:visibility="gone"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph"
+        tools:ignore="MissingConstraints" />
+
     <FrameLayout
         android:id="@+id/fragBottomPlayer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/transparent">
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nowPlayerBottom"
             android:name="com.flatcode.littleplayer.fragment.NowPlayerFragmentBottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
             tools:layout="@layout/fragment_now_player_bottom" />
 
     </FrameLayout>
-
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/fragBottomPlayer"
-        android:layout_below="@id/tabLayout" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/navHostFragment"
-        android:name="androidx.navigation.fragment.NavHostFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/nav_graph"
-        tools:ignore="MissingConstraints" />
 
 </RelativeLayout>

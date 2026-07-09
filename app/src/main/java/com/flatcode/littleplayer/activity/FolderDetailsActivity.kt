@@ -22,7 +22,6 @@ class FolderDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityFolderDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        supportActionBar?.hide()
 
         observeViewModel()
 

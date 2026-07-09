@@ -25,7 +25,7 @@ import com.flatcode.littleplayer.fragment.AlbumsFragment
 import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
-import com.flatcode.littleplayer.unit.DATA
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
+class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var dataStore: DataStore<Preferences>
@@ -119,31 +119,6 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             }
         })
     }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.search, menu)
-        val menuItem = menu?.findItem(R.id.search_option)
-        val searchView = menuItem?.actionView as? SearchView
-        searchView?.setOnQueryTextListener(this)
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onQueryTextSubmit(s: String?): Boolean = false
-
-    override fun onQueryTextChange(s: String?): Boolean {
-        viewModel.filterSongs(s ?: "")
-        return true
-    }
-
-    //override fun onOptionsItemSelected(item: MenuItem): Boolean {
-    //    when (item.itemId) {
-    //        R.id.name -> viewModel.updateSortOrder(DATA.SORT_BY_NAME)
-    //        R.id.date -> viewModel.updateSortOrder(DATA.SORT_BY_DATE)
-    //        R.id.size -> viewModel.updateSortOrder(DATA.SORT_BY_SIZE)
-    //        else -> return super.onOptionsItemSelected(item)
-    //    }
-    //    return true
-    //}
 
     override fun onResume() {
         super.onResume()

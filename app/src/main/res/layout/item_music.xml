@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="5dp"
+    android:layout_marginHorizontal="10dp"
     android:layout_marginBottom="10dp"
-    android:visibility="visible"
-    app:cardCornerRadius="6dp"
-    app:cardElevation="0dp"
-    app:strokeWidth="0dp">
+    android:visibility="visible">
 
     <LinearLayout
         android:id="@+id/item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?background"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -29,9 +25,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/imageBlur"
-                    android:layout_width="80dp"
+                    android:layout_width="50dp"
                     android:layout_height="0dp"
                     android:scaleType="centerCrop"
                     android:src="@color/image_profile"
@@ -39,34 +35,66 @@
                     app:layout_constraintDimensionRatio="1:1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImage" />
 
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/image"
-                    android:layout_width="80dp"
+                    android:layout_width="50dp"
                     android:layout_height="0dp"
-                    android:scaleType="centerCrop"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintDimensionRatio="1:1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImage" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </FrameLayout>
 
-        <TextView
-            android:id="@+id/name"
+        <com.google.android.flexbox.FlexboxLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
             android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            app:flexDirection="column"
+            app:justifyContent="center">
+
+            <TextView
+                android:id="@+id/songName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/song_title"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/songDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/folder_name"
+                android:textColor="#99FFFFFF"
+                android:textSize="14sp" />
+
+        </com.google.android.flexbox.FlexboxLayout>
+
+        <com.scwang.wave.MultiWaveHeader
+            android:id="@+id/wave"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="10dp"
+            android:scaleY="-1"
+            app:mwhCloseColor="?tickColor"
+            app:mwhShape="Oval"
+            app:mwhStartColor="?trackColor" />
 
         <ImageView
             android:id="@+id/more"
@@ -83,4 +111,4 @@
 
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+</LinearLayout>

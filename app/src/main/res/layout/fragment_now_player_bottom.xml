@@ -11,118 +11,123 @@
         android:id="@+id/cardBottomPlayer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <com.google.android.flexbox.FlexboxLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_border"
+            app:flexDirection="column">
 
-            <!-- Tiny linear progress bar pinned to the top edge -->
             <ProgressBar
                 android:id="@+id/miniProgressBar"
                 style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="0dp"
-                android:layout_height="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
                 android:max="100"
                 android:progress="0"
                 android:progressBackgroundTint="?attr/colorSurfaceVariant"
-                android:progressTint="?attr/colorPrimary"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:progressTint="?attr/colorPrimary" />
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/albumArt"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="11dp"
-                android:layout_marginBottom="8dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/logo"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/miniProgressBar"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImage" />
-
-            <TextView
-                android:id="@+id/name"
-                android:layout_width="0dp"
+            <com.google.android.flexbox.FlexboxLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/song_title"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/artist"
-                app:layout_constraintEnd_toStartOf="@+id/playPauseBtn"
-                app:layout_constraintStart_toEndOf="@+id/albumArt"
-                app:layout_constraintTop_toTopOf="@+id/albumArt"
-                app:layout_constraintVertical_chainStyle="packed" />
+                android:paddingTop="11dp"
+                android:paddingBottom="8dp"
+                app:alignItems="center"
+                app:flexDirection="row"
+                app:justifyContent="space_between">
 
-            <TextView
-                android:id="@+id/artist"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginEnd="12dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/artist_name"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="14sp"
-                app:layout_constraintBottom_toBottomOf="@+id/albumArt"
-                app:layout_constraintEnd_toStartOf="@+id/playPauseBtn"
-                app:layout_constraintStart_toEndOf="@+id/albumArt"
-                app:layout_constraintTop_toBottomOf="@+id/name" />
+                <FrameLayout
+                    android:id="@+id/albumArtContainer"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/image_border">
 
-            <FrameLayout
-                android:id="@+id/playPauseBtn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                app:layout_constraintBottom_toBottomOf="@+id/albumArt"
-                app:layout_constraintEnd_toStartOf="@+id/nextBtn"
-                app:layout_constraintTop_toTopOf="@+id/albumArt">
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/albumArt"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_gravity="center"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/logo"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImage" />
 
-                <com.airbnb.lottie.LottieAnimationView
-                    android:id="@+id/playPauseAnimView"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:layout_gravity="center"
-                    app:lottie_rawRes="@raw/play_pause_morph"
-                    app:lottie_loop="false"
-                    app:lottie_autoPlay="false" />
+                </FrameLayout>
 
-            </FrameLayout>
+                <com.google.android.flexbox.FlexboxLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    app:flexDirection="column"
+                    app:layout_flexGrow="1">
 
-            <ImageView
-                android:id="@+id/nextBtn"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="@string/next_song"
-                android:focusable="true"
-                android:padding="6dp"
-                android:src="@drawable/ic_skip_next"
-                app:layout_constraintBottom_toBottomOf="@+id/albumArt"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/albumArt"
-                app:tint="?attr/colorOnSurface" />
+                    <TextView
+                        android:id="@+id/name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/song_title"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                    <TextView
+                        android:id="@+id/artist"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/artist_name"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="14sp" />
+
+                </com.google.android.flexbox.FlexboxLayout>
+
+                <FrameLayout
+                    android:id="@+id/playPauseBtn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/circle_border"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/playPauseAnimView"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
+                        android:layout_gravity="center"
+                        app:lottie_autoPlay="false"
+                        app:lottie_loop="false"
+                        app:lottie_rawRes="@raw/play_pause_morph" />
+
+                </FrameLayout>
+
+                <ImageView
+                    android:id="@+id/nextBtn"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="@string/next_song"
+                    android:focusable="true"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_skip_next"
+                    app:tint="?attr/colorOnSurface" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+        </com.google.android.flexbox.FlexboxLayout>
 
     </com.google.android.material.card.MaterialCardView>
 

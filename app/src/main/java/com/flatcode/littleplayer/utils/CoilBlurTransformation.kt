@@ -1,4 +1,6 @@
-package com.flatcode.littleplayer.unit
+@file:Suppress("DEPRECATION")
+
+package com.flatcode.littleplayer.utils
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -6,14 +8,12 @@ import android.renderscript.Allocation
 import android.renderscript.Element
 import android.renderscript.RenderScript
 import android.renderscript.ScriptIntrinsicBlur
+import androidx.core.graphics.createBitmap
 import coil.size.Size
 import coil.transform.Transformation
-import androidx.core.graphics.createBitmap
 
-class CoilBlurTransformation(
-    private val context: Context,
-    private val radius: Float = 10f
-) : Transformation {
+class CoilBlurTransformation(private val context: Context, private val radius: Float = 10f) :
+    Transformation {
 
     override val cacheKey: String = "CoilBlurTransformation-$radius"
 

@@ -7,9 +7,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.unit.CLASS
-import com.flatcode.littleplayer.unit.DATA
-import com.flatcode.littleplayer.unit.VOID
+import com.flatcode.littleplayer.utils.CLASS
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.VOID
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import java.util.ArrayList
 
@@ -46,7 +46,7 @@ class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<Mu
     override fun getItemCount(): Int = albumFiles?.size ?: 0
 
     class ViewHolder(binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root) {
-        val name: TextView = binding.name
+        val name: TextView = binding.songName
         val image: ImageView = binding.image
         val imageBlur: ImageView = binding.imageBlur
     }
