@@ -5,42 +5,29 @@ import androidx.preference.PreferenceManager
 import com.flatcode.littleplayer.R
 
 object THEME {
-
     fun setThemeOfApp(context: Context) {
-        val sharedPreferences = PreferenceManager
-            .getDefaultSharedPreferences(context.applicationContext)
-        if (sharedPreferences.getString("color_option", "ONE") == "ONE") {
-            context.setTheme(R.style.Base_Theme_OneTheme)
-        } else if (sharedPreferences.getString("color_option", "TWO") == "TWO") {
-            context.setTheme(R.style.Base_Theme_TwoTheme)
-        } else if (sharedPreferences.getString("color_option", "THREE") == "THREE") {
-            context.setTheme(R.style.Base_Theme_ThreeTheme)
-        } else if (sharedPreferences.getString("color_option", "FOUR") == "FOUR") {
-            context.setTheme(R.style.Base_Theme_FourTheme)
-        } else if (sharedPreferences.getString("color_option", "FIVE") == "FIVE") {
-            context.setTheme(R.style.Base_Theme_FiveTheme)
-        } else if (sharedPreferences.getString("color_option", "SIX") == "SIX") {
-            context.setTheme(R.style.Base_Theme_SixTheme)
-        } else if (sharedPreferences.getString("color_option", "SEVEN") == "SEVEN") {
-            context.setTheme(R.style.Base_Theme_SevenTheme)
-        } else if (sharedPreferences.getString("color_option", "EIGHT") == "EIGHT") {
-            context.setTheme(R.style.Base_Theme_EightTheme)
-        } else if (sharedPreferences.getString("color_option", "NINE") == "NINE") {
-            context.setTheme(R.style.Base_Theme_NineTheme)
-        } else if (sharedPreferences.getString("color_option", "GRADUAL_ONE") == "GRADUAL_ONE") {
-            context.setTheme(R.style.Base_Theme_GradientOneTheme)
-        } else if (sharedPreferences.getString("color_option", "GRADUAL_TWO") == "GRADUAL_TWO") {
-            context.setTheme(R.style.Base_Theme_GradientTwoTheme)
-        } else if (sharedPreferences.getString("color_option", "GRADUAL_THREE") == "GRADUAL_THREE") {
-            context.setTheme(R.style.Base_Theme_GradientThreeTheme)
-        } else if (sharedPreferences.getString("color_option", "GRADUAL_FOUR") == "GRADUAL_FOUR") {
-            context.setTheme(R.style.Base_Theme_GradientFourTheme)
-        } else if (sharedPreferences.getString("color_option", "GRADUAL_FIVE") == "GRADUAL_FIVE") {
-            context.setTheme(R.style.Base_Theme_GradientFiveTheme)
-        } else if (sharedPreferences.getString("color_option", "GRADUAL_SIX") == "GRADUAL_SIX") {
-            context.setTheme(R.style.Base_Theme_GradientSixTheme)
-        } else if (sharedPreferences.getString("color_option", "GRADUAL_SEVEN") == "GRADUAL_SEVEN") {
-            context.setTheme(R.style.Base_Theme_GradientSevenTheme)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        val option = prefs.getString("color_option", "ONE")
+
+        val themeRes = when (option) {
+            "ONE" -> R.style.Base_Theme_OneTheme
+            "TWO" -> R.style.Base_Theme_TwoTheme
+            "THREE" -> R.style.Base_Theme_ThreeTheme
+            "FOUR" -> R.style.Base_Theme_FourTheme
+            "FIVE" -> R.style.Base_Theme_FiveTheme
+            "SIX" -> R.style.Base_Theme_SixTheme
+            "SEVEN" -> R.style.Base_Theme_SevenTheme
+            "EIGHT" -> R.style.Base_Theme_EightTheme
+            "NINE" -> R.style.Base_Theme_NineTheme
+            "GRADUAL_ONE" -> R.style.Base_Theme_GradientOneTheme
+            "GRADUAL_TWO" -> R.style.Base_Theme_GradientTwoTheme
+            "GRADUAL_THREE" -> R.style.Base_Theme_GradientThreeTheme
+            "GRADUAL_FOUR" -> R.style.Base_Theme_GradientFourTheme
+            "GRADUAL_FIVE" -> R.style.Base_Theme_GradientFiveTheme
+            "GRADUAL_SIX" -> R.style.Base_Theme_GradientSixTheme
+            "GRADUAL_SEVEN" -> R.style.Base_Theme_GradientSevenTheme
+            else -> R.style.Base_Theme_OneTheme
         }
+        context.setTheme(themeRes)
     }
 }

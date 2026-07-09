@@ -1,14 +1,14 @@
 package com.flatcode.littleplayer.activity
 
 import android.Manifest
+import android.content.Context
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
@@ -17,6 +17,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.flatcode.littleplayer.R
@@ -26,6 +28,7 @@ import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.THEME
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,7 +37,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OnSharedPreferenceChangeListener {
 
     @Inject
     lateinit var dataStore: DataStore<Preferences>
@@ -46,10 +49,18 @@ class MainActivity : AppCompatActivity() {
     private val ARTIST_NAME_KEY = stringPreferencesKey(ARTIST_NAME)
     private val SONG_NAME_KEY = stringPreferencesKey(SONG_NAME)
 
+    val context: Context = this@MainActivity
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        PreferenceManager.getDefaultSharedPreferences(baseContext)
+            .registerOnSharedPreferenceChangeListener(this)
+        THEME.setThemeOfApp(context)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        supportFragmentManager.beginTransaction().replace(R.id.settings, SettingsFragment())
+            .commit()
 
         permission()
     }
@@ -159,5 +170,17 @@ class MainActivity : AppCompatActivity() {
         var SONG_NAME_TO_FRAG: String? = null
         var shuffleBoolean = false
         var repeatBoolean = false
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        if (key == "color_option") {
+            recreate()
+        }
+    }
+
+    class SettingsFragment : PreferenceFragmentCompat() {
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.root_preferences, rootKey)
+        }
     }
 }
