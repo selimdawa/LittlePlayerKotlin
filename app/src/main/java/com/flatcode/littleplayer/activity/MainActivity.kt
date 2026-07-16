@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MusicViewModel by viewModels()
+
     private val themeKey = stringPreferencesKey("color_option")
     private var initialized = false
 

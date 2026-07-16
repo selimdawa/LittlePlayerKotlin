@@ -61,6 +61,7 @@ dependencies {
     //Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.fragment)
     //Room
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
@@ -70,7 +71,6 @@ dependencies {
     //Navigation
     implementation(libs.navigation.fragment.ktx)                 //Need New Style |Swapping Fragments|
     implementation(libs.navigation.ui.ktx)
-    implementation(libs.hilt.navigation.fragment)
     //Media Player
     implementation(libs.androidx.media)
     implementation(libs.androidx.media3.exoplayer)
