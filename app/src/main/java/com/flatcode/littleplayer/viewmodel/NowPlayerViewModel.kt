@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NowPlayerViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
 
     private val _currentPlayingSong = MutableLiveData<MusicFiles?>()
@@ -26,9 +26,29 @@ class NowPlayerViewModel @Inject constructor(
     private val _isPlaying = MutableLiveData(false)
     val isPlaying: LiveData<Boolean> get() = _isPlaying
 
-    private val MUSIC_FILE_KEY = stringPreferencesKey("STORED_MUSIC")
-    private val ARTIST_NAME_KEY = stringPreferencesKey("ARTIST NAME")
-    private val SONG_NAME_KEY = stringPreferencesKey("SONG NAME")
+    private val musicFileKey = stringPreferencesKey("STORED_MUSIC")
+    private val artistNameKey = stringPreferencesKey("ARTIST NAME")
+    private val songNameKey = stringPreferencesKey("SONG NAME")
+
+    init {
+        loadLastPlayedSong()
+    }
+
+    private fun loadLastPlayedSong() {
+        viewModelScope.launch {
+            dataStore.data.collect { preferences ->
+                val path = preferences[musicFileKey]
+                if (!path.isNullOrEmpty()) {
+                    val song = MusicFiles(
+                        path = path,
+                        artist = preferences[artistNameKey],
+                        title = preferences[songNameKey]
+                    )
+                    _currentPlayingSong.postValue(song)
+                }
+            }
+        }
+    }
 
     fun updatePlaybackState(playing: Boolean) {
         _isPlaying.value = playing
@@ -39,9 +59,9 @@ class NowPlayerViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
-                preferences[MUSIC_FILE_KEY] = song.path ?: ""
-                preferences[ARTIST_NAME_KEY] = song.artist ?: "Unknown"
-                preferences[SONG_NAME_KEY] = song.title ?: "Unknown"
+                preferences[musicFileKey] = song.path ?: ""
+                preferences[artistNameKey] = song.artist ?: "Unknown"
+                preferences[songNameKey] = song.title ?: "Unknown"
             }
         }
 

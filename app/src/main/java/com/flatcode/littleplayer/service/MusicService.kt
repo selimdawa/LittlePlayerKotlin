@@ -1,11 +1,7 @@
 package com.flatcode.littleplayer.service
 
-import android.app.Service
 import android.content.Intent
-import android.net.Uri
-import android.os.Binder
-import android.os.Build
-import android.os.IBinder
+import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -16,10 +12,17 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.utils.ActionPlaying
-import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.repository.MusicRoomRepository
+import com.flatcode.littleplayer.utils.VOID
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,25 +33,28 @@ import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class MusicService : Service(), Player.Listener {
+class MusicService : MediaSessionService(), Player.Listener {
 
     @Inject
     lateinit var dataStore: DataStore<Preferences>
 
-    private val binder: IBinder = MyBinder()
+    @Inject
+    lateinit var repository: MusicRoomRepository
+
     var exoPlayer: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
 
     var musicFiles = ArrayList<MusicFiles>()
-    var uri: Uri? = null
     var position = -1
 
-    private var actionPlaying: ActionPlaying? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val MUSIC_FILE_KEY = stringPreferencesKey(MUSIC_FILE)
-    private val ARTIST_NAME_KEY = stringPreferencesKey(ARTIST_NAME)
-    private val SONG_NAME_KEY = stringPreferencesKey(SONG_NAME)
+    private val musicFileKey = stringPreferencesKey(MUSIC_FILE)
+    private val artistNameKey = stringPreferencesKey(ARTIST_NAME)
+    private val songNameKey = stringPreferencesKey(SONG_NAME)
+
+    private val customCommandFavorite = SessionCommand(COMMAND_FAVORITE, Bundle.EMPTY)
+    private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
 
     override fun onCreate() {
         super.onCreate()
@@ -58,155 +64,235 @@ class MusicService : Service(), Player.Listener {
         }
 
         exoPlayer?.let { player ->
-            mediaSession = MediaSession.Builder(this, player).build()
+            mediaSession =
+                MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder {
-        return binder
-    }
-
-    inner class MyBinder : Binder() {
-        val service: MusicService
-            get() = this@MusicService
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        return mediaSession
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.let {
-            val myPosition = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                it.getSerializableExtra(DATA.SERVICE_POSITION, Int::class.java) ?: -1
-            } else {
-                it.getIntExtra(DATA.SERVICE_POSITION, -1)
-            }
-            val actionName = it.getStringExtra(DATA.ACTION_NAME)
-
-            if (myPosition != -1) {
-                playMedia(myPosition)
-            }
-
-            actionName?.let { action ->
-                when (action) {
-                    "playPause" -> actionPlaying?.playPauseBtn()
-                    "next" -> actionPlaying?.nextBtn()
-                    "previous" -> actionPlaying?.prevBtn()
-                }
-            }
-        }
+        super.onStartCommand(intent, flags, startId)
         return START_STICKY
     }
 
-    private fun playMedia(startPosition: Int) {
-        position = startPosition
-        if (musicFiles.isNotEmpty() && position in musicFiles.indices) {
-            createMediaPlayer(position)
-            start()
-        }
-    }
-
-    fun start() {
-        exoPlayer?.playWhenReady = true
-        exoPlayer?.prepare()
-    }
-
-    fun isPlaying(): Boolean {
-        return exoPlayer?.isPlaying ?: false
-    }
-
-    fun stop() {
-        exoPlayer?.stop()
-    }
-
-    fun release() {
-        exoPlayer?.release()
-    }
-
-    fun getDuration(): Int {
-        return exoPlayer?.duration?.toInt() ?: 0
-    }
-
-    fun seekTo(position: Int) {
-        exoPlayer?.seekTo(position.toLong())
-    }
-
-    fun getCurrentPosition(): Int {
-        return exoPlayer?.currentPosition?.toInt() ?: 0
-    }
-
-    fun getAudioSessionId(): Int {
-        return exoPlayer?.audioSessionId ?: 0
-    }
-
     fun createMediaPlayer(positionInner: Int) {
-        if (musicFiles.isEmpty() || positionInner !in musicFiles.indices) return
+        if (musicFiles.isEmpty() || (positionInner !in musicFiles.indices)) return
 
         position = positionInner
-        val song = musicFiles[position]
-        val path = song.path ?: return
-        uri = path.toUri()
+
+        val mediaItems = musicFiles.map { song ->
+            val metadata = MediaMetadata.Builder()
+                .setTitle(song.title ?: "Unknown Track")
+                .setArtist(song.artist ?: "Unknown Artist")
+                .setAlbumTitle(song.album ?: "Unknown Album")
+                .build()
+
+            MediaItem.Builder()
+                .setUri(song.path?.toUri() ?: "".toUri())
+                .setMediaMetadata(metadata)
+                .setMediaId(song.id ?: "")
+                .build()
+        }
+
+        exoPlayer?.apply {
+            setMediaItems(mediaItems, position, 0L)
+            prepare()
+            play()
+        }
+    }
+
+    private fun updateLastPlayedInfo() {
+        val player = exoPlayer ?: return
+        val currentIndex = player.currentMediaItemIndex
+        if (currentIndex in musicFiles.indices) {
+            val song = musicFiles[currentIndex]
+            serviceScope.launch(Dispatchers.IO) {
+                dataStore.edit { preferences ->
+                    preferences[musicFileKey] = song.path ?: ""
+                    preferences[artistNameKey] = song.artist ?: "Unknown"
+                    preferences[songNameKey] = song.title ?: "Unknown"
+                }
+            }
+        }
+    }
+
+    private fun updateNotificationLayout() {
+        val player = exoPlayer ?: return
+        val currentMediaItem = player.currentMediaItem ?: return
+        val songId = currentMediaItem.mediaId
+
+        serviceScope.launch {
+            val isFav = repository.isFavorite(songId)
+            val favIcon = if (isFav) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+
+            val cycleIcon = when {
+                player.shuffleModeEnabled -> R.drawable.ic_shuffle_on
+                player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
+                else -> R.drawable.ic_repeat_on
+            }
+
+            val favoriteButton = CommandButton.Builder()
+                .setSessionCommand(customCommandFavorite)
+                .setDisplayName(getString(R.string.favorite))
+                .setIconResId(favIcon)
+                .build()
+
+            val cycleButton = CommandButton.Builder()
+                .setSessionCommand(customCommandPlaybackCycle)
+                .setDisplayName(getString(R.string.cycle))
+                .setIconResId(cycleIcon)
+                .build()
+
+            mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton))
+        }
+    }
+
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+        // Avoid reloading if the transition was caused by a metadata update
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) return
+
+        exoPlayer?.let {
+            position = it.currentMediaItemIndex
+            // Only load art if we actually transitioned to a NEW song
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || 
+                reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
+                loadArtForCurrentItem(it)
+            }
+        }
+        updateLastPlayedInfo()
+        updateNotificationLayout()
+    }
+
+    private fun loadArtForCurrentItem(player: Player) {
+        val currentMediaItem = player.currentMediaItem ?: return
+        // Guard: If artwork is already present, definitely skip to prevent infinite loop
+        if (currentMediaItem.mediaMetadata.artworkData != null) return
+        
+        val path = currentMediaItem.localConfiguration?.uri?.path ?: return
 
         serviceScope.launch(Dispatchers.IO) {
-            dataStore.edit { preferences ->
-                preferences[MUSIC_FILE_KEY] = uri.toString()
-                preferences[ARTIST_NAME_KEY] = song.artist ?: "Unknown"
-                preferences[SONG_NAME_KEY] = song.title ?: "Unknown"
-            }
-        }
+            val artBytes = VOID.getAlbumArtBytes(path)
+            if (artBytes != null) {
+                val updatedMetadata = currentMediaItem.mediaMetadata.buildUpon()
+                    .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                    .build()
 
-        val mediaMetadata = MediaMetadata.Builder()
-            .setTitle(song.title ?: "Unknown Track")
-            .setArtist(song.artist ?: "Unknown Artist")
-            .setAlbumTitle(song.album ?: "Unknown Album")
-            .build()
-
-        val mediaItem = MediaItem.Builder()
-            .setUri(uri)
-            .setMediaMetadata(mediaMetadata)
-            .build()
-
-        exoPlayer?.stop()
-        exoPlayer?.setMediaItem(mediaItem)
-        exoPlayer?.prepare()
-    }
-
-    fun pause() {
-        exoPlayer?.playWhenReady = false
-    }
-
-    fun onCompleted() {
-
-    }
-
-    override fun onPlaybackStateChanged(playbackState: Int) {
-        if (playbackState == Player.STATE_ENDED) {
-            actionPlaying?.nextBtn()
-            if (musicFiles.isNotEmpty() && position in musicFiles.indices) {
-                createMediaPlayer(position)
-                start()
+                launch(Dispatchers.Main) {
+                    // Check if we are still on the same song before applying
+                    if (player.currentMediaItem?.mediaId == currentMediaItem.mediaId) {
+                        val index = player.currentMediaItemIndex
+                        player.replaceMediaItem(index, 
+                            currentMediaItem.buildUpon().setMediaMetadata(updatedMetadata).build())
+                    }
+                }
             }
         }
     }
 
-    fun setCallBack(actionPlaying: ActionPlaying) {
-        this.actionPlaying = actionPlaying
+    override fun onEvents(player: Player, events: Player.Events) {
+        if (events.containsAny(
+                Player.EVENT_MEDIA_ITEM_TRANSITION,
+                Player.EVENT_REPEAT_MODE_CHANGED,
+                Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
+                Player.EVENT_PLAY_WHEN_READY_CHANGED
+            )
+        ) {
+            updateNotificationLayout()
+        }
     }
 
-    fun nextBtnClicked() {
-        actionPlaying?.nextBtn()
-    }
+    private inner class CustomSessionCallback : MediaSession.Callback {
+        override fun onConnect(
+            session: MediaSession, controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult {
+            val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                .add(customCommandFavorite).add(customCommandPlaybackCycle).build()
 
-    fun previousBtnClicked() {
-        actionPlaying?.prevBtn()
-    }
+            val playerCommands = MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
+                .add(Player.COMMAND_SEEK_TO_NEXT)
+                .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                .build()
 
-    fun playPauseBtnClicked() {
-        actionPlaying?.playPauseBtn()
+            return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailableSessionCommands(sessionCommands)
+                .setAvailablePlayerCommands(playerCommands).build()
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controllerInfo: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle
+        ): ListenableFuture<SessionResult> {
+            when (customCommand.customAction) {
+                COMMAND_FAVORITE -> {
+                    val currentMediaItem = session.player.currentMediaItem
+                    if (currentMediaItem != null) {
+                        val songId = currentMediaItem.mediaId
+                        val title = currentMediaItem.mediaMetadata.title?.toString() ?: ""
+                        val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: ""
+                        val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
+                        val path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
+
+                        serviceScope.launch {
+                            val isFav = repository.isFavorite(songId)
+                            if (isFav) {
+                                repository.deleteFavorite(
+                                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
+                                        songId, title, artist, album, null, path
+                                    )
+                                )
+                            } else {
+                                repository.insertFavorite(
+                                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
+                                        songId, title, artist, album, null, path
+                                    )
+                                )
+                            }
+                            updateNotificationLayout()
+                        }
+                    }
+                }
+
+                COMMAND_PLAYBACK_CYCLE -> {
+                    val player = session.player
+                    when {
+                        !player.shuffleModeEnabled && player.repeatMode != Player.REPEAT_MODE_ONE -> {
+                            player.repeatMode = Player.REPEAT_MODE_ONE
+                            player.shuffleModeEnabled = false
+                        }
+
+                        !player.shuffleModeEnabled && player.repeatMode == Player.REPEAT_MODE_ONE -> {
+                            player.repeatMode = Player.REPEAT_MODE_ALL
+                            player.shuffleModeEnabled = true
+                        }
+
+                        else -> {
+                            player.repeatMode = Player.REPEAT_MODE_ALL
+                            player.shuffleModeEnabled = false
+                        }
+                    }
+                    updateNotificationLayout()
+                }
+            }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaSession?.release()
-        exoPlayer?.removeListener(this)
-        exoPlayer?.release()
+        mediaSession?.run {
+            player.release()
+            release()
+            mediaSession = null
+        }
+        exoPlayer = null
         serviceScope.cancel()
     }
 
@@ -214,5 +300,7 @@ class MusicService : Service(), Player.Listener {
         const val MUSIC_FILE = "STORED_MUSIC"
         const val ARTIST_NAME = "ARTIST NAME"
         const val SONG_NAME = "SONG NAME"
+        const val COMMAND_FAVORITE = "COMMAND_FAVORITE"
+        const val COMMAND_PLAYBACK_CYCLE = "COMMAND_PLAYBACK_CYCLE"
     }
 }

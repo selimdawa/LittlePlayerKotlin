@@ -47,6 +47,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val nowPlayerViewModel: com.flatcode.littleplayer.viewmodel.NowPlayerViewModel by viewModels()
+        nowPlayerViewModel.currentPlayingSong.observe(this) { song ->
+            binding.fragBottomPlayer.visibility =
+                if (song != null) android.view.View.VISIBLE else android.view.View.GONE
+        }
+
         lifecycleScope.launch {
             dataStore.data.map { it[themeKey] ?: "ONE" }.collectLatest {
                 if (initialized) binding.root.post { recreate() } else initialized = true
@@ -56,22 +62,28 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar.settings.setOnClickListener {
             val entries = resources.getStringArray(R.array.reply_entries)
             val values = resources.getStringArray(R.array.reply_values)
-            AlertDialog.Builder(this)
-                .setTitle("Select Theme")
-                .setItems(entries) { _, which ->
-                    lifecycleScope.launch {
-                        dataStore.edit { prefs -> prefs[themeKey] = values[which] }
-                    }
-                }.show()
+            AlertDialog.Builder(this).setTitle("Select Theme").setItems(entries) { _, which ->
+                lifecycleScope.launch {
+                    dataStore.edit { prefs -> prefs[themeKey] = values[which] }
+                }
+            }.show()
         }
         permission()
     }
 
     private fun permission() {
-        val perm =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO else Manifest.permission.WRITE_EXTERNAL_STORAGE
-        if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(perm), REQUEST_CODE_PERMISSION)
+        val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+
+        val missing = perms.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missing.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), REQUEST_CODE_PERMISSION)
         } else {
             viewModel.loadAudioData()
             val navController =
@@ -91,7 +103,10 @@ class MainActivity : AppCompatActivity() {
                 override fun onPageSelected(pos: Int) {
                     navController.navigate(
                         when (pos) {
-                            0 -> R.id.songsFragment; 1 -> R.id.albumsFragment; 2 -> R.id.artistsFragment; else -> R.id.foldersFragment
+                            0 -> R.id.songsFragment
+                            1 -> R.id.albumsFragment
+                            2 -> R.id.artistsFragment
+                            else -> R.id.foldersFragment
                         }
                     )
                 }
@@ -100,12 +115,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSION && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) permission() else permission()
+        permission()
     }
 
     override fun onResume() {
@@ -138,7 +151,5 @@ class MainActivity : AppCompatActivity() {
         var PATH_TO_FRAG: String? = null
         var ARTIST_TO_FRAG: String? = null
         var SONG_NAME_TO_FRAG: String? = null
-        var shuffleBoolean = false
-        var repeatBoolean = false
     }
 }

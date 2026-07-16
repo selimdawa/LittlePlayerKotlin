@@ -30,9 +30,27 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
     RecyclerView.Adapter<MusicAdapter.ViewHolder>() {
 
     private val adapterScope = CoroutineScope(Dispatchers.Main)
+    private var playingPath: String? = null
+    private var isPlaying: Boolean = false
 
     init {
         Companion.mFiles = mFiles
+    }
+
+    fun updatePlaybackState(path: String?, playing: Boolean) {
+        val oldPath = this.playingPath
+        val oldPlaying = this.isPlaying
+
+        this.playingPath = path
+        this.isPlaying = playing
+
+        if ((oldPath != path) || (oldPlaying != playing)) {
+            mFiles?.forEachIndexed { index, musicFiles ->
+                if ((musicFiles.path == oldPath) || (musicFiles.path == path)) {
+                    notifyItemChanged(index)
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -45,12 +63,24 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         val currentFile = filesList[position]
 
         holder.songName.text = currentFile.title
-        holder.songDetails.text = "${currentFile.safeArtist} | ${currentFile.album ?: "Unknown Album"}"
+        val songDetailsText = context.getString(
+            R.string.song_details_format,
+            currentFile.safeArtist,
+            currentFile.album ?: "Unknown Album"
+        )
+        holder.songDetails.text = songDetailsText
 
-        VOID.coilImage(context, currentFile.id, holder.image, 150)
-        VOID.coilImageBlur(context, currentFile.id, holder.imageBlur, 50)
+        VOID.coilImage(context, currentFile.id, currentFile.path, holder.image, 150)
+        VOID.coilImageBlur(context, currentFile.id, currentFile.path, holder.imageBlur, 100)
+
+        if ((currentFile.path == playingPath) && isPlaying) {
+            holder.wave.visibility = View.VISIBLE
+        } else {
+            holder.wave.visibility = View.GONE
+        }
 
         holder.itemView.setOnClickListener {
+            updatePlaybackState(currentFile.path, true)
             VOID.intentExtraInt(context, CLASS.PLAYER, DATA.POSITION, holder.bindingAdapterPosition)
         }
 
@@ -72,7 +102,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
 
     private fun deleteFile(position: Int, v: View) {
         val filesList = mFiles ?: return
-        if (position < 0 || position >= filesList.size) return
+        if (position < 0 || (position >= filesList.size)) return
 
         val fileId = filesList[position].id ?: return
         val filePath = filesList[position].path ?: return
@@ -83,8 +113,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
                 val deleted = file.delete()
                 if (deleted) {
                     val contentUri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        fileId.toLong()
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, fileId.toLong()
                     )
                     context.contentResolver.delete(contentUri, null, null)
                     true
@@ -118,31 +147,33 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
     }
 
     fun updateList(musicFilesArrayList: ArrayList<MusicFiles>) {
-        val oldList = mFiles ?: ArrayList()
+        val oldList = Companion.mFiles ?: ArrayList()
         val newList = ArrayList(musicFilesArrayList)
 
         adapterScope.launch {
             val diffResult = withContext(Dispatchers.Default) {
-                DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                    override fun getOldListSize(): Int = oldList.size
-                    override fun getNewListSize(): Int = newList.size
+                DiffUtil.calculateDiff(
+                    object : DiffUtil.Callback() {
+                        override fun getOldListSize(): Int = oldList.size
+                        override fun getNewListSize(): Int = newList.size
 
-                    override fun areItemsTheSame(
-                        oldItemPosition: Int,
-                        newItemPosition: Int
-                    ): Boolean {
-                        return oldList[oldItemPosition].id == newList[newItemPosition].id
-                    }
+                        override fun areItemsTheSame(
+                            oldItemPosition: Int,
+                            newItemPosition: Int,
+                        ): Boolean {
+                            return oldList[oldItemPosition].id == newList[newItemPosition].id
+                        }
 
-                    override fun areContentsTheSame(
-                        oldItemPosition: Int,
-                        newItemPosition: Int
-                    ): Boolean {
-                        return oldList[oldItemPosition] == newList[newItemPosition]
-                    }
-                })
+                        override fun areContentsTheSame(
+                            oldItemPosition: Int,
+                            newItemPosition: Int,
+                        ): Boolean {
+                            return oldList[oldItemPosition] == newList[newItemPosition]
+                        }
+                    },
+                )
             }
-            mFiles = newList
+            Companion.mFiles = newList
             diffResult.dispatchUpdatesTo(this@MusicAdapter)
         }
     }

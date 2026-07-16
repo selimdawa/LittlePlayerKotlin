@@ -29,8 +29,8 @@ class AlbumAdapter(
         val currentFile = albumFiles[position]
         holder.name.text = currentFile.album
 
-        VOID.coilImage(context, currentFile.id, holder.image, 300)
-        VOID.coilImageBlur(context, currentFile.id, holder.imageBlur, 50)
+        VOID.coilImage(context, currentFile.id, currentFile.path, holder.image, 300)
+        VOID.coilImageBlur(context, currentFile.id, currentFile.path, holder.imageBlur, 50)
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile.album ?: "")

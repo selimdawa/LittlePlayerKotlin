@@ -10,22 +10,29 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.repository.MusicRoomRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Random
-import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.Random
+import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>, private val repository: MusicRoomRepository
 ) : ViewModel() {
 
     private val _isShuffle = MutableLiveData(false)
     val isShuffle: LiveData<Boolean> get() = _isShuffle
 
-    private val _isRepeat = MutableLiveData(false)
-    val isRepeat: LiveData<Boolean> get() = _isRepeat
+    private val _repeatMode = MutableLiveData(0) // 0: OFF, 1: ONE, 2: ALL
+    val repeatMode: LiveData<Int> get() = _repeatMode
+
+    private val _playbackCycleMode = MutableLiveData(0) // 0: Normal, 1: One, 2: Random
+    val playbackCycleMode: LiveData<Int> get() = _playbackCycleMode
+
+    private val _isFavorite = MutableLiveData(false)
+    val isFavorite: LiveData<Boolean> get() = _isFavorite
 
     private val _currentSong = MutableLiveData<MusicFiles?>()
     val currentSong: LiveData<MusicFiles?> get() = _currentSong
@@ -34,14 +41,18 @@ class PlayerViewModel @Inject constructor(
     var position = -1
     var uri: Uri? = null
 
-    private val SHUFFLE_KEY = booleanPreferencesKey("SHUFFLE_MODE")
-    private val REPEAT_KEY = booleanPreferencesKey("REPEAT_MODE")
+    private val shuffleKey = booleanPreferencesKey("SHUFFLE_MODE")
+    private val repeatModeKey =
+        androidx.datastore.preferences.core.intPreferencesKey("REPEAT_MODE_INT")
+    private val playbackCycleModeKey =
+        androidx.datastore.preferences.core.intPreferencesKey("PLAYBACK_CYCLE_MODE")
 
     init {
         viewModelScope.launch {
             val preferences = dataStore.data.first()
-            _isShuffle.value = preferences[SHUFFLE_KEY] ?: false
-            _isRepeat.value = preferences[REPEAT_KEY] ?: false
+            _isShuffle.value = preferences[shuffleKey] ?: false
+            _repeatMode.value = preferences[repeatModeKey] ?: 0
+            _playbackCycleMode.value = preferences[playbackCycleModeKey] ?: 0
         }
     }
 
@@ -50,18 +61,78 @@ class PlayerViewModel @Inject constructor(
         _isShuffle.value = newValue
         viewModelScope.launch {
             dataStore.edit { preferences ->
-                preferences[SHUFFLE_KEY] = newValue
+                preferences[shuffleKey] = newValue
             }
         }
     }
 
-    fun toggleRepeat() {
-        val newValue = !(_isRepeat.value ?: false)
-        _isRepeat.value = newValue
+    fun togglePlaybackCycle() {
+        val current = _playbackCycleMode.value ?: 0
+        val next = (current + 1) % 3
+        updatePlaybackCycleMode(next)
+    }
+
+    fun updatePlaybackCycleFromController(repeatMode: Int, shuffleEnabled: Boolean) {
+        val mode = when {
+            shuffleEnabled -> 2
+            repeatMode == 1 -> 1 // REPEAT_MODE_ONE
+            else -> 0
+        }
+        if (_playbackCycleMode.value != mode) {
+            _playbackCycleMode.value = mode
+            savePlaybackCycleMode(mode)
+        }
+    }
+
+    private fun updatePlaybackCycleMode(mode: Int) {
+        _playbackCycleMode.value = mode
+        savePlaybackCycleMode(mode)
+    }
+
+    private fun savePlaybackCycleMode(mode: Int) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
-                preferences[REPEAT_KEY] = newValue
+                preferences[playbackCycleModeKey] = mode
             }
+        }
+    }
+
+    fun toggleFavorite() {
+        val song = _currentSong.value ?: return
+        val songId = song.id ?: return
+        viewModelScope.launch {
+            val isFav = repository.isFavorite(songId)
+            if (isFav) {
+                repository.deleteFavorite(
+                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
+                        songId,
+                        song.safeTitle,
+                        song.safeArtist,
+                        song.album,
+                        song.duration,
+                        song.path ?: ""
+                    )
+                )
+                _isFavorite.postValue(false)
+            } else {
+                repository.insertFavorite(
+                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
+                        songId,
+                        song.safeTitle,
+                        song.safeArtist,
+                        song.album,
+                        song.duration,
+                        song.path ?: ""
+                    )
+                )
+                _isFavorite.postValue(true)
+            }
+        }
+    }
+
+    fun checkFavorite(songId: String) {
+        viewModelScope.launch {
+            _isFavorite.postValue(repository.isFavorite(songId))
         }
     }
 
@@ -71,34 +142,7 @@ class PlayerViewModel @Inject constructor(
             val song = listSongs[position]
             uri = Uri.parse(song.path)
             _currentSong.value = song
-        }
-    }
-
-    fun calculateNextPosition(): Int {
-        if (listSongs.isEmpty()) return -1
-        return when (_isShuffle.value) {
-            true if _isRepeat.value == false -> {
-                getRandom(listSongs.size - 1)
-            }
-
-            false if _isRepeat.value == false -> {
-                (position + 1) % listSongs.size
-            }
-
-            else -> {
-                position
-            }
-        }
-    }
-
-    fun calculatePrevPosition(): Int {
-        if (listSongs.isEmpty()) return -1
-        return if (_isShuffle.value == true && _isRepeat.value == false) {
-            getRandom(listSongs.size - 1)
-        } else if (_isShuffle.value == false && _isRepeat.value == false) {
-            if (position - 1 < 0) listSongs.size - 1 else position - 1
-        } else {
-            position
+            song.id?.let { checkFavorite(it) }
         }
     }
 

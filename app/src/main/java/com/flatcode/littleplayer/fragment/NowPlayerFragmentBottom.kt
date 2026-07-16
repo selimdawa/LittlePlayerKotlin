@@ -1,12 +1,9 @@
 package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
-import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,11 +12,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,19 +32,22 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @AndroidEntryPoint
-class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
+class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
     private var _binding: FragmentNowPlayerBottomBinding? = null
     private val binding get() = _binding!!
 
-    private var musicService: MusicService? = null
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+    private var mediaController: MediaController? = null
     private var progressJob: Job? = null
     private var lastLoadedPath: String? = null
 
     private val viewModel: NowPlayerViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentNowPlayerBottomBinding.inflate(inflater, container, false)
         return binding.root
@@ -56,17 +60,26 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
     }
 
     private fun setupListeners() {
+        binding.cardBottomPlayer.setOnClickListener {
+            val intent = Intent(
+                requireContext(),
+                com.flatcode.littleplayer.activity.PlayerActivity::class.java,
+            )
+            startActivity(intent)
+        }
+
         binding.nextBtn.setOnClickListener {
-            musicService?.let { service ->
-                service.nextBtnClicked()
-                updateUiFromService(service)
-            }
+            mediaController?.seekToNext()
         }
 
         binding.playPauseBtn.setOnClickListener {
-            musicService?.let { service ->
-                service.playPauseBtnClicked()
-                viewModel.updatePlaybackState(service.isPlaying())
+            mediaController?.let { controller ->
+                if (controller.isPlaying) {
+                    controller.pause()
+                } else {
+                    controller.play()
+                }
+                viewModel.updatePlaybackState(controller.isPlaying)
             }
         }
     }
@@ -78,7 +91,7 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
                     lastLoadedPath = it.path
                     lifecycleScope.launch {
                         val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
-                        binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
+                        binding.albumArt.load(art ?: R.drawable.logo) { crossfade(enable = true) }
                     }
                 }
                 binding.name.text = it.title
@@ -87,18 +100,11 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
         }
 
         viewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
-            if (isPlaying) {
-                binding.playPauseAnimView.speed = 1f
-                binding.playPauseAnimView.playAnimation()
-            } else {
-                binding.playPauseAnimView.speed = -1f
-                binding.playPauseAnimView.playAnimation()
-            }
+            updatePlayPauseAnimation(isPlaying)
         }
     }
 
-    private fun updateUiFromService(service: MusicService) {
-        val player = service.exoPlayer ?: return
+    private fun updateUiFromPlayer(player: Player) {
         val currentMediaItem = player.currentMediaItem
         if (currentMediaItem != null) {
             val title = currentMediaItem.mediaMetadata.title?.toString() ?: "Unknown Track"
@@ -108,45 +114,69 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
             binding.name.text = title
             binding.artist.text = artist
 
+            viewModel.saveAndBroadcastNextSong(
+                com.flatcode.littleplayer.model.MusicFiles(
+                    path = path, title = title, artist = artist
+                )
+            )
+
             if (lastLoadedPath != path) {
                 lastLoadedPath = path
                 lifecycleScope.launch {
                     val art = withContext(Dispatchers.IO) { getAlbumArt(path) }
-                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(true) }
+                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(enable = true) }
                 }
             }
         }
-        if (player.isPlaying) {
-            binding.playPauseAnimView.progress = 1f
+        updatePlayPauseAnimation(player.isPlaying)
+    }
+
+    private fun updatePlayPauseAnimation(isPlaying: Boolean) {
+        if (isPlaying) {
+            binding.playPauseAnimView.speed = 1f
+            binding.playPauseAnimView.playAnimation()
         } else {
-            binding.playPauseAnimView.progress = 0f
+            binding.playPauseAnimView.speed = -1f
+            binding.playPauseAnimView.playAnimation()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        val intent = Intent(context, MusicService::class.java)
-        context?.bindService(intent, this, Context.BIND_AUTO_CREATE)
-        startProgressUpdater()
+    override fun onStart() {
+        super.onStart()
+        val currentContext = context ?: return
+        val sessionToken = SessionToken(
+            currentContext, ComponentName(currentContext, MusicService::class.java)
+        )
+        controllerFuture = MediaController.Builder(currentContext, sessionToken).buildAsync()
+        controllerFuture?.addListener(
+            {
+                mediaController = controllerFuture?.get()
+                mediaController?.addListener(this)
+                mediaController?.let { updateUiFromPlayer(it) }
+                startProgressUpdater()
+            },
+            MoreExecutors.directExecutor(),
+        )
     }
 
-    override fun onPause() {
-        super.onPause()
+    override fun onStop() {
+        super.onStop()
         stopProgressUpdater()
-        musicService?.exoPlayer?.removeListener(this)
-        context?.unbindService(this)
+        mediaController?.removeListener(this)
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        mediaController = null
     }
 
     private fun startProgressUpdater() {
         stopProgressUpdater()
         progressJob = lifecycleScope.launch {
             while (isActive) {
-                musicService?.let { service ->
-                    if (service.isPlaying()) {
-                        val duration = service.getDuration()
+                mediaController?.let { controller ->
+                    if (controller.isPlaying) {
+                        val duration = controller.duration
                         if (duration > 0) {
-                            val currentPosition = service.getCurrentPosition()
-                            val progress = (currentPosition.toLong() * 100 / duration).toInt()
+                            val currentPosition = controller.currentPosition
+                            val progress = ((currentPosition * 100) / duration).toInt()
                             binding.miniProgressBar.progress = progress
                         }
                     }
@@ -175,37 +205,14 @@ class NowPlayerFragmentBottom : Fragment(), ServiceConnection, Player.Listener {
         }
     }
 
-    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        val binder = service as? MusicService.MyBinder
-        musicService = binder?.service
-
-        musicService?.let { serviceInstance ->
-            serviceInstance.exoPlayer?.addListener(this)
-            viewModel.updatePlaybackState(serviceInstance.isPlaying())
-            updateUiFromService(serviceInstance)
-        }
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
+        viewModel.updatePlaybackState(isPlaying)
+        updatePlayPauseAnimation(isPlaying)
+        if (isPlaying) startProgressUpdater() else stopProgressUpdater()
     }
 
-    override fun onServiceDisconnected(name: ComponentName?) {
-        musicService = null
-    }
-
-    override fun onEvents(player: Player, events: Player.Events) {
-        if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION) || events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
-            musicService?.let { service ->
-                if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
-                    updateUiFromService(service)
-                } else {
-                    if (player.isPlaying) {
-                        binding.playPauseAnimView.speed = 1f
-                        binding.playPauseAnimView.playAnimation()
-                    } else {
-                        binding.playPauseAnimView.speed = -1f
-                        binding.playPauseAnimView.playAnimation()
-                    }
-                }
-            }
-        }
+    override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+        mediaController?.let { updateUiFromPlayer(it) }
     }
 
     override fun onDestroyView() {

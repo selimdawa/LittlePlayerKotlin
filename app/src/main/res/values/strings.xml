@@ -36,4 +36,7 @@
     <string name="albums">Albums</string>
     <string name="artists">Artists</string>
     <string name="folders">Folders</string>
+    <string name="song_details_format">%1$s | %2$s</string>
+    <string name="favorite">Favorite</string>
+    <string name="cycle">Cycle</string>
 </resources>

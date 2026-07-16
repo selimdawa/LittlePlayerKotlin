@@ -58,11 +58,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
                 }
 
                 if (!state.firstSongId.isNullOrEmpty()) {
-                    lifecycleScope.launch {
-                        withContext(Dispatchers.IO) {
-                            VOID.coilImageBlur(context, state.firstSongId, binding.imageBlur, 50)
-                        }
-                    }
+                    VOID.coilImageBlur(context, state.firstSongId, state.firstSongPath, binding.imageBlur, 50)
                 }
 
                 adapter = ArtistDetailsAdapter(context, ArrayList(state.songs))

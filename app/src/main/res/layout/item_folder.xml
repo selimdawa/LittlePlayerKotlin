@@ -4,10 +4,11 @@
     android:id="@+id/item_folder"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginHorizontal="10dp"
+    android:layout_marginBottom="10dp"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    android:padding="16dp"
     app:alignItems="center"
     app:flexDirection="row"
     app:justifyContent="flex_start">
@@ -17,7 +18,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:src="@drawable/ic_folder"
-        app:tint="#8A47EB" />
+        app:tint="?colorError" />
 
     <com.google.android.flexbox.FlexboxLayout
         android:layout_width="0dp"
@@ -34,7 +35,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/songs"
-            android:textColor="@color/red"
+            android:textColor="?trackColor"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -46,7 +47,7 @@
             android:ellipsize="middle"
             android:maxLines="1"
             android:text="@string/_12_songs_storage_emulated_0_music_songs"
-            android:textColor="#888888"
+            android:textColor="@color/gray"
             android:textSize="14sp" />
 
     </com.google.android.flexbox.FlexboxLayout>
