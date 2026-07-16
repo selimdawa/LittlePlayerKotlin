@@ -173,7 +173,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
                     },
                 )
             }
-            Companion.mFiles = newList
+            mFiles = newList
             diffResult.dispatchUpdatesTo(this@MusicAdapter)
         }
     }

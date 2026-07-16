@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.activity
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -67,6 +68,18 @@ class MainActivity : AppCompatActivity() {
                     dataStore.edit { prefs -> prefs[themeKey] = values[which] }
                 }
             }.show()
+        }
+
+        binding.toolbar.searchBar.setOnClickListener {
+            startActivity(Intent(this, SearchActivity::class.java))
+        }
+
+        binding.toolbar2.cardFavourites.setOnClickListener {
+            startActivity(Intent(this, FavoritesActivity::class.java))
+        }
+
+        binding.toolbar2.cardPlaylists.setOnClickListener {
+            startActivity(Intent(this, PlaylistsActivity::class.java))
         }
         permission()
     }

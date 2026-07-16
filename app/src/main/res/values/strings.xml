@@ -39,4 +39,8 @@
     <string name="song_details_format">%1$s | %2$s</string>
     <string name="favorite">Favorite</string>
     <string name="cycle">Cycle</string>
+    <string name="favourites">Favourites</string>
+    <string name="playlists">Playlists</string>
+    <string name="recent">Recent</string>
+    <string name="search">Search…</string>
 </resources>
