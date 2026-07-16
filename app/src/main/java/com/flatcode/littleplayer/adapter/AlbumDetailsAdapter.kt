@@ -3,13 +3,14 @@ package com.flatcode.littleplayer.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.utils.CLASS
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.VOID
+import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.loadSongImage
+import com.flatcode.littleplayer.utils.loadSongImageBlur
+import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import java.util.ArrayList
 
@@ -30,26 +31,27 @@ class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<Mu
         if (position !in filesList.indices) return
 
         val currentFile = filesList[position]
-        holder.name.text = currentFile.title
+        holder.binding.songName.text = currentFile.title
+        holder.binding.songDetails.text = context.getString(
+            R.string.song_details_format,
+            currentFile.safeArtist,
+            currentFile.album ?: "Unknown Album"
+        )
 
-        VOID.coilImage(context, currentFile.id, currentFile.path, holder.image, 150)
-        VOID.coilImageBlur(context, currentFile.id, currentFile.path, holder.imageBlur, 50)
+        holder.binding.image.loadSongImage(context, currentFile.id, currentFile.path, 150)
+        holder.binding.imageBlur.loadSongImageBlur(context, currentFile.id, currentFile.path, 50)
 
         holder.itemView.setOnClickListener {
-            VOID.intentExtra2Int(
-                context, CLASS.PLAYER,
-                DATA.SENDER, DATA.ALBUM_DETAILS, DATA.POSITION, holder.bindingAdapterPosition
-            )
+            context.launchActivity<PlayerActivity> {
+                putExtra(DATA.SENDER, DATA.ALBUM_DETAILS)
+                putExtra(DATA.POSITION, holder.bindingAdapterPosition)
+            }
         }
     }
 
     override fun getItemCount(): Int = albumFiles?.size ?: 0
 
-    class ViewHolder(binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root) {
-        val name: TextView = binding.songName
-        val image: ImageView = binding.image
-        val imageBlur: ImageView = binding.imageBlur
-    }
+    class ViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
 
     companion object {
         var albumFiles: ArrayList<MusicFiles>? = null

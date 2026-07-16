@@ -18,6 +18,8 @@ object DATA {
     const val POSITION = "position"
     const val SENDER = "sender"
     const val ALBUM_DETAILS = "albumDetails"
+    const val ARTIST_DETAILS = "artistDetails"
+    const val FOLDER_DETAILS = "folderDetails"
     const val SERVICE_POSITION = "servicePosition"
     const val ACTION_NAME = "ActionName"
     const val PLAY_PAUSE = "playPause"

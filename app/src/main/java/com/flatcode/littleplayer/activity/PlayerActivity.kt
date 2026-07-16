@@ -25,7 +25,10 @@ import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.VOID
+import com.flatcode.littleplayer.utils.loadBitmap
+import com.flatcode.littleplayer.utils.loadLogoOrBitmap
+import com.flatcode.littleplayer.utils.setPaletteGradient
+import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -163,8 +166,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun playPauseBtn() {
-        VOID.playPauseBtn(
-            mediaController,
+        mediaController?.togglePlayPause(
             binding.buttonPanel.playPause,
             { stopProgressUpdater() },
             { startProgressUpdater() },
@@ -363,10 +365,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
             if (art != null) {
                 val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
-                VOID.coilBitmap(bitmap, binding.image)
-                VOID.paletteGradient(bitmap, binding.imageBlur)
+                binding.image.loadLogoOrBitmap(bitmap)
+                binding.imageBlur.setPaletteGradient(bitmap)
             } else {
-                VOID.coil(null, binding.image)
+                binding.image.loadBitmap(null)
                 binding.imageBlur.setImageDrawable(null)
                 binding.imageBlur.setBackgroundColor("#121212".toColorInt())
                 binding.songName.setTextColor(Color.WHITE)

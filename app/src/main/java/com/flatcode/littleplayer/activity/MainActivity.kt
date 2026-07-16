@@ -26,6 +26,7 @@ import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.MusicPreferences
 import com.flatcode.littleplayer.utils.dataStore
+import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
@@ -71,15 +72,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.toolbar.searchBar.setOnClickListener {
-            startActivity(Intent(this, SearchActivity::class.java))
+            launchActivity<SearchActivity>()
         }
 
         binding.toolbar2.cardFavourites.setOnClickListener {
-            startActivity(Intent(this, FavoritesActivity::class.java))
+            launchActivity<FavoritesActivity>()
         }
 
         binding.toolbar2.cardPlaylists.setOnClickListener {
-            startActivity(Intent(this, PlaylistsActivity::class.java))
+            launchActivity<PlaylistsActivity>()
         }
         permission()
     }

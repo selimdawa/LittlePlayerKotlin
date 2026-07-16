@@ -15,9 +15,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.utils.CLASS
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.VOID
+import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.loadSongImage
+import com.flatcode.littleplayer.utils.loadSongImageBlur
+import com.flatcode.littleplayer.activity.PlayerActivity
 import com.google.android.material.snackbar.Snackbar
 import com.scwang.wave.MultiWaveHeader
 import kotlinx.coroutines.CoroutineScope
@@ -70,8 +72,8 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         )
         holder.songDetails.text = songDetailsText
 
-        VOID.coilImage(context, currentFile.id, currentFile.path, holder.image, 150)
-        VOID.coilImageBlur(context, currentFile.id, currentFile.path, holder.imageBlur, 100)
+        holder.image.loadSongImage(context, currentFile.id, currentFile.path, 150)
+        holder.imageBlur.loadSongImageBlur(context, currentFile.id, currentFile.path, 100)
 
         if ((currentFile.path == playingPath) && isPlaying) {
             holder.wave.visibility = View.VISIBLE
@@ -81,7 +83,9 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
 
         holder.itemView.setOnClickListener {
             updatePlaybackState(currentFile.path, true)
-            VOID.intentExtraInt(context, CLASS.PLAYER, DATA.POSITION, holder.bindingAdapterPosition)
+            context.launchActivity<PlayerActivity> {
+                putExtra(DATA.POSITION, holder.bindingAdapterPosition)
+            }
         }
 
         holder.more.setOnClickListener { v ->
@@ -147,7 +151,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
     }
 
     fun updateList(musicFilesArrayList: ArrayList<MusicFiles>) {
-        val oldList = Companion.mFiles ?: ArrayList()
+        val oldList = mFiles ?: ArrayList()
         val newList = ArrayList(musicFilesArrayList)
 
         adapterScope.launch {

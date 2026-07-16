@@ -18,6 +18,8 @@ import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.service.MusicService
+import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -61,11 +63,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
     private fun setupListeners() {
         binding.cardBottomPlayer.setOnClickListener {
-            val intent = Intent(
-                requireContext(),
-                com.flatcode.littleplayer.activity.PlayerActivity::class.java,
-            )
-            startActivity(intent)
+            requireContext().launchActivity<PlayerActivity>()
         }
 
         binding.nextBtn.setOnClickListener {

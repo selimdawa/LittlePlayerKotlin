@@ -16,6 +16,6 @@
         android:layout_weight="1"
         android:scrollbars="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_folder_details" />
+        tools:listitem="@layout/item_music" />
 
 </LinearLayout>

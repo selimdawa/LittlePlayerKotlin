@@ -20,7 +20,7 @@ import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
-import com.flatcode.littleplayer.utils.VOID
+import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -175,7 +175,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         val path = currentMediaItem.localConfiguration?.uri?.path ?: return
 
         serviceScope.launch(Dispatchers.IO) {
-            val artBytes = VOID.getAlbumArtBytes(path)
+            val artBytes = getAlbumArtBytes(path)
             if (artBytes != null) {
                 val updatedMetadata = currentMediaItem.mediaMetadata.buildUpon()
                     .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)

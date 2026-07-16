@@ -9,7 +9,9 @@ import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
-import com.flatcode.littleplayer.utils.VOID
+import com.flatcode.littleplayer.utils.loadCachedAlbumImage
+import com.flatcode.littleplayer.utils.loadRawAlbumArt
+import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -40,11 +42,11 @@ class AlbumDetailsActivity : AppCompatActivity() {
         viewModel.uiState.observe(this) { state ->
             if (state.songs.isNotEmpty()) {
                 if (!state.imagePath.isNullOrEmpty()) {
-                    VOID.coilAlbumImage(state.imagePath, binding.image)
+                    binding.image.loadCachedAlbumImage(state.imagePath)
                 } else if (!state.firstSongPath.isNullOrEmpty()) {
                     lifecycleScope.launch {
                         val bitmap = withContext(Dispatchers.IO) {
-                            VOID.loadRawAlbumArt(state.firstSongPath)
+                            loadRawAlbumArt(state.firstSongPath)
                         }
                         if (bitmap != null) {
                             binding.image.load(bitmap) {
@@ -58,7 +60,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
                 }
 
                 if (!state.firstSongId.isNullOrEmpty()) {
-                    VOID.coilImageBlur(context, state.firstSongId, state.firstSongPath, binding.imageBlur, 50)
+                    binding.imageBlur.loadSongImageBlur(context, state.firstSongId, state.firstSongPath, 50)
                 }
 
                 adapter = ArtistDetailsAdapter(context, ArrayList(state.songs))

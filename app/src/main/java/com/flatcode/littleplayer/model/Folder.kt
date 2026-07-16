@@ -4,5 +4,7 @@ data class Folder(
     val id: String,
     val name: String,
     val path: String,
-    val songsCount: Int
+    val songsCount: Int,
+    val sampleSongId: String? = null,
+    val sampleSongPath: String? = null
 )

@@ -6,7 +6,7 @@ import com.flatcode.littleplayer.databinding.ActivityPlaylistsBinding
 
 class PlaylistsActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityFavoritesBinding
+    private lateinit var binding: ActivityPlaylistsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

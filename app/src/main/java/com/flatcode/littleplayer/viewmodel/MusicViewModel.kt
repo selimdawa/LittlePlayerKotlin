@@ -64,7 +64,7 @@ class MusicViewModel @Inject constructor(
     }
 
     private fun generateFolderList(songsList: List<MusicFiles>) {
-        val foldersMap = HashMap<String, Pair<String, Int>>()
+        val foldersMap = HashMap<String, Triple<String, Int, MusicFiles?>>()
 
         for (song in songsList) {
             val pathString = song.path ?: continue
@@ -76,9 +76,9 @@ class MusicViewModel @Inject constructor(
                 val currentData = foldersMap[folderPath]
 
                 if (currentData == null) {
-                    foldersMap[folderPath] = Pair(folderName, 1)
+                    foldersMap[folderPath] = Triple(folderName, 1, song)
                 } else {
-                    foldersMap[folderPath] = Pair(currentData.first, currentData.second + 1)
+                    foldersMap[folderPath] = Triple(currentData.first, currentData.second + 1, currentData.third)
                 }
             }
         }
@@ -88,7 +88,9 @@ class MusicViewModel @Inject constructor(
                 id = path,
                 name = data.first,
                 path = path,
-                songsCount = data.second
+                songsCount = data.second,
+                sampleSongId = data.third?.id,
+                sampleSongPath = data.third?.path
             )
         }.sortedBy { it.name }
 
@@ -96,16 +98,25 @@ class MusicViewModel @Inject constructor(
     }
 
     private fun generateArtistList(songsList: List<MusicFiles>) {
-        val artistsMap = HashMap<String, Int>()
+        val artistsMap = HashMap<String, Pair<Int, MusicFiles?>>()
 
         for (song in songsList) {
             val artistName = song.artist ?: "Unknown"
-            val currentCount = artistsMap[artistName] ?: 0
-            artistsMap[artistName] = currentCount + 1
+            val currentData = artistsMap[artistName]
+            if (currentData == null) {
+                artistsMap[artistName] = Pair(1, song)
+            } else {
+                artistsMap[artistName] = Pair(currentData.first + 1, currentData.second)
+            }
         }
 
-        val artistsList = artistsMap.map { (name, count) ->
-            Artist(name = name, songsCount = count)
+        val artistsList = artistsMap.map { (name, data) ->
+            Artist(
+                name = name,
+                songsCount = data.first,
+                sampleSongId = data.second?.id,
+                sampleSongPath = data.second?.path
+            )
         }.sortedBy { it.name }
 
         _artistFiles.value = artistsList

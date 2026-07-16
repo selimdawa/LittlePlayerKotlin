@@ -3,13 +3,12 @@ package com.flatcode.littleplayer.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.utils.VOID
+import com.flatcode.littleplayer.utils.loadSongImage
+import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.databinding.ItemAlbumBinding
 import java.util.ArrayList
 
@@ -19,6 +18,8 @@ class AlbumAdapter(
     private val onItemClick: (String) -> Unit
 ) : RecyclerView.Adapter<AlbumAdapter.ViewHolder>() {
 
+    class ViewHolder(val binding: ItemAlbumBinding) : RecyclerView.ViewHolder(binding.root)
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemAlbumBinding.inflate(LayoutInflater.from(context), parent, false)
         return ViewHolder(binding)
@@ -27,10 +28,10 @@ class AlbumAdapter(
     @OptIn(UnstableApi::class)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentFile = albumFiles[position]
-        holder.name.text = currentFile.album
+        holder.binding.name.text = currentFile.album
 
-        VOID.coilImage(context, currentFile.id, currentFile.path, holder.image, 300)
-        VOID.coilImageBlur(context, currentFile.id, currentFile.path, holder.imageBlur, 50)
+        holder.binding.image.loadSongImage(context, currentFile.id, currentFile.path, 300)
+        holder.binding.imageBlur.loadSongImageBlur(context, currentFile.id, currentFile.path, 50)
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile.album ?: "")
@@ -38,10 +39,4 @@ class AlbumAdapter(
     }
 
     override fun getItemCount(): Int = albumFiles.size
-
-    class ViewHolder(binding: ItemAlbumBinding) : RecyclerView.ViewHolder(binding.root) {
-        val name: TextView = binding.name
-        val image: ImageView = binding.image
-        val imageBlur: ImageView = binding.imageBlur
-    }
 }

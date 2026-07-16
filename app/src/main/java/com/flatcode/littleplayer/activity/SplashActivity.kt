@@ -6,8 +6,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.flatcode.littleplayer.databinding.ActivitySplashBinding
-import com.flatcode.littleplayer.utils.CLASS
-import com.flatcode.littleplayer.utils.VOID
+import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -30,7 +29,7 @@ class SplashActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             delay(500.milliseconds)
-            VOID.intent1(context, CLASS.MAIN)
+            context.launchActivity<MainActivity>()
             finish()
         }
     }
