@@ -1,7 +1,6 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
-import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.MediaMetadataRetriever
@@ -11,6 +10,7 @@ import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -41,14 +41,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
-import androidx.core.graphics.toColorInt
 
 @UnstableApi
 @AndroidEntryPoint
 class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private lateinit var binding: ActivityPlayerBinding
-    private val context: Context = this@PlayerActivity
+
     private val viewModel: PlayerViewModel by viewModels()
 
     private var progressJob: Job? = null
@@ -94,13 +93,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             },
         )
 
-        binding.buttonPanel.shuffle.setOnClickListener { 
+        binding.buttonPanel.shuffle.setOnClickListener {
             mediaController?.let {
                 it.shuffleModeEnabled = !it.shuffleModeEnabled
             }
         }
-        
-        binding.buttonPanel.repeat.setOnClickListener { 
+
+        binding.buttonPanel.repeat.setOnClickListener {
             mediaController?.let {
                 val nextMode = when (it.repeatMode) {
                     Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
@@ -191,7 +190,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     .build()
             }
 
-            // Atomic call to set items AND seek to the correct position immediately
             controller.setMediaItems(mediaItems, viewModel.position, 0L)
             controller.prepare()
             controller.play()
@@ -263,15 +261,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun onControllerConnected() {
         mediaController?.let { controller ->
             val intentPosition = intent.getIntExtra(DATA.POSITION, -1)
-            
+
             if (intentPosition == -1 && controller.currentMediaItem != null) {
-                // Navigating from Mini Player, sync with controller
                 val index = controller.currentMediaItemIndex
                 if (index in viewModel.listSongs.indices) {
                     viewModel.updatePositionAndSong(index)
                 }
             } else if (intentPosition != -1 && controller.currentMediaItem?.mediaId != viewModel.currentSong.value?.id) {
-                // Specifically requested a new song
                 playCurrentSong()
             }
 
@@ -283,7 +279,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             resetProgressLoop()
             updatePlayPauseButton(controller.isPlaying)
             updateRepeatShuffleIcons(controller)
-            viewModel.updatePlaybackCycleFromController(controller.repeatMode, controller.shuffleModeEnabled)
+            viewModel.updatePlaybackCycleFromController(
+                controller.repeatMode, controller.shuffleModeEnabled
+            )
         }
     }
 
@@ -311,7 +309,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         mediaController?.let { controller ->
             val index = controller.currentMediaItemIndex
-            // Only update position if it's a valid index and not triggered by initial setup
             if (index != -1 && index in viewModel.listSongs.indices) {
                 if (index != viewModel.position) {
                     viewModel.updatePositionAndSong(index)
@@ -321,9 +318,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     override fun onEvents(player: Player, events: Player.Events) {
-        if (events.containsAny(Player.EVENT_REPEAT_MODE_CHANGED, Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) {
+        if (events.containsAny(
+                Player.EVENT_REPEAT_MODE_CHANGED, Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED
+            )
+        ) {
             updateRepeatShuffleIcons(player)
-            viewModel.updatePlaybackCycleFromController(player.repeatMode, player.shuffleModeEnabled)
+            viewModel.updatePlaybackCycleFromController(
+                player.repeatMode, player.shuffleModeEnabled
+            )
         }
     }
 
@@ -335,7 +337,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
         binding.buttonPanel.repeat.setImageResource(repeatIcon)
 
-        val shuffleIcon = if (player.shuffleModeEnabled) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_off
+        val shuffleIcon =
+            if (player.shuffleModeEnabled) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_off
         binding.buttonPanel.shuffle.setImageResource(shuffleIcon)
     }
 
@@ -351,7 +354,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             val retriever = MediaMetadataRetriever()
             val art = withContext(Dispatchers.IO) {
                 try {
-                    retriever.setDataSource(context, uri)
+                    retriever.setDataSource(this@PlayerActivity, uri)
                     retriever.embeddedPicture
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -370,7 +373,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             } else {
                 binding.image.loadBitmap(null)
                 binding.imageBlur.setImageDrawable(null)
-                binding.imageBlur.setBackgroundColor("#121212".toColorInt())
+                binding.imageBlur.setBackgroundColor(
+                    ContextCompat.getColor(
+                        this@PlayerActivity, R.color.black_dark
+                    )
+                )
                 binding.songName.setTextColor(Color.WHITE)
                 binding.songArtist.setTextColor(Color.DKGRAY)
             }

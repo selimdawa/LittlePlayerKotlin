@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    android:padding="8dp"
-    app:alignItems="center"
-    app:flexDirection="row"
-    app:justifyContent="flex_start">
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="8dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/musicImg"
@@ -18,14 +16,13 @@
         android:scaleType="centerCrop"
         android:src="@drawable/logo" />
 
-    <com.google.android.flexbox.FlexboxLayout
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
         android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        app:flexDirection="column"
-        app:justifyContent="center"
-        app:layout_flexGrow="1">
+        android:paddingEnd="12dp">
 
         <TextView
             android:id="@+id/songName"
@@ -46,9 +43,9 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/artist_name"
-            android:textColor="#99FFFFFF"
+            android:textColor="@color/white_trans_60"
             android:textSize="14sp" />
 
-    </com.google.android.flexbox.FlexboxLayout>
+    </LinearLayout>
 
-</com.google.android.flexbox.FlexboxLayout>
+</LinearLayout>

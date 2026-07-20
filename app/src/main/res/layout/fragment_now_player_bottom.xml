@@ -16,11 +16,11 @@
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 
-        <com.google.android.flexbox.FlexboxLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/background_border"
-            app:flexDirection="column">
+            android:orientation="vertical">
 
             <ProgressBar
                 android:id="@+id/miniProgressBar"
@@ -32,14 +32,13 @@
                 android:progressBackgroundTint="?attr/colorSurfaceVariant"
                 android:progressTint="?attr/colorPrimary" />
 
-            <com.google.android.flexbox.FlexboxLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="11dp"
                 android:paddingBottom="8dp"
-                app:alignItems="center"
-                app:flexDirection="row"
-                app:justifyContent="space_between">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <FrameLayout
                     android:id="@+id/albumArtContainer"
@@ -59,13 +58,13 @@
 
                 </FrameLayout>
 
-                <com.google.android.flexbox.FlexboxLayout
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_marginEnd="12dp"
-                    app:flexDirection="column"
-                    app:layout_flexGrow="1">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/name"
@@ -125,9 +124,9 @@
                     android:src="@drawable/ic_skip_next"
                     app:tint="?attr/colorOnSurface" />
 
-            </com.google.android.flexbox.FlexboxLayout>
+            </LinearLayout>
 
-        </com.google.android.flexbox.FlexboxLayout>
+        </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
 

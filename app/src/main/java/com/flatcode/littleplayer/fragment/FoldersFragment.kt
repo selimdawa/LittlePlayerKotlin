@@ -31,6 +31,7 @@ class FoldersFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.toolbar.btnFilterSort.visibility = View.GONE
 
         viewModel.folderFiles.observe(viewLifecycleOwner) { folderList ->
             if (!folderList.isNullOrEmpty()) {

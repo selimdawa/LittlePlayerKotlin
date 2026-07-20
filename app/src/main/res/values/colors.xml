@@ -33,6 +33,17 @@
     <color name="night_corner_five_2">#2E3192</color>
     <color name="night_corner_six">#A748FC</color>
     <color name="night_corner_six_2">#00695C</color>
+
     <color name="gray">#888888</color>
     <color name="gray2">#44FFFFFF</color>
+    <color name="trans">#66000000</color>
+    <color name="white_trans_60">#99FFFFFF</color>
+    <color name="white_trans_15">#26FFFFFF</color>
+    <color name="white_trans_13">#22FFFFFF</color>
+    <color name="purple_accent">#8A47EB</color>
+    <color name="pure_red">#FF0000</color>
+    <color name="blue_accent">#2196f3</color>
+    <color name="light_gray_icon">#CCCCCC</color>
+    <color name="pure_black">#FF000000</color>
+    <color name="black_dark">#121212</color>
 </resources>

@@ -24,10 +24,10 @@ class MusicRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>
 ) {
-    private val SORTING_KEY = stringPreferencesKey(DATA.SORTING)
+    private val sortingKey = stringPreferencesKey(DATA.SORTING)
 
     val sortOrderFlow: Flow<String> = dataStore.data.map { preferences ->
-        preferences[SORTING_KEY] ?: DATA.SORT_BY_NAME
+        preferences[sortingKey] ?: DATA.SORT_BY_DATE
     }
 
     suspend fun getAllAudio(): ArrayList<MusicFiles> = withContext(Dispatchers.IO) {
@@ -35,10 +35,12 @@ class MusicRepository @Inject constructor(
         val tempAudioList = ArrayList<MusicFiles>()
 
         val order = when (sortOrder) {
-            "sortByName" -> MediaStore.MediaColumns.DISPLAY_NAME + " ASC"
-            "sortByDate" -> MediaStore.MediaColumns.DATE_ADDED + " ASC"
-            "sortBySize" -> MediaStore.MediaColumns.SIZE + " DESC"
-            else -> null
+            DATA.SORT_BY_NAME -> MediaStore.MediaColumns.DISPLAY_NAME + " ASC"
+            DATA.SORT_BY_DATE -> MediaStore.MediaColumns.DATE_ADDED + " DESC"
+            DATA.SORT_BY_SIZE -> MediaStore.MediaColumns.SIZE + " DESC"
+            DATA.SORT_BY_RELEASE_DATE -> MediaStore.Audio.Media.YEAR + " DESC"
+            DATA.SORT_BY_PLAY_COUNT -> MediaStore.Audio.Media.DATE_MODIFIED + " DESC" // Placeholder
+            else -> MediaStore.MediaColumns.DISPLAY_NAME + " ASC"
         }
 
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -70,7 +72,7 @@ class MusicRepository @Inject constructor(
 
     suspend fun saveSortOrder(sortType: String) {
         dataStore.edit { preferences ->
-            preferences[SORTING_KEY] = sortType
+            preferences[sortingKey] = sortType
         }
     }
 }

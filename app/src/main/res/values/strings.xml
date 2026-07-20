@@ -43,4 +43,11 @@
     <string name="playlists">Playlists</string>
     <string name="recent">Recent</string>
     <string name="search">Search…</string>
+    <string name="sort_songs">Sort songs</string>
+    <string name="by_adding_time">By adding time</string>
+    <string name="by_name">By Name</string>
+    <string name="by_play_count">By the number of time played</string>
+    <string name="by_release_date">By release date</string>
+    <string name="by_size">By size</string>
+    <string name="shuffle_playback">Shuffle playback</string>
 </resources>

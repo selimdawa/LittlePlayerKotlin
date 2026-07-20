@@ -36,7 +36,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="Shuffle playback"
+            android:text="@string/shuffle_playback"
             android:textColor="?attr/trackColor"
             android:textSize="14sp"
             android:textStyle="bold" />

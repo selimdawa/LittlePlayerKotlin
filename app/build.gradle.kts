@@ -49,12 +49,10 @@ dependencies {
     //Layout
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
-    implementation(libs.google.flexbox)                    //Layout Fix Size
     //Image
     implementation(libs.coil)                              //Coil Image
     implementation(libs.airbnb.lottie)                     //Animation
     implementation(libs.androidx.palette.ktx)              //Background Color
-    implementation(libs.zetbaitsu.compressor)              //Image Compressor
     //Lifecycle
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.livedata.ktx)

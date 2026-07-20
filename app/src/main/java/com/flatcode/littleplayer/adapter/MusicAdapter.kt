@@ -150,7 +150,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         var wave: MultiWaveHeader = binding.wave
     }
 
-    fun updateList(musicFilesArrayList: ArrayList<MusicFiles>) {
+    fun updateList(musicFilesArrayList: ArrayList<MusicFiles>, onCommit: (() -> Unit)? = null) {
         val oldList = mFiles ?: ArrayList()
         val newList = ArrayList(musicFilesArrayList)
 
@@ -179,6 +179,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
             }
             mFiles = newList
             diffResult.dispatchUpdatesTo(this@MusicAdapter)
+            onCommit?.invoke()
         }
     }
 

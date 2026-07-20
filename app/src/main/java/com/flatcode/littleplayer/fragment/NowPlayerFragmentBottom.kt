@@ -32,6 +32,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
+import com.flatcode.littleplayer.utils.getColorFromAttr
+
 @UnstableApi
 @AndroidEntryPoint
 class NowPlayerFragmentBottom : Fragment(), Player.Listener {

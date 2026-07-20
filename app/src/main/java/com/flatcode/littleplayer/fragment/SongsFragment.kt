@@ -33,6 +33,14 @@ class SongsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.toolbar.btnFilterSort.visibility = View.VISIBLE
+
+        binding.toolbar.btnFilterSort.setOnClickListener {
+            val bottomSheet = SortSongsBottomSheet(viewModel.sortOrder.value) { sortType ->
+                viewModel.updateSortOrder(sortType)
+            }
+            bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
+        }
 
         viewModel.filteredMusicFiles.observe(viewLifecycleOwner) { files ->
             if (files != null) {
@@ -40,10 +48,11 @@ class SongsFragment : Fragment() {
                 if (musicAdapter == null) {
                     musicAdapter = MusicAdapter(requireContext(), arrayListFiles)
                     binding.recyclerView.adapter = musicAdapter
-                    // Sync initial state
                     updateAdapterState()
                 } else {
-                    musicAdapter?.updateList(arrayListFiles)
+                    musicAdapter?.updateList(arrayListFiles) {
+                        binding.recyclerView.scrollToPosition(0)
+                    }
                 }
             }
         }

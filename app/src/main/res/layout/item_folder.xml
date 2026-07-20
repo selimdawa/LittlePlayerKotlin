@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/item_folder"
     android:layout_width="match_parent"
@@ -9,9 +9,8 @@
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    app:alignItems="center"
-    app:flexDirection="row"
-    app:justifyContent="flex_start">
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
 
     <ImageView
         android:id="@+id/folder_icon"
@@ -20,13 +19,12 @@
         android:src="@drawable/ic_folder"
         app:tint="?colorError" />
 
-    <com.google.android.flexbox.FlexboxLayout
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:flexDirection="column"
-        app:justifyContent="center"
-        app:layout_flexGrow="1">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/folder_name"
@@ -50,6 +48,6 @@
             android:textColor="@color/gray"
             android:textSize="14sp" />
 
-    </com.google.android.flexbox.FlexboxLayout>
+    </LinearLayout>
 
-</com.google.android.flexbox.FlexboxLayout>
+</LinearLayout>

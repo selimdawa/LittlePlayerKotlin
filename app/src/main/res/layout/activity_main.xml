@@ -12,7 +12,7 @@
 
     <include
         android:id="@+id/toolbar2"
-        layout="@layout/toolbar_main_fav"
+        layout="@layout/toolbar_main_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/toolbar" />
@@ -29,7 +29,7 @@
         app:tabIndicatorGravity="center"
         app:tabIndicatorHeight="40dp"
         app:tabSelectedTextColor="@color/white"
-        app:tabTextColor="#99FFFFFF" />
+        app:tabTextColor="@color/white_trans_60" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"

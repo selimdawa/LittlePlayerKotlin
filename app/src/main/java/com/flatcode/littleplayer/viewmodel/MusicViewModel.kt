@@ -32,9 +32,13 @@ class MusicViewModel @Inject constructor(
     private val _filteredMusicFiles = MutableLiveData<List<MusicFiles>>()
     val filteredMusicFiles: LiveData<List<MusicFiles>> get() = _filteredMusicFiles
 
+    private val _sortOrder = MutableLiveData<String>()
+    val sortOrder: LiveData<String> get() = _sortOrder
+
     init {
         viewModelScope.launch {
-            repository.sortOrderFlow.collect {
+            repository.sortOrderFlow.collect { order ->
+                _sortOrder.value = order
                 loadAudioData()
             }
         }

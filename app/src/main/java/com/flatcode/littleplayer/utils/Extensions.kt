@@ -30,6 +30,12 @@ inline fun <reified T : Activity> Context.launchActivity(
     startActivity(intent)
 }
 
+fun Context.getColorFromAttr(attr: Int): Int {
+    val typedValue = android.util.TypedValue()
+    theme.resolveAttribute(attr, typedValue, true)
+    return typedValue.data
+}
+
 fun ImageView.loadBitmap(bitmap: Bitmap?) {
     load(bitmap) {
         crossfade(enable = true)

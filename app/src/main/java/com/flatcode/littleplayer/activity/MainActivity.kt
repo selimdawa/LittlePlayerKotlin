@@ -74,6 +74,9 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar.searchBar.setOnClickListener {
             launchActivity<SearchActivity>()
         }
+        binding.toolbar.tvSearchView.setOnClickListener {
+            launchActivity<SearchActivity>()
+        }
 
         binding.toolbar2.cardFavourites.setOnClickListener {
             launchActivity<FavoritesActivity>()

@@ -7,6 +7,6 @@
     android:gravity="center"
     android:minWidth="64dp"
     android:minHeight="64dp"
-    android:textColor="#FFFFFF"
+    android:textColor="@color/white"
     android:textSize="32sp"
     android:textStyle="bold" />

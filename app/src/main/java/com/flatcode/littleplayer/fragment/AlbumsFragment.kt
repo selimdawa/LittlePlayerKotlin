@@ -32,6 +32,13 @@ class AlbumsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.toolbar.btnFilterSort.visibility = View.VISIBLE
+        binding.toolbar.btnFilterSort.setOnClickListener {
+            val bottomSheet = SortSongsBottomSheet(viewModel.sortOrder.value) { sortType ->
+                viewModel.updateSortOrder(sortType)
+            }
+            bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
+        }
 
         viewModel.albumFiles.observe(viewLifecycleOwner) { albumList ->
             if (!albumList.isNullOrEmpty()) {

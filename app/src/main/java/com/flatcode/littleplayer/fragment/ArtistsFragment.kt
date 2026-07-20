@@ -34,6 +34,7 @@ class ArtistsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.toolbar.btnFilterSort.visibility = View.GONE
 
         viewModel.artistFiles.observe(viewLifecycleOwner) { artistList ->
             if (!artistList.isNullOrEmpty()) {
