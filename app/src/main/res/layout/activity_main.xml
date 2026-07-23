@@ -24,7 +24,7 @@
         android:layout_below="@id/toolbar2"
         android:background="@color/dark"
         app:tabIndicator="@drawable/tab_indicator"
-        app:tabIndicatorColor="?trackColor"
+        app:tabIndicatorColor="?mc_track"
         app:tabIndicatorFullWidth="true"
         app:tabIndicatorGravity="center"
         app:tabIndicatorHeight="40dp"

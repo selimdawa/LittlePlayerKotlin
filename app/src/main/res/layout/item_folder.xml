@@ -33,7 +33,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/songs"
-            android:textColor="?trackColor"
+            android:textColor="?mc_track"
             android:textSize="18sp"
             android:textStyle="bold" />
 

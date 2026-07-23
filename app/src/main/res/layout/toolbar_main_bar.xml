@@ -27,7 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="?background" />
+                android:src="?mc_bg" />
 
             <View
                 android:layout_width="match_parent"
@@ -80,7 +80,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="?background" />
+                android:src="?mc_bg" />
 
             <View
                 android:layout_width="match_parent"
@@ -133,7 +133,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="?background" />
+                android:src="?mc_bg" />
 
             <View
                 android:layout_width="match_parent"

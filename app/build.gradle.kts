@@ -49,6 +49,7 @@ dependencies {
     //Layout
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
+    implementation(libs.multicolors)                       //Theme Colors
     //Image
     implementation(libs.coil)                              //Coil Image
     implementation(libs.airbnb.lottie)                     //Animation
@@ -76,8 +77,9 @@ dependencies {
     implementation(libs.lincollincol.amplituda)
     implementation(libs.waveformseekbar)
     implementation(libs.multiwaveheader)
+    implementation(libs.multiwave)                     //Multi Wave
     //Other's
-    implementation(libs.androidx.datastore.preferences)    //New Preference
+    implementation(libs.androidx.datastore.preferences)          //New Preference
     implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable
     //Memory Leaks
     //debugImplementation(libs.squareup.leakcanary.android)

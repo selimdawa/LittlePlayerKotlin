@@ -88,7 +88,7 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp" />
 
-                </com.google.android.flexbox.FlexboxLayout>
+                </LinearLayout>
 
                 <FrameLayout
                     android:id="@+id/playPauseBtn"

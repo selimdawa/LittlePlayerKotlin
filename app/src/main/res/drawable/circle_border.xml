@@ -4,8 +4,8 @@
         <shape android:shape="oval">
             <gradient
                 android:angle="45"
-                android:endColor="?tickColor"
-                android:startColor="?trackColor"
+                android:endColor="?mc_tick"
+                android:startColor="?mc_track"
                 android:type="linear" />
         </shape>
     </item>

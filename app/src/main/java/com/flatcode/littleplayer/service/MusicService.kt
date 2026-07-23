@@ -134,16 +134,16 @@ class MusicService : MediaSessionService(), Player.Listener {
                 else -> R.drawable.ic_repeat_on
             }
 
-            val favoriteButton = CommandButton.Builder()
+            val favoriteButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                 .setSessionCommand(customCommandFavorite)
                 .setDisplayName(getString(R.string.favorite))
-                .setIconResId(favIcon)
+                .setCustomIconResId(favIcon)
                 .build()
 
-            val cycleButton = CommandButton.Builder()
+            val cycleButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                 .setSessionCommand(customCommandPlaybackCycle)
                 .setDisplayName(getString(R.string.cycle))
-                .setIconResId(cycleIcon)
+                .setCustomIconResId(cycleIcon)
                 .build()
 
             mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton))

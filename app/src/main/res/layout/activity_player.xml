@@ -163,7 +163,7 @@
                 app:wave_corner_radius="2dp"
                 app:wave_gap="2dp"
                 app:wave_gravity="center"
-                app:wave_progress_color="?tickColor"
+                app:wave_progress_color="?mc_tick"
                 app:wave_width="3dp" />
 
         </LinearLayout>

@@ -1,17 +1,13 @@
 package com.flatcode.littleplayer.activity
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
@@ -30,9 +26,7 @@ import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -40,9 +34,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MusicViewModel by viewModels()
-
-    private val themeKey = stringPreferencesKey("color_option")
-    private var initialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,36 +46,11 @@ class MainActivity : AppCompatActivity() {
                 if (song != null) android.view.View.VISIBLE else android.view.View.GONE
         }
 
-        lifecycleScope.launch {
-            dataStore.data.map { it[themeKey] ?: "ONE" }.collectLatest {
-                if (initialized) binding.root.post { recreate() } else initialized = true
-            }
-        }
+        binding.toolbar.searchBar.setOnClickListener { launchActivity<SearchActivity>() }
+        binding.toolbar.tvSearchView.setOnClickListener { launchActivity<SearchActivity>() }
+        binding.toolbar2.cardFavourites.setOnClickListener { launchActivity<FavoritesActivity>() }
+        binding.toolbar2.cardPlaylists.setOnClickListener { launchActivity<PlaylistsActivity>() }
 
-        binding.toolbar.settings.setOnClickListener {
-            val entries = resources.getStringArray(R.array.reply_entries)
-            val values = resources.getStringArray(R.array.reply_values)
-            AlertDialog.Builder(this).setTitle("Select Theme").setItems(entries) { _, which ->
-                lifecycleScope.launch {
-                    dataStore.edit { prefs -> prefs[themeKey] = values[which] }
-                }
-            }.show()
-        }
-
-        binding.toolbar.searchBar.setOnClickListener {
-            launchActivity<SearchActivity>()
-        }
-        binding.toolbar.tvSearchView.setOnClickListener {
-            launchActivity<SearchActivity>()
-        }
-
-        binding.toolbar2.cardFavourites.setOnClickListener {
-            launchActivity<FavoritesActivity>()
-        }
-
-        binding.toolbar2.cardPlaylists.setOnClickListener {
-            launchActivity<PlaylistsActivity>()
-        }
         permission()
     }
 

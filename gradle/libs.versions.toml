@@ -27,6 +27,8 @@ media3-exoplayer = "1.10.1"
 amplituda = "2.3.1"
 waveformseekbar = "5.0.2"
 multiwaveheader = "1.0.0-andx"
+multiwave = "1.0.1"
+multicolors = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +41,7 @@ androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", ve
 #Layout
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+multicolors = { module = "com.github.selimdawa:MultiColors", version.ref = "multicolors" }
 #Image
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 airbnb-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
@@ -66,6 +69,7 @@ androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplaye
 lincollincol-amplituda = { group = "com.github.lincollincol", name = "amplituda", version.ref = "amplituda" }
 waveformseekbar = { module = "com.github.massoudss:waveformSeekBar", version.ref = "waveformseekbar" }
 multiwaveheader = { module = "com.scwang.wave:MultiWaveHeader", version.ref = "multiwaveheader" }
+multiwave = { module = "com.github.selimdawa:MultiWave", version.ref = "multiwave" }
 #Other's
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 zhanghai-fastscroll = { group = "me.zhanghai.android.fastscroll", name = "library", version.ref = "fastscroll" }

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://android.com">
-    <solid android:color="@color/white_trans_15" />
-    <corners android:radius="8dp" />
-</shape>

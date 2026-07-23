@@ -27,7 +27,7 @@ class SortSongsBottomSheet(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val trackColor = requireContext().getColorFromAttr(com.flatcode.littleplayer.R.attr.trackColor)
+        val trackColor = requireContext().getColorFromAttr(com.flatcode.littleplayer.R.attr.mc_track)
         when (currentSort) {
             DATA.SORT_BY_DATE -> {
                 binding.checkByDate.visibility = View.VISIBLE

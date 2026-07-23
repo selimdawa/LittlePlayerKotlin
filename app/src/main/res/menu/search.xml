@@ -28,11 +28,4 @@
         </menu>
     </item>
 
-   <!-- <item
-        android:id="@+id/mode"
-        android:icon="@android:drawable/ic_menu_search"
-        android:title="Mode"
-        app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="ifRoom" /> -->
-
 </menu>
