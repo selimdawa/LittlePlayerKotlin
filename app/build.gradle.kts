@@ -76,7 +76,6 @@ dependencies {
     //Audio Waves
     implementation(libs.lincollincol.amplituda)
     implementation(libs.waveformseekbar)
-    implementation(libs.multiwaveheader)
     implementation(libs.multiwave)                     //Multi Wave
     //Other's
     implementation(libs.androidx.datastore.preferences)          //New Preference

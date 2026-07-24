@@ -21,7 +21,7 @@ import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.google.android.material.snackbar.Snackbar
-import com.scwang.wave.MultiWaveHeader
+import io.selimdawa.multiwave.MultiWaveHeader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

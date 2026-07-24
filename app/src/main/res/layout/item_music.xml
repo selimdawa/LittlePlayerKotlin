@@ -86,12 +86,13 @@
 
         </LinearLayout>
 
-        <com.scwang.wave.MultiWaveHeader
+        <io.selimdawa.multiwave.MultiWaveHeader
             android:id="@+id/wave"
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:layout_marginEnd="10dp"
             android:scaleY="-1"
+            app:mwhProgress="100"
             android:visibility="gone"
             app:mwhCloseColor="?mc_tick"
             app:mwhShape="Oval"

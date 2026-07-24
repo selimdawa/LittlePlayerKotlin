@@ -10,18 +10,9 @@
     android:paddingStart="16dp"
     android:paddingEnd="16dp">
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        app:cardBackgroundColor="@android:color/transparent"
-        app:cardCornerRadius="17dp"
-        app:strokeWidth="0dp">
-
-        <io.selimdawa.multicolors.MultiColorButton
-            android:layout_width="30dp"
-            android:layout_height="30dp" />
-
-    </com.google.android.material.card.MaterialCardView>
+    <io.selimdawa.multicolors.MultiColorButton
+        android:layout_width="30dp"
+        android:layout_height="30dp" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/search_bar"
