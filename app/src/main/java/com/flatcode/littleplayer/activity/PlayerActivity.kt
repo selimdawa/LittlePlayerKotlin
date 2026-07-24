@@ -1,16 +1,11 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
-import android.graphics.BitmapFactory
-import android.graphics.Color
-import android.media.MediaMetadataRetriever
-import android.net.Uri
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -25,22 +20,22 @@ import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.loadBitmap
-import com.flatcode.littleplayer.utils.loadLogoOrBitmap
-import com.flatcode.littleplayer.utils.setPaletteGradient
+import com.flatcode.littleplayer.utils.loadSongImage
+import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 @UnstableApi
 @AndroidEntryPoint
@@ -127,10 +122,19 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             song?.let {
                 binding.songName.text = it.title
                 binding.songArtist.text = it.artist
-                metaData(it.path?.toUri())
-                it.path?.let { path -> loadWaveform(path) }
+                updateSongUI(it)
+                lifecycleScope.launch {
+                    delay(300.milliseconds)
+                    it.path?.let { path -> loadWaveform(path) }
+                }
             }
         }
+    }
+
+    private fun updateSongUI(song: com.flatcode.littleplayer.model.MusicFiles) {
+        binding.durationTotal.text = formattedTime(song.durationDuration)
+        binding.image.loadSongImage(song.albumId)
+        binding.imageBlur.loadSongImageBlur(song.albumId, 100)
     }
 
     private fun loadWaveform(path: String) {
@@ -197,8 +201,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             val song = viewModel.listSongs[viewModel.position]
             binding.songName.text = song.title
             binding.songArtist.text = song.artist
-            metaData(song.path?.toUri())
-            song.path?.let { loadWaveform(it) }
+            updateSongUI(song)
+            lifecycleScope.launch {
+                delay(300.milliseconds)
+                song.path?.let { loadWaveform(it) }
+            }
 
             resetProgressLoop()
             binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
@@ -219,19 +226,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     val duration = controller.duration
 
                     if (duration > 0) {
-                        val mCurrentPositionSec = (currentPos / 1000).toInt()
-                        val durationSec = (duration / 1000).toInt()
-
-                        if (binding.seekBar.max != durationSec) {
-                            binding.seekBar.max = durationSec
+                        if (binding.seekBar.max != duration.toInt() / 1000) {
+                            binding.seekBar.max = duration.toInt() / 1000
                         }
 
-                        binding.seekBar.progress = mCurrentPositionSec
+                        binding.seekBar.progress = (currentPos / 1000).toInt()
 
                         val progressPercentage = (currentPos.toFloat() / duration.toFloat()) * 100
                         binding.waveformSeekBar.progress = progressPercentage
 
-                        binding.durationPlayed.text = formattedTime(mCurrentPositionSec)
+                        binding.durationPlayed.text = formattedTime(currentPos.milliseconds)
                     }
                 }
                 delay(1000.milliseconds)
@@ -342,51 +346,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.buttonPanel.shuffle.setImageResource(shuffleIcon)
     }
 
-    private fun formattedTime(currentPosition: Int): String {
-        val seconds = (currentPosition % 60).toString()
-        val minutes = (currentPosition / 60).toString()
+    private fun formattedTime(duration: Duration): String {
+        val totalSeconds = duration.inWholeSeconds
+        val seconds = (totalSeconds % 60).toString()
+        val minutes = (totalSeconds / 60).toString()
         return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
-    }
-
-    private fun metaData(uri: Uri?) {
-        if (uri == null) return
-        lifecycleScope.launch {
-            val retriever = MediaMetadataRetriever()
-            val art = withContext(Dispatchers.IO) {
-                try {
-                    retriever.setDataSource(this@PlayerActivity, uri)
-                    retriever.embeddedPicture
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
-            }
-
-            val durationTotal =
-                (viewModel.listSongs[viewModel.position].duration?.toLong() ?: 0L) / 1000
-            binding.durationTotal.text = formattedTime(durationTotal.toInt())
-
-            if (art != null) {
-                val bitmap = BitmapFactory.decodeByteArray(art, 0, art.size)
-                binding.image.loadLogoOrBitmap(bitmap)
-                binding.imageBlur.setPaletteGradient(bitmap)
-            } else {
-                binding.image.loadBitmap(null)
-                binding.imageBlur.setImageDrawable(null)
-                binding.imageBlur.setBackgroundColor(
-                    ContextCompat.getColor(
-                        this@PlayerActivity, R.color.black_dark
-                    )
-                )
-                binding.songName.setTextColor(Color.WHITE)
-                binding.songArtist.setTextColor(Color.DKGRAY)
-            }
-
-            try {
-                retriever.release()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
     }
 }

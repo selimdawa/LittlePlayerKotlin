@@ -15,8 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FolderDetailsViewModel @Inject constructor(
-    application: Application,
-    private val repository: MusicRepository
+    application: Application, private val repository: MusicRepository
 ) : AndroidViewModel(application) {
 
     private val _songs = MutableLiveData<List<MusicFiles>>()

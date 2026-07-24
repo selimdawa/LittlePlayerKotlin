@@ -63,8 +63,9 @@ class MusicRepository @Inject constructor(
                 val path = it.getString(3) ?: ""
                 val artist = it.getString(4) ?: "Unknown"
                 val id = it.getString(5) ?: ""
+                val albumId = it.getString(6) ?: ""
 
-                tempAudioList.add(MusicFiles(path, title, artist, album, duration, id))
+                tempAudioList.add(MusicFiles(path, title, artist, album, duration, id, albumId))
             }
         }
         tempAudioList

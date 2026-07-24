@@ -26,7 +26,8 @@ class ArtistAdapter(
     override fun onBindViewHolder(holder: ArtistViewHolder, position: Int) {
         val artist = artistList[position]
         holder.binding.artistName.text = artist.name
-        holder.binding.songsCount.text = if (artist.songsCount == 1) "1 song" else "${artist.songsCount} songs"
+        holder.binding.songsCount.text =
+            if (artist.songsCount == 1) "1 song" else "${artist.songsCount} songs"
 
         holder.itemView.setOnClickListener {
             onItemClick(artist.name)

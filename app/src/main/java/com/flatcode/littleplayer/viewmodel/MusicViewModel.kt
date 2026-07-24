@@ -82,7 +82,8 @@ class MusicViewModel @Inject constructor(
                 if (currentData == null) {
                     foldersMap[folderPath] = Triple(folderName, 1, song)
                 } else {
-                    foldersMap[folderPath] = Triple(currentData.first, currentData.second + 1, currentData.third)
+                    foldersMap[folderPath] =
+                        Triple(currentData.first, currentData.second + 1, currentData.third)
                 }
             }
         }

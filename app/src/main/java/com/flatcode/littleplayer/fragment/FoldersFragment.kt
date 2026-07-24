@@ -37,13 +37,14 @@ class FoldersFragment : Fragment() {
             if (!folderList.isNullOrEmpty()) {
                 val arrayListFolders = ArrayList(folderList)
 
-                adapter = FolderAdapter(requireContext(), arrayListFolders) { folderName, folderPath ->
-                    val bundle = Bundle().apply {
-                        putString("FOLDER_NAME", folderName)
-                        putString("FOLDER_PATH", folderPath)
+                adapter =
+                    FolderAdapter(requireContext(), arrayListFolders) { folderName, folderPath ->
+                        val bundle = Bundle().apply {
+                            putString("FOLDER_NAME", folderName)
+                            putString("FOLDER_PATH", folderPath)
+                        }
+                        findNavController().navigate(R.id.folderDetailsActivity, bundle)
                     }
-                    findNavController().navigate(R.id.folderDetailsActivity, bundle)
-                }
 
                 binding.recyclerView.adapter = adapter
             }

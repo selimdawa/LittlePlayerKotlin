@@ -6,11 +6,10 @@ import android.view.ViewGroup
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import com.flatcode.littleplayer.databinding.ItemAlbumBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.databinding.ItemAlbumBinding
-import java.util.ArrayList
 
 class AlbumAdapter(
     private val context: Context,
@@ -30,8 +29,8 @@ class AlbumAdapter(
         val currentFile = albumFiles[position]
         holder.binding.name.text = currentFile.album
 
-        holder.binding.image.loadSongImage(context, currentFile.id, currentFile.path, 300)
-        holder.binding.imageBlur.loadSongImageBlur(context, currentFile.id, currentFile.path, 50)
+        holder.binding.image.loadSongImage(currentFile.albumId)
+        holder.binding.imageBlur.loadSongImageBlur(currentFile.albumId, 50)
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile.album ?: "")

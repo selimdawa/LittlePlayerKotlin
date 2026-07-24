@@ -1,7 +1,7 @@
 package com.flatcode.littleplayer.di
 
-import android.content.Context
 import android.app.NotificationManager
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

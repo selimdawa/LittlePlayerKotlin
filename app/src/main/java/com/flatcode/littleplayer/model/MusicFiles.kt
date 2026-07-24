@@ -2,6 +2,8 @@ package com.flatcode.littleplayer.model
 
 import android.net.Uri
 import androidx.core.net.toUri
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 data class MusicFiles(
     val path: String? = null,
@@ -9,7 +11,8 @@ data class MusicFiles(
     val artist: String? = null,
     val album: String? = null,
     val duration: String? = null,
-    val id: String? = null
+    val id: String? = null,
+    val albumId: String? = null
 ) {
     val safeTitle: String
         get() = title ?: "Unknown Track"
@@ -22,4 +25,7 @@ data class MusicFiles(
 
     val durationLong: Long
         get() = duration?.toLongOrNull() ?: 0L
+
+    val durationDuration: Duration
+        get() = durationLong.milliseconds
 }

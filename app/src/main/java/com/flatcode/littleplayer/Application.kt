@@ -18,15 +18,11 @@ class Application : Application() {
             getSystemService(NotificationManager::class.java)?.apply {
                 createNotificationChannel(
                     NotificationChannel(
-                        CHANNEL_ID_1,
-                        "Channel(1)",
-                        NotificationManager.IMPORTANCE_HIGH
+                        CHANNEL_ID_1, "Channel(1)", NotificationManager.IMPORTANCE_HIGH
                     ).apply { description = "Channel 1 Desc.." })
                 createNotificationChannel(
                     NotificationChannel(
-                        CHANNEL_ID_2,
-                        "Channel(2)",
-                        NotificationManager.IMPORTANCE_HIGH
+                        CHANNEL_ID_2, "Channel(2)", NotificationManager.IMPORTANCE_HIGH
                     ).apply { description = "Channel 2 Desc.." })
             }
         }

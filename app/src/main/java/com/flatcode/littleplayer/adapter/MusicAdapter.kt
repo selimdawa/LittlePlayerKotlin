@@ -13,13 +13,13 @@ import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.activity.PlayerActivity
 import com.google.android.material.snackbar.Snackbar
 import io.selimdawa.multiwave.MultiWaveHeader
 import kotlinx.coroutines.CoroutineScope
@@ -72,8 +72,8 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         )
         holder.songDetails.text = songDetailsText
 
-        holder.image.loadSongImage(context, currentFile.id, currentFile.path, 150)
-        holder.imageBlur.loadSongImageBlur(context, currentFile.id, currentFile.path, 100)
+        holder.image.loadSongImage(currentFile.albumId)
+        holder.imageBlur.loadSongImageBlur(currentFile.albumId, 100)
 
         if ((currentFile.path == playingPath) && isPlaying) {
             holder.wave.visibility = View.VISIBLE

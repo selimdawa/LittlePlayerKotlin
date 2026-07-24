@@ -12,7 +12,6 @@ import com.flatcode.littleplayer.adapter.AlbumAdapter
 import com.flatcode.littleplayer.databinding.FragmentAlbumsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class AlbumsFragment : Fragment() {

@@ -5,17 +5,12 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
-import android.os.Build
-import android.provider.MediaStore
-import android.util.Size
 import android.widget.ImageView
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.media3.common.Player
-import androidx.palette.graphics.Palette
 import coil.load
 import coil.size.Scale
 import coil.transform.Transformation
@@ -36,146 +31,39 @@ fun Context.getColorFromAttr(attr: Int): Int {
     return typedValue.data
 }
 
-fun ImageView.loadBitmap(bitmap: Bitmap?) {
-    load(bitmap) {
-        crossfade(enable = true)
+fun ImageView.loadSongImage(albumId: String?) {
+    load(getSongArt(albumId)) {
+        crossfade(true)
         placeholder(R.color.image_profile)
         error(R.color.image_profile)
     }
 }
 
-fun ImageView.loadLogoOrBitmap(bitmap: Bitmap?) {
-    load(bitmap ?: R.drawable.logo) {
-        crossfade(enable = true)
+fun ImageView.loadSongImageBlur(albumId: String?, level: Int) {
+    load(getSongArt(albumId)) {
+        crossfade(true)
         placeholder(R.color.image_profile)
-        error(R.drawable.logo)
-    }
-}
-
-fun ImageView.loadSongImage(context: Context, songId: String?, path: String?, size: Int) {
-    if (!path.isNullOrEmpty()) {
-        val embeddedArt = loadRawAlbumArt(path)
-        if (embeddedArt != null) {
-            load(embeddedArt) {
-                crossfade(enable = true)
-                placeholder(R.drawable.logo)
-                error(R.drawable.logo)
-            }
-            return
-        }
-    }
-
-    if (!songId.isNullOrEmpty()) {
-        try {
-            val trackUri = ContentUris.withAppendedId(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()
-            )
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val bitmap: Bitmap = context.contentResolver.loadThumbnail(
-                    trackUri, Size(size, size), null
-                )
-                load(bitmap) {
-                    crossfade(enable = true)
-                    placeholder(R.drawable.logo)
-                    error(R.drawable.logo)
-                }
-            } else {
-                val sArtworkUri = "content://media/external/audio/albumart".toUri()
-                val albumArtUri = ContentUris.withAppendedId(sArtworkUri, songId.toLong())
-                load(albumArtUri) {
-                    crossfade(enable = true)
-                    placeholder(R.drawable.logo)
-                    error(R.drawable.logo)
-                }
-            }
-        } catch (_: Exception) {
-            load(R.drawable.logo)
-        }
-    } else {
-        load(R.drawable.logo)
-    }
-}
-
-fun ImageView.loadSongImageBlur(context: Context, songId: String?, path: String?, level: Int) {
-    val coilRadius = (level / 2f).coerceIn(1f, 50f)
-
-    if (!path.isNullOrEmpty()) {
-        val embeddedArt = loadRawAlbumArt(path)
-        if (embeddedArt != null) {
-            load(embeddedArt) {
-                crossfade(enable = true)
-                placeholder(R.drawable.logo)
-                error(R.drawable.logo)
-                transformations(SimpleBlurTransformation(coilRadius))
-            }
-            return
-        }
-    }
-
-    if (!songId.isNullOrEmpty()) {
-        try {
-            val trackUri = ContentUris.withAppendedId(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()
-            )
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val bitmap: Bitmap = context.contentResolver.loadThumbnail(
-                    trackUri, Size(150, 150), null
-                )
-                load(bitmap) {
-                    crossfade(enable = true)
-                    placeholder(R.drawable.logo)
-                    error(R.drawable.logo)
-                    transformations(SimpleBlurTransformation(coilRadius))
-                }
-            } else {
-                val sArtworkUri = "content://media/external/audio/albumart".toUri()
-                val albumArtUri = ContentUris.withAppendedId(sArtworkUri, songId.toLong())
-                load(albumArtUri) {
-                    crossfade(enable = true)
-                    placeholder(R.drawable.logo)
-                    error(R.drawable.logo)
-                    transformations(SimpleBlurTransformation(coilRadius))
-                }
-            }
-        } catch (_: Exception) {
-            load(R.drawable.logo) {
-                transformations(SimpleBlurTransformation(coilRadius))
-            }
-        }
-    } else {
-        load(R.drawable.logo) {
-            transformations(SimpleBlurTransformation(coilRadius))
-        }
+        error(R.color.image_profile)
+        transformations(SimpleBlurTransformation(level.toFloat()))
     }
 }
 
 fun ImageView.loadCachedAlbumImage(cachedPath: String?) {
-    if (!cachedPath.isNullOrEmpty()) {
-        load(File(cachedPath)) {
-            scale(Scale.FILL)
-            crossfade(enable = true)
-            placeholder(R.drawable.logo)
-            error(R.drawable.logo)
-        }
-    } else {
-        load(R.drawable.logo)
+    load(if (!cachedPath.isNullOrEmpty()) File(cachedPath) else R.color.image_profile) {
+        scale(Scale.FILL)
+        crossfade(true)
+        placeholder(R.color.image_profile)
+        error(R.color.image_profile)
     }
 }
 
-fun ImageView.setPaletteGradient(bitmap: Bitmap) {
-    Palette.from(bitmap).generate { palette ->
-        palette?.let {
-            val startColor = it.getDarkVibrantColor(0xFF212121.toInt())
-            val endColor = it.getDarkMutedColor(0xFF121212.toInt())
-            val gradientDrawable = android.graphics.drawable.GradientDrawable(
-                android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(startColor, endColor)
-            )
-            setImageDrawable(null)
-            background = gradientDrawable
-        }
+private fun getSongArt(albumId: String?): Any {
+    return if (!albumId.isNullOrEmpty()) {
+        ContentUris.withAppendedId(
+            "content://media/external/audio/albumart".toUri(), albumId.toLong()
+        )
+    } else {
+        R.color.image_profile
     }
 }
 
@@ -190,27 +78,6 @@ fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -
         button.setImageResource(R.drawable.ic_pause)
         play()
         onStart()
-    }
-}
-
-fun loadRawAlbumArt(songPath: String?): Bitmap? {
-    if (songPath.isNullOrEmpty()) return null
-    val retriever = MediaMetadataRetriever()
-    return try {
-        retriever.setDataSource(songPath)
-        val art = retriever.embeddedPicture
-        if (art != null) {
-            BitmapFactory.decodeByteArray(art, 0, art.size)
-        } else {
-            null
-        }
-    } catch (_: Exception) {
-        null
-    } finally {
-        try {
-            retriever.release()
-        } catch (_: Exception) {
-        }
     }
 }
 
@@ -232,7 +99,7 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
     override val cacheKey: String = "${SimpleBlurTransformation::class.java.name}-$radius"
 
     override suspend fun transform(input: Bitmap, size: coil.size.Size): Bitmap {
-        val scaleFactor = 4
+        val scaleFactor = 8
         val w = (input.width / scaleFactor).coerceAtLeast(1)
         val h = (input.height / scaleFactor).coerceAtLeast(1)
         val small = input.scale(w, h, true)

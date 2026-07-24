@@ -4,20 +4,13 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import coil.load
-import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import com.flatcode.littleplayer.utils.loadCachedAlbumImage
-import com.flatcode.littleplayer.utils.loadRawAlbumArt
+import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -43,24 +36,12 @@ class AlbumDetailsActivity : AppCompatActivity() {
             if (state.songs.isNotEmpty()) {
                 if (!state.imagePath.isNullOrEmpty()) {
                     binding.image.loadCachedAlbumImage(state.imagePath)
-                } else if (!state.firstSongPath.isNullOrEmpty()) {
-                    lifecycleScope.launch {
-                        val bitmap = withContext(Dispatchers.IO) {
-                            loadRawAlbumArt(state.firstSongPath)
-                        }
-                        if (bitmap != null) {
-                            binding.image.load(bitmap) {
-                                scale(coil.size.Scale.FILL)
-                                crossfade(true)
-                            }
-                        } else {
-                            binding.image.load(R.drawable.logo)
-                        }
-                    }
+                } else {
+                    binding.image.loadSongImage(state.firstSongAlbumId)
                 }
 
-                if (!state.firstSongId.isNullOrEmpty()) {
-                    binding.imageBlur.loadSongImageBlur(context, state.firstSongId, state.firstSongPath, 50)
+                if (!state.firstSongAlbumId.isNullOrEmpty()) {
+                    binding.imageBlur.loadSongImageBlur(state.firstSongAlbumId, 50)
                 }
 
                 adapter = ArtistDetailsAdapter(context, ArrayList(state.songs))

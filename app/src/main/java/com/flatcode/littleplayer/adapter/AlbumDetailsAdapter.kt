@@ -5,14 +5,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.PlayerActivity
+import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.activity.PlayerActivity
-import com.flatcode.littleplayer.databinding.ItemMusicBinding
-import java.util.ArrayList
 
 class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<MusicFiles>) :
     RecyclerView.Adapter<AlbumDetailsAdapter.ViewHolder>() {
@@ -38,8 +37,8 @@ class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<Mu
             currentFile.album ?: "Unknown Album"
         )
 
-        holder.binding.image.loadSongImage(context, currentFile.id, currentFile.path, 150)
-        holder.binding.imageBlur.loadSongImageBlur(context, currentFile.id, currentFile.path, 50)
+        holder.binding.image.loadSongImage(currentFile.albumId)
+        holder.binding.imageBlur.loadSongImageBlur(currentFile.albumId, 50)
 
         holder.itemView.setOnClickListener {
             context.launchActivity<PlayerActivity> {

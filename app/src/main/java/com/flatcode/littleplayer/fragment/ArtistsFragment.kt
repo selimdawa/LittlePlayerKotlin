@@ -7,14 +7,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import me.zhanghai.android.fastscroll.FastScrollerBuilder
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class ArtistsFragment : Fragment() {
@@ -49,8 +47,7 @@ class ArtistsFragment : Fragment() {
 
                 binding.recyclerView.adapter = adapter
 
-                FastScrollerBuilder(binding.recyclerView)
-                    .setPopupTextProvider(adapter as me.zhanghai.android.fastscroll.PopupTextProvider)
+                FastScrollerBuilder(binding.recyclerView).setPopupTextProvider(adapter as me.zhanghai.android.fastscroll.PopupTextProvider)
                     .build()
             }
         }

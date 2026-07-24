@@ -1,7 +1,6 @@
 package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
-import android.content.Intent
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,10 +15,10 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import coil.load
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.launchActivity
-import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -31,8 +30,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
-
-import com.flatcode.littleplayer.utils.getColorFromAttr
 
 @UnstableApi
 @AndroidEntryPoint

@@ -17,13 +17,13 @@ data class AlbumDetailsUiState(
     val songs: List<MusicFiles> = emptyList(),
     val imagePath: String? = null,
     val firstSongId: String? = null,
-    val firstSongPath: String? = null
+    val firstSongPath: String? = null,
+    val firstSongAlbumId: String? = null
 )
 
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
-    private val repository: MusicRepository,
-    private val roomRepository: MusicRoomRepository
+    private val repository: MusicRepository, private val roomRepository: MusicRoomRepository
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData<AlbumDetailsUiState>()
@@ -44,7 +44,8 @@ class AlbumDetailsViewModel @Inject constructor(
                     songs = filteredList,
                     imagePath = cachedImage,
                     firstSongId = firstSong?.id,
-                    firstSongPath = firstSong?.path
+                    firstSongPath = firstSong?.path,
+                    firstSongAlbumId = firstSong?.albumId
                 )
             }
             _uiState.value = state

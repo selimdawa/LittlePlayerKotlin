@@ -84,17 +84,12 @@ class MusicService : MediaSessionService(), Player.Listener {
         position = positionInner
 
         val mediaItems = musicFiles.map { song ->
-            val metadata = MediaMetadata.Builder()
-                .setTitle(song.title ?: "Unknown Track")
+            val metadata = MediaMetadata.Builder().setTitle(song.title ?: "Unknown Track")
                 .setArtist(song.artist ?: "Unknown Artist")
-                .setAlbumTitle(song.album ?: "Unknown Album")
-                .build()
+                .setAlbumTitle(song.album ?: "Unknown Album").build()
 
-            MediaItem.Builder()
-                .setUri(song.path?.toUri() ?: "".toUri())
-                .setMediaMetadata(metadata)
-                .setMediaId(song.id ?: "")
-                .build()
+            MediaItem.Builder().setUri(song.path?.toUri() ?: "".toUri()).setMediaMetadata(metadata)
+                .setMediaId(song.id ?: "").build()
         }
 
         exoPlayer?.apply {
@@ -136,15 +131,11 @@ class MusicService : MediaSessionService(), Player.Listener {
 
             val favoriteButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                 .setSessionCommand(customCommandFavorite)
-                .setDisplayName(getString(R.string.favorite))
-                .setCustomIconResId(favIcon)
-                .build()
+                .setDisplayName(getString(R.string.favorite)).setCustomIconResId(favIcon).build()
 
             val cycleButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                 .setSessionCommand(customCommandPlaybackCycle)
-                .setDisplayName(getString(R.string.cycle))
-                .setCustomIconResId(cycleIcon)
-                .build()
+                .setDisplayName(getString(R.string.cycle)).setCustomIconResId(cycleIcon).build()
 
             mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton))
         }
@@ -152,14 +143,11 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
-        // Avoid reloading if the transition was caused by a metadata update
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) return
 
         exoPlayer?.let {
             position = it.currentMediaItemIndex
-            // Only load art if we actually transitioned to a NEW song
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || 
-                reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                 loadArtForCurrentItem(it)
             }
         }
@@ -169,24 +157,22 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     private fun loadArtForCurrentItem(player: Player) {
         val currentMediaItem = player.currentMediaItem ?: return
-        // Guard: If artwork is already present, definitely skip to prevent infinite loop
         if (currentMediaItem.mediaMetadata.artworkData != null) return
-        
         val path = currentMediaItem.localConfiguration?.uri?.path ?: return
 
         serviceScope.launch(Dispatchers.IO) {
             val artBytes = getAlbumArtBytes(path)
             if (artBytes != null) {
                 val updatedMetadata = currentMediaItem.mediaMetadata.buildUpon()
-                    .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-                    .build()
+                    .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER).build()
 
                 launch(Dispatchers.Main) {
-                    // Check if we are still on the same song before applying
                     if (player.currentMediaItem?.mediaId == currentMediaItem.mediaId) {
                         val index = player.currentMediaItemIndex
-                        player.replaceMediaItem(index, 
-                            currentMediaItem.buildUpon().setMediaMetadata(updatedMetadata).build())
+                        player.replaceMediaItem(
+                            index,
+                            currentMediaItem.buildUpon().setMediaMetadata(updatedMetadata).build()
+                        )
                     }
                 }
             }
@@ -213,11 +199,9 @@ class MusicService : MediaSessionService(), Player.Listener {
                 .add(customCommandFavorite).add(customCommandPlaybackCycle).build()
 
             val playerCommands = MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
-                .add(Player.COMMAND_SEEK_TO_NEXT)
-                .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                .add(Player.COMMAND_SEEK_TO_NEXT).add(Player.COMMAND_SEEK_TO_PREVIOUS)
                 .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
-                .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-                .build()
+                .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).build()
 
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailableSessionCommands(sessionCommands)

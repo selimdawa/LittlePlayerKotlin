@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import com.flatcode.littleplayer.databinding.DialogSortSongsBinding
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.getColorFromAttr
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class SortSongsBottomSheet(

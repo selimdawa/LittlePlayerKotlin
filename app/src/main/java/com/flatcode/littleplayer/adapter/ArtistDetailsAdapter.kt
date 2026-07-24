@@ -5,21 +5,20 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.activity.PlayerActivity
-import java.util.ArrayList
 
 class ArtistDetailsAdapter(
-    private val context: Context,
-    private val songList: ArrayList<MusicFiles>
+    private val context: Context, private val songList: ArrayList<MusicFiles>
 ) : RecyclerView.Adapter<ArtistDetailsAdapter.ArtistDetailsViewHolder>() {
 
-    class ArtistDetailsViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
+    class ArtistDetailsViewHolder(val binding: ItemMusicBinding) :
+        RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArtistDetailsViewHolder {
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
@@ -31,13 +30,11 @@ class ArtistDetailsAdapter(
 
         holder.binding.songName.text = song.safeTitle
         holder.binding.songDetails.text = context.getString(
-            R.string.song_details_format,
-            song.safeArtist,
-            song.album ?: "Unknown Album"
+            R.string.song_details_format, song.safeArtist, song.album ?: "Unknown Album"
         )
 
-        holder.binding.image.loadSongImage(context, song.id, song.path, 150)
-        holder.binding.imageBlur.loadSongImageBlur(context, song.id, song.path, 100)
+        holder.binding.image.loadSongImage(song.albumId)
+        holder.binding.imageBlur.loadSongImageBlur(song.albumId, 100)
 
         holder.itemView.setOnClickListener {
             context.launchActivity<PlayerActivity> {

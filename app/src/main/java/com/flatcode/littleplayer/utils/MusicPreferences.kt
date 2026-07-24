@@ -16,6 +16,7 @@ class MusicPreferences(private val context: Context) {
         val ARTIST_NAME_KEY = stringPreferencesKey("ARTIST NAME")
         val SONG_NAME_KEY = stringPreferencesKey("SONG NAME")
     }
+
     val data: Flow<Preferences> = context.dataStore.data
     suspend fun saveLastPlayedSong(path: String, artist: String?, title: String?) {
         context.dataStore.edit { prefs ->

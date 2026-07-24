@@ -27,9 +27,7 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): AppDatabase {
         return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "little_player_db"
+            context, AppDatabase::class.java, "little_player_db"
         ).fallbackToDestructiveMigration(dropAllTables = true).build()
     }
 
@@ -55,7 +53,6 @@ object DatabaseModule {
     @Singleton
     fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create(
-            produceFile = { context.preferencesDataStoreFile("SortOrder") }
-        )
+            produceFile = { context.preferencesDataStoreFile("SortOrder") })
     }
 }

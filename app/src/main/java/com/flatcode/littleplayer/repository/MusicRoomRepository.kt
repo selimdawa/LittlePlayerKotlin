@@ -29,9 +29,10 @@ class MusicRoomRepository @Inject constructor(
         albumImageDao.insertAlbumImage(albumImage)
     }
 
-    suspend fun getAlbumImageByName(albumName: String): AlbumImageEntity? = withContext(Dispatchers.IO) {
-        albumImageDao.getAlbumImageByName(albumName)
-    }
+    suspend fun getAlbumImageByName(albumName: String): AlbumImageEntity? =
+        withContext(Dispatchers.IO) {
+            albumImageDao.getAlbumImageByName(albumName)
+        }
 
     suspend fun insertFavorite(song: FavoriteEntity) = withContext(Dispatchers.IO) {
         musicDao.insertFavorite(song)
@@ -55,7 +56,8 @@ class MusicRoomRepository @Inject constructor(
         musicDao.deleteFromPlaylist(name, songId)
     }
 
-    fun getSongsFromPlaylist(name: String): Flow<List<PlaylistEntity>> = musicDao.getSongsFromPlaylist(name)
+    fun getSongsFromPlaylist(name: String): Flow<List<PlaylistEntity>> =
+        musicDao.getSongsFromPlaylist(name)
 
     fun getAllPlaylistNames(): Flow<List<String>> = musicDao.getAllPlaylistNames()
 }
