@@ -4,11 +4,15 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
 import dagger.hilt.android.HiltAndroidApp
 import io.selimdawa.multicolors.MultiColorManager
 
 @HiltAndroidApp
-class Application : Application() {
+class Application : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
@@ -18,21 +22,22 @@ class Application : Application() {
             getSystemService(NotificationManager::class.java)?.apply {
                 createNotificationChannel(
                     NotificationChannel(
-                        CHANNEL_ID_1, "Channel(1)", NotificationManager.IMPORTANCE_HIGH
-                    ).apply { description = "Channel 1 Desc.." })
-                createNotificationChannel(
-                    NotificationChannel(
-                        CHANNEL_ID_2, "Channel(2)", NotificationManager.IMPORTANCE_HIGH
-                    ).apply { description = "Channel 2 Desc.." })
+                        PLAYBACK_CHANNEL_ID, "Music Playback", NotificationManager.IMPORTANCE_LOW
+                    ).apply { description = "Ongoing music playback notification" })
             }
         }
     }
 
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this).memoryCache {
+            MemoryCache.Builder(this).maxSizePercent(0.25).build()
+        }.diskCache {
+            DiskCache.Builder().directory(cacheDir.resolve("image_cache"))
+                .maxSizeBytes(50L * 1024 * 1024).build()
+        }.crossfade(true).build()
+    }
+
     companion object {
-        const val CHANNEL_ID_1 = "channel1"
-        const val CHANNEL_ID_2 = "channel2"
-        const val ACTION_PREVIOUS = "actionprevious"
-        const val ACTION_NEXT = "actionnext"
-        const val ACTION_PLAY = "actionplay"
+        const val PLAYBACK_CHANNEL_ID = "music_playback_channel"
     }
 }

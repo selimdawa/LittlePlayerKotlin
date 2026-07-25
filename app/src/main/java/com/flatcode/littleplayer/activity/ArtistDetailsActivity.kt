@@ -4,11 +4,14 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
 import com.flatcode.littleplayer.viewmodel.ArtistDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.ArrayList
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ArtistDetailsActivity : AppCompatActivity() {
@@ -30,10 +33,14 @@ class ArtistDetailsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.songs.observe(this) { songList ->
-            if (!songList.isNullOrEmpty()) {
-                adapter = ArtistDetailsAdapter(context, ArrayList(songList))
-                binding.recyclerView.adapter = adapter
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.songs.collect { songList ->
+                    if (songList.isNotEmpty()) {
+                        adapter = ArtistDetailsAdapter(context, ArrayList(songList))
+                        binding.recyclerView.adapter = adapter
+                    }
+                }
             }
         }
     }

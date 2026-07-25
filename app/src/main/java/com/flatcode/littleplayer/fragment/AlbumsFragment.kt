@@ -6,12 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumAdapter
 import com.flatcode.littleplayer.databinding.FragmentAlbumsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AlbumsFragment : Fragment() {
@@ -39,18 +43,23 @@ class AlbumsFragment : Fragment() {
             bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
         }
 
-        viewModel.albumFiles.observe(viewLifecycleOwner) { albumList ->
-            if (!albumList.isNullOrEmpty()) {
-                val arrayListAlbums = ArrayList(albumList)
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.albumFiles.collect { albumList ->
+                    if (albumList.isNotEmpty()) {
+                        val arrayListAlbums = ArrayList(albumList)
 
-                adapter = AlbumAdapter(requireContext(), arrayListAlbums) { albumName: String ->
-                    val bundle = Bundle().apply {
-                        putString("ALBUM_NAME", albumName)
+                        adapter =
+                            AlbumAdapter(requireContext(), arrayListAlbums) { albumName: String ->
+                                val bundle = Bundle().apply {
+                                    putString("ALBUM_NAME", albumName)
+                                }
+                                findNavController().navigate(R.id.albumDetailsActivity, bundle)
+                            }
+
+                        binding.recyclerView.adapter = adapter
                     }
-                    findNavController().navigate(R.id.albumDetailsActivity, bundle)
                 }
-
-                binding.recyclerView.adapter = adapter
             }
         }
     }

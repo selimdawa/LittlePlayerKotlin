@@ -4,10 +4,14 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.adapter.FolderDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityFolderDetailsBinding
 import com.flatcode.littleplayer.viewmodel.FolderDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.util.ArrayList
 
 @AndroidEntryPoint
@@ -30,10 +34,14 @@ class FolderDetailsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.songs.observe(this) { songList ->
-            if (!songList.isNullOrEmpty()) {
-                adapter = FolderDetailsAdapter(context, ArrayList(songList))
-                binding.recyclerView.adapter = adapter
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.songs.collect { songList ->
+                    if (songList.isNotEmpty()) {
+                        adapter = FolderDetailsAdapter(context, ArrayList(songList))
+                        binding.recyclerView.adapter = adapter
+                    }
+                }
             }
         }
     }

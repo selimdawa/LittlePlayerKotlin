@@ -1,25 +1,25 @@
 package com.flatcode.littleplayer.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class FolderDetailsViewModel @Inject constructor(
-    application: Application, private val repository: MusicRepository
-) : AndroidViewModel(application) {
+    private val repository: MusicRepository
+) : ViewModel() {
 
-    private val _songs = MutableLiveData<List<MusicFiles>>()
-    val songs: LiveData<List<MusicFiles>> get() = _songs
+    private val _songs = MutableStateFlow<List<MusicFiles>>(emptyList())
+    val songs: StateFlow<List<MusicFiles>> = _songs.asStateFlow()
 
     fun filterSongsByFolder(folderPath: String?) {
         if (folderPath.isNullOrEmpty()) return
@@ -38,7 +38,7 @@ class FolderDetailsViewModel @Inject constructor(
                 }
             }
 
-            _songs.postValue(filteredSongs)
+            _songs.value = filteredSongs
         }
     }
 }

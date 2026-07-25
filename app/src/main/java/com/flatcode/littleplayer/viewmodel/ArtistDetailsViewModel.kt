@@ -1,24 +1,24 @@
 package com.flatcode.littleplayer.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
-    application: Application, private val repository: MusicRepository
-) : AndroidViewModel(application) {
+    private val repository: MusicRepository
+) : ViewModel() {
 
-    private val _songs = MutableLiveData<List<MusicFiles>>()
-    val songs: LiveData<List<MusicFiles>> get() = _songs
+    private val _songs = MutableStateFlow<List<MusicFiles>>(emptyList())
+    val songs: StateFlow<List<MusicFiles>> = _songs.asStateFlow()
 
     fun filterSongsByArtist(artistName: String?) {
         if (artistName.isNullOrEmpty()) return
@@ -28,7 +28,7 @@ class ArtistDetailsViewModel @Inject constructor(
             val filteredSongs = allSongs.filter {
                 it.artist?.equals(artistName, ignoreCase = true) == true
             }
-            _songs.postValue(filteredSongs)
+            _songs.value = filteredSongs
         }
     }
 }

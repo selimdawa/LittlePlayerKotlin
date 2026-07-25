@@ -7,12 +7,16 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SongsFragment : Fragment() {
@@ -42,27 +46,33 @@ class SongsFragment : Fragment() {
             bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
         }
 
-        viewModel.filteredMusicFiles.observe(viewLifecycleOwner) { files ->
-            if (files != null) {
-                val arrayListFiles = ArrayList(files)
-                if (musicAdapter == null) {
-                    musicAdapter = MusicAdapter(requireContext(), arrayListFiles)
-                    binding.recyclerView.adapter = musicAdapter
-                    updateAdapterState()
-                } else {
-                    musicAdapter?.updateList(arrayListFiles) {
-                        binding.recyclerView.scrollToPosition(0)
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.filteredMusicFiles.collect { files ->
+                        val arrayListFiles = ArrayList(files)
+                        if (musicAdapter == null) {
+                            musicAdapter = MusicAdapter(requireContext(), arrayListFiles)
+                            binding.recyclerView.adapter = musicAdapter
+                            updateAdapterState()
+                        } else {
+                            musicAdapter?.updateList(arrayListFiles) {
+                                binding.recyclerView.scrollToPosition(0)
+                            }
+                        }
+                    }
+                }
+                launch {
+                    nowPlayerViewModel.currentPlayingSong.collect {
+                        updateAdapterState()
+                    }
+                }
+                launch {
+                    nowPlayerViewModel.isPlaying.collect {
+                        updateAdapterState()
                     }
                 }
             }
-        }
-
-        nowPlayerViewModel.currentPlayingSong.observe(viewLifecycleOwner) {
-            updateAdapterState()
-        }
-
-        nowPlayerViewModel.isPlaying.observe(viewLifecycleOwner) {
-            updateAdapterState()
         }
     }
 

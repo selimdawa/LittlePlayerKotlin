@@ -8,8 +8,11 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
@@ -20,13 +23,10 @@ import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.MusicPreferences
-import com.flatcode.littleplayer.utils.dataStore
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -41,9 +41,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val nowPlayerViewModel: com.flatcode.littleplayer.viewmodel.NowPlayerViewModel by viewModels()
-        nowPlayerViewModel.currentPlayingSong.observe(this) { song ->
-            binding.fragBottomPlayer.visibility =
-                if (song != null) android.view.View.VISIBLE else android.view.View.GONE
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nowPlayerViewModel.currentPlayingSong.collect { song ->
+                    binding.fragBottomPlayer.isVisible = song != null
+                }
+            }
         }
 
         binding.toolbar.searchBar.setOnClickListener { launchActivity<SearchActivity>() }
@@ -104,18 +107,6 @@ class MainActivity : AppCompatActivity() {
         permission()
     }
 
-    override fun onResume() {
-        super.onResume()
-        lifecycleScope.launch {
-            val prefs = dataStore.data.first()
-            val path = prefs[MusicPreferences.MUSIC_FILE_KEY]
-            SHOW_MINI_PLAYER = !path.isNullOrEmpty()
-            PATH_TO_FRAG = path
-            ARTIST_TO_FRAG = prefs[MusicPreferences.ARTIST_NAME_KEY]
-            SONG_NAME_TO_FRAG = prefs[MusicPreferences.SONG_NAME_KEY]
-        }
-    }
-
     class ViewPagerAdapter(act: AppCompatActivity) : FragmentStateAdapter(act) {
         private val frags = ArrayList<Fragment>()
         private val titles = ArrayList<String>()
@@ -130,9 +121,5 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val REQUEST_CODE_PERMISSION = 1
-        var SHOW_MINI_PLAYER = false
-        var PATH_TO_FRAG: String? = null
-        var ARTIST_TO_FRAG: String? = null
-        var SONG_NAME_TO_FRAG: String? = null
     }
 }

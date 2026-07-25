@@ -4,14 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.flatcode.littleplayer.activity.MainActivity
 import com.flatcode.littleplayer.model.MusicFiles
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,11 +20,11 @@ class NowPlayerViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
 
-    private val _currentPlayingSong = MutableLiveData<MusicFiles?>()
-    val currentPlayingSong: LiveData<MusicFiles?> get() = _currentPlayingSong
+    private val _currentPlayingSong = MutableStateFlow<MusicFiles?>(null)
+    val currentPlayingSong: StateFlow<MusicFiles?> = _currentPlayingSong.asStateFlow()
 
-    private val _isPlaying = MutableLiveData(false)
-    val isPlaying: LiveData<Boolean> get() = _isPlaying
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private val musicFileKey = stringPreferencesKey("STORED_MUSIC")
     private val artistNameKey = stringPreferencesKey("ARTIST NAME")
@@ -44,7 +44,7 @@ class NowPlayerViewModel @Inject constructor(
                         artist = preferences[artistNameKey],
                         title = preferences[songNameKey]
                     )
-                    _currentPlayingSong.postValue(song)
+                    _currentPlayingSong.value = song
                 }
             }
         }
@@ -64,10 +64,5 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[songNameKey] = song.title ?: "Unknown"
             }
         }
-
-        MainActivity.SHOW_MINI_PLAYER = true
-        MainActivity.PATH_TO_FRAG = song.path
-        MainActivity.ARTIST_TO_FRAG = song.artist
-        MainActivity.SONG_NAME_TO_FRAG = song.title
     }
 }

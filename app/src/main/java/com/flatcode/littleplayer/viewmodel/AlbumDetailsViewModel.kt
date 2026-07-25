@@ -1,7 +1,5 @@
 package com.flatcode.littleplayer.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
@@ -9,6 +7,9 @@ import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -26,8 +27,8 @@ class AlbumDetailsViewModel @Inject constructor(
     private val repository: MusicRepository, private val roomRepository: MusicRoomRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableLiveData<AlbumDetailsUiState>()
-    val uiState: LiveData<AlbumDetailsUiState> get() = _uiState
+    private val _uiState = MutableStateFlow(AlbumDetailsUiState())
+    val uiState: StateFlow<AlbumDetailsUiState> = _uiState.asStateFlow()
 
     fun filterSongsByAlbum(albumName: String?) {
         if (albumName == null) return

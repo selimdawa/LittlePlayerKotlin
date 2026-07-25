@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -82,22 +84,29 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     }
 
     private fun observeViewModel() {
-        viewModel.currentPlayingSong.observe(viewLifecycleOwner) { song ->
-            song?.let {
-                if (lastLoadedPath != it.path) {
-                    lastLoadedPath = it.path
-                    lifecycleScope.launch {
-                        val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
-                        binding.albumArt.load(art ?: R.drawable.logo) { crossfade(enable = true) }
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.currentPlayingSong.collect { song ->
+                        song?.let {
+                            if (lastLoadedPath != it.path) {
+                                lastLoadedPath = it.path
+                                lifecycleScope.launch {
+                                    val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
+                                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(enable = true) }
+                                }
+                            }
+                            binding.name.text = it.title
+                            binding.artist.text = it.artist
+                        }
                     }
                 }
-                binding.name.text = it.title
-                binding.artist.text = it.artist
+                launch {
+                    viewModel.isPlaying.collect { isPlaying ->
+                        updatePlayPauseAnimation(isPlaying)
+                    }
+                }
             }
-        }
-
-        viewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
-            updatePlayPauseAnimation(isPlaying)
         }
     }
 

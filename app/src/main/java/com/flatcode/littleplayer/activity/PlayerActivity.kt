@@ -7,7 +7,9 @@ import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -34,8 +36,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 @UnstableApi
 @AndroidEntryPoint
@@ -113,19 +113,27 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun observeViewModel() {
-        viewModel.isFavorite.observe(this) { isFavorite ->
-            val icon = if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
-            binding.buttonPanel.favorite.setImageResource(icon)
-        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.isFavorite.collect { isFavorite ->
+                        val icon = if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+                        binding.buttonPanel.favorite.setImageResource(icon)
+                    }
+                }
 
-        viewModel.currentSong.observe(this) { song ->
-            song?.let {
-                binding.songName.text = it.title
-                binding.songArtist.text = it.artist
-                updateSongUI(it)
-                lifecycleScope.launch {
-                    delay(300.milliseconds)
-                    it.path?.let { path -> loadWaveform(path) }
+                launch {
+                    viewModel.currentSong.collect { song ->
+                        song?.let {
+                            binding.songName.text = it.title
+                            binding.songArtist.text = it.artist
+                            updateSongUI(it)
+                            lifecycleScope.launch {
+                                delay(300.milliseconds)
+                                it.path?.let { path -> loadWaveform(path) }
+                            }
+                        }
+                    }
                 }
             }
         }

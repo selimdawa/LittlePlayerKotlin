@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import com.flatcode.littleplayer.utils.loadCachedAlbumImage
@@ -11,6 +14,7 @@ import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -32,20 +36,24 @@ class AlbumDetailsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.uiState.observe(this) { state ->
-            if (state.songs.isNotEmpty()) {
-                if (!state.imagePath.isNullOrEmpty()) {
-                    binding.image.loadCachedAlbumImage(state.imagePath)
-                } else {
-                    binding.image.loadSongImage(state.firstSongAlbumId)
-                }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    if (state.songs.isNotEmpty()) {
+                        if (!state.imagePath.isNullOrEmpty()) {
+                            binding.image.loadCachedAlbumImage(state.imagePath)
+                        } else {
+                            binding.image.loadSongImage(state.firstSongAlbumId)
+                        }
 
-                if (!state.firstSongAlbumId.isNullOrEmpty()) {
-                    binding.imageBlur.loadSongImageBlur(state.firstSongAlbumId, 50)
-                }
+                        if (!state.firstSongAlbumId.isNullOrEmpty()) {
+                            binding.imageBlur.loadSongImageBlur(state.firstSongAlbumId, 50)
+                        }
 
-                adapter = ArtistDetailsAdapter(context, ArrayList(state.songs))
-                binding.recyclerView.adapter = adapter
+                        adapter = ArtistDetailsAdapter(context, ArrayList(state.songs))
+                        binding.recyclerView.adapter = adapter
+                    }
+                }
             }
         }
     }

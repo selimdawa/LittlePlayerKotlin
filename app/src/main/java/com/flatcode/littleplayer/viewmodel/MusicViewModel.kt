@@ -1,7 +1,5 @@
 package com.flatcode.littleplayer.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.Artist
@@ -9,6 +7,9 @@ import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -18,22 +19,22 @@ class MusicViewModel @Inject constructor(
     private val repository: MusicRepository
 ) : ViewModel() {
 
-    private val _musicFiles = MutableLiveData<List<MusicFiles>>()
+    private val _musicFiles = MutableStateFlow<List<MusicFiles>>(emptyList())
 
-    private val _albumFiles = MutableLiveData<List<MusicFiles>>()
-    val albumFiles: LiveData<List<MusicFiles>> get() = _albumFiles
+    private val _albumFiles = MutableStateFlow<List<MusicFiles>>(emptyList())
+    val albumFiles: StateFlow<List<MusicFiles>> = _albumFiles.asStateFlow()
 
-    private val _folderFiles = MutableLiveData<List<Folder>>()
-    val folderFiles: LiveData<List<Folder>> get() = _folderFiles
+    private val _folderFiles = MutableStateFlow<List<Folder>>(emptyList())
+    val folderFiles: StateFlow<List<Folder>> = _folderFiles.asStateFlow()
 
-    private val _artistFiles = MutableLiveData<List<Artist>>()
-    val artistFiles: LiveData<List<Artist>> get() = _artistFiles
+    private val _artistFiles = MutableStateFlow<List<Artist>>(emptyList())
+    val artistFiles: StateFlow<List<Artist>> = _artistFiles.asStateFlow()
 
-    private val _filteredMusicFiles = MutableLiveData<List<MusicFiles>>()
-    val filteredMusicFiles: LiveData<List<MusicFiles>> get() = _filteredMusicFiles
+    private val _filteredMusicFiles = MutableStateFlow<List<MusicFiles>>(emptyList())
+    val filteredMusicFiles: StateFlow<List<MusicFiles>> = _filteredMusicFiles.asStateFlow()
 
-    private val _sortOrder = MutableLiveData<String>()
-    val sortOrder: LiveData<String> get() = _sortOrder
+    private val _sortOrder = MutableStateFlow("")
+    val sortOrder: StateFlow<String> = _sortOrder.asStateFlow()
 
     init {
         viewModelScope.launch {

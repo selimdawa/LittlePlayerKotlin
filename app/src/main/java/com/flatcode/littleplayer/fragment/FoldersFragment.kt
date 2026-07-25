@@ -6,12 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.FolderAdapter
 import com.flatcode.littleplayer.databinding.FragmentFoldersBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FoldersFragment : Fragment() {
@@ -33,20 +37,24 @@ class FoldersFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.btnFilterSort.visibility = View.GONE
 
-        viewModel.folderFiles.observe(viewLifecycleOwner) { folderList ->
-            if (!folderList.isNullOrEmpty()) {
-                val arrayListFolders = ArrayList(folderList)
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.folderFiles.collect { folderList ->
+                    if (folderList.isNotEmpty()) {
+                        val arrayListFolders = ArrayList(folderList)
 
-                adapter =
-                    FolderAdapter(requireContext(), arrayListFolders) { folderName, folderPath ->
-                        val bundle = Bundle().apply {
-                            putString("FOLDER_NAME", folderName)
-                            putString("FOLDER_PATH", folderPath)
-                        }
-                        findNavController().navigate(R.id.folderDetailsActivity, bundle)
+                        adapter =
+                            FolderAdapter(requireContext(), arrayListFolders) { folderName, folderPath ->
+                                val bundle = Bundle().apply {
+                                    putString("FOLDER_NAME", folderName)
+                                    putString("FOLDER_PATH", folderPath)
+                                }
+                                findNavController().navigate(R.id.folderDetailsActivity, bundle)
+                            }
+
+                        binding.recyclerView.adapter = adapter
                     }
-
-                binding.recyclerView.adapter = adapter
+                }
             }
         }
     }

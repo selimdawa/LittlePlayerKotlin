@@ -5,13 +5,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Random
@@ -22,20 +23,20 @@ class PlayerViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>, private val repository: MusicRoomRepository
 ) : ViewModel() {
 
-    private val _isShuffle = MutableLiveData(false)
-    val isShuffle: LiveData<Boolean> get() = _isShuffle
+    private val _isShuffle = MutableStateFlow(false)
+    val isShuffle: StateFlow<Boolean> = _isShuffle.asStateFlow()
 
-    private val _repeatMode = MutableLiveData(0) // 0: OFF, 1: ONE, 2: ALL
-    val repeatMode: LiveData<Int> get() = _repeatMode
+    private val _repeatMode = MutableStateFlow(0) // 0: OFF, 1: ONE, 2: ALL
+    val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
 
-    private val _playbackCycleMode = MutableLiveData(0) // 0: Normal, 1: One, 2: Random
-    val playbackCycleMode: LiveData<Int> get() = _playbackCycleMode
+    private val _playbackCycleMode = MutableStateFlow(0) // 0: Normal, 1: One, 2: Random
+    val playbackCycleMode: StateFlow<Int> = _playbackCycleMode.asStateFlow()
 
-    private val _isFavorite = MutableLiveData(false)
-    val isFavorite: LiveData<Boolean> get() = _isFavorite
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
 
-    private val _currentSong = MutableLiveData<MusicFiles?>()
-    val currentSong: LiveData<MusicFiles?> get() = _currentSong
+    private val _currentSong = MutableStateFlow<MusicFiles?>(null)
+    val currentSong: StateFlow<MusicFiles?> = _currentSong.asStateFlow()
 
     var listSongs = ArrayList<MusicFiles>()
     var position = -1
@@ -113,7 +114,7 @@ class PlayerViewModel @Inject constructor(
                         song.path ?: ""
                     )
                 )
-                _isFavorite.postValue(false)
+                _isFavorite.value = false
             } else {
                 repository.insertFavorite(
                     com.flatcode.littleplayer.data.entity.FavoriteEntity(
@@ -125,14 +126,14 @@ class PlayerViewModel @Inject constructor(
                         song.path ?: ""
                     )
                 )
-                _isFavorite.postValue(true)
+                _isFavorite.value = true
             }
         }
     }
 
     fun checkFavorite(songId: String) {
         viewModelScope.launch {
-            _isFavorite.postValue(repository.isFavorite(songId))
+            _isFavorite.value = repository.isFavorite(songId)
         }
     }
 

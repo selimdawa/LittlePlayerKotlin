@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.multicolors)                       //Theme Colors
     //Image
     implementation(libs.coil)                              //Coil Image
+    implementation(libs.androidx.core.splashscreen)        //Splash Screen
     implementation(libs.airbnb.lottie)                     //Animation
     implementation(libs.androidx.palette.ktx)              //Background Color
     //Lifecycle
