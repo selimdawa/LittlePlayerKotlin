@@ -9,6 +9,7 @@ data class PlaylistEntity(
     val playlistName: String,
     val songId: String,
     val title: String,
+    val albumId: String? = null,
     val artist: String,
     val path: String
 )

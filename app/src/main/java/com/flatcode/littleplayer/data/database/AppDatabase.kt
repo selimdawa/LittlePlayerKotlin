@@ -8,11 +8,12 @@ import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
+import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.data.entity.SongEntity
 
 @Database(
-    entities = [SongEntity::class, AlbumImageEntity::class, FavoriteEntity::class, PlaylistEntity::class],
-    version = 3,
+    entities = [SongEntity::class, AlbumImageEntity::class, FavoriteEntity::class, PlaylistEntity::class, RecentEntity::class],
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

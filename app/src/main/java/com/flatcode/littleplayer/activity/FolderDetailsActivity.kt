@@ -9,6 +9,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.adapter.FolderDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityFolderDetailsBinding
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.FolderDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -38,7 +40,13 @@ class FolderDetailsActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.songs.collect { songList ->
                     if (songList.isNotEmpty()) {
-                        adapter = FolderDetailsAdapter(context, ArrayList(songList))
+                        val arrayListSongs = ArrayList(songList)
+                        adapter = FolderDetailsAdapter(context, arrayListSongs) { position ->
+                            viewModel.updateCurrentPlaylist(arrayListSongs)
+                            launchActivity<PlayerActivity> {
+                                putExtra(DATA.POSITION, position)
+                            }
+                        }
                         binding.recyclerView.adapter = adapter
                     }
                 }

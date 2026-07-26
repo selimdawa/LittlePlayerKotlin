@@ -3,13 +3,14 @@ package com.flatcode.littleplayer.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemFolderBinding
 import com.flatcode.littleplayer.model.Folder
 
 class FolderAdapter(
     private val context: Context,
-    private val folderList: ArrayList<Folder>,
+    private var folderList: ArrayList<Folder>,
     private val onItemClick: (String, String) -> Unit
 ) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>() {
 
@@ -31,4 +32,21 @@ class FolderAdapter(
     }
 
     override fun getItemCount(): Int = folderList.size
+
+    fun updateList(newList: ArrayList<Folder>) {
+        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = folderList.size
+            override fun getNewListSize(): Int = newList.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return folderList[oldItemPosition].path == newList[newItemPosition].path
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return folderList[oldItemPosition] == newList[newItemPosition]
+            }
+        })
+        folderList = newList
+        diffResult.dispatchUpdatesTo(this)
+    }
 }

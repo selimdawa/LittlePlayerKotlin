@@ -52,4 +52,8 @@ class AlbumDetailsViewModel @Inject constructor(
             _uiState.value = state
         }
     }
+
+    fun updateCurrentPlaylist(songs: List<MusicFiles>) {
+        repository.updateCurrentPlaylist(songs)
+    }
 }

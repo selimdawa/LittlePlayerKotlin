@@ -6,6 +6,7 @@ import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
+import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.data.entity.SongEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -60,4 +61,22 @@ class MusicRoomRepository @Inject constructor(
         musicDao.getSongsFromPlaylist(name)
 
     fun getAllPlaylistNames(): Flow<List<String>> = musicDao.getAllPlaylistNames()
+    suspend fun insertRecent(song: RecentEntity) = withContext(Dispatchers.IO) {
+        musicDao.insertRecent(song)
+        musicDao.trimRecent()
+    }
+
+    fun getAllRecent(): Flow<List<RecentEntity>> = musicDao.getAllRecent()
+
+    suspend fun incrementPlayCount(songId: String) = withContext(Dispatchers.IO) {
+        songDao.incrementPlayCount(songId)
+    }
+
+    suspend fun updateWaveform(songId: String, waveform: String) = withContext(Dispatchers.IO) {
+        songDao.updateWaveform(songId, waveform)
+    }
+
+    suspend fun getSongById(songId: String): SongEntity? = withContext(Dispatchers.IO) {
+        songDao.getSongById(songId)
+    }
 }

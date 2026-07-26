@@ -9,6 +9,7 @@ data class FavoriteEntity(
     val title: String,
     val artist: String,
     val album: String?,
+    val albumId: String? = null,
     val duration: String?,
     val path: String
 )

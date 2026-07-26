@@ -1,10 +1,13 @@
 package com.flatcode.littleplayer.model
 
 import android.net.Uri
+import android.os.Parcelable
 import androidx.core.net.toUri
+import kotlinx.parcelize.Parcelize
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
+@Parcelize
 data class MusicFiles(
     val path: String? = null,
     val title: String? = null,
@@ -12,8 +15,10 @@ data class MusicFiles(
     val album: String? = null,
     val duration: String? = null,
     val id: String? = null,
-    val albumId: String? = null
-) {
+    val albumId: String? = null,
+    val waveform: String? = null,
+    val playCount: Int = 0
+) : Parcelable {
     val safeTitle: String
         get() = title ?: "Unknown Track"
 

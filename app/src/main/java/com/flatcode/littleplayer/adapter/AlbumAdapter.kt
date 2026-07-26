@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemAlbumBinding
 import com.flatcode.littleplayer.model.MusicFiles
@@ -13,7 +14,7 @@ import com.flatcode.littleplayer.utils.loadSongImageBlur
 
 class AlbumAdapter(
     private val context: Context,
-    private val albumFiles: ArrayList<MusicFiles>,
+    private var albumFiles: ArrayList<MusicFiles>,
     private val onItemClick: (String) -> Unit
 ) : RecyclerView.Adapter<AlbumAdapter.ViewHolder>() {
 
@@ -38,4 +39,21 @@ class AlbumAdapter(
     }
 
     override fun getItemCount(): Int = albumFiles.size
+
+    fun updateList(newList: ArrayList<MusicFiles>) {
+        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = albumFiles.size
+            override fun getNewListSize(): Int = newList.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return albumFiles[oldItemPosition].album == newList[newItemPosition].album
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return albumFiles[oldItemPosition] == newList[newItemPosition]
+            }
+        })
+        albumFiles = newList
+        diffResult.dispatchUpdatesTo(this)
+    }
 }

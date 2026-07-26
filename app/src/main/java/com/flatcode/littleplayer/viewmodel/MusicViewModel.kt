@@ -6,18 +6,19 @@ import com.flatcode.littleplayer.model.Artist
 import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import com.linc.amplituda.Amplituda
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class MusicViewModel @Inject constructor(
-    private val repository: MusicRepository
-) : ViewModel() {
+class MusicViewModel @Inject constructor(private val repository: MusicRepository) : ViewModel() {
 
     private val _musicFiles = MutableStateFlow<List<MusicFiles>>(emptyList())
 
@@ -36,6 +37,8 @@ class MusicViewModel @Inject constructor(
     private val _sortOrder = MutableStateFlow("")
     val sortOrder: StateFlow<String> = _sortOrder.asStateFlow()
 
+    val currentPlaylist: StateFlow<List<MusicFiles>> = repository.currentPlaylist
+
     init {
         viewModelScope.launch {
             repository.sortOrderFlow.collect { order ->
@@ -48,23 +51,47 @@ class MusicViewModel @Inject constructor(
     fun loadAudioData() {
         viewModelScope.launch {
             val allAudio = repository.getAllAudio()
-            val uniqueAlbums = ArrayList<MusicFiles>()
-            val duplicates = HashSet<String>()
 
-            for (song in allAudio) {
-                val albumName = song.album ?: "Unknown"
-                if (!duplicates.contains(albumName)) {
-                    uniqueAlbums.add(song)
-                    duplicates.add(albumName)
+            withContext(Dispatchers.Default) {
+                val uniqueAlbums = ArrayList<MusicFiles>()
+                val duplicates = HashSet<String>()
+
+                for (song in allAudio) {
+                    val albumName = song.album ?: "Unknown"
+                    if (!duplicates.contains(albumName)) {
+                        uniqueAlbums.add(song)
+                        duplicates.add(albumName)
+                    }
                 }
+
+                _musicFiles.value = allAudio
+                _filteredMusicFiles.value = allAudio
+                _albumFiles.value = uniqueAlbums
+
+                generateFolderList(allAudio)
+                generateArtistList(allAudio)
             }
 
-            _musicFiles.value = allAudio
-            _filteredMusicFiles.value = allAudio
-            _albumFiles.value = uniqueAlbums
+            // startBackgroundWaveformAnalysis(allAudio)
+        }
+    }
 
-            generateFolderList(allAudio)
-            generateArtistList(allAudio)
+    private fun startBackgroundWaveformAnalysis(songs: List<MusicFiles>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val amplituda = Amplituda(repository.context)
+            songs.forEach { song ->
+                if (song.waveform == null && song.path != null && song.id != null) {
+                    try {
+                        val result = amplituda.processAudio(song.path).get()
+                        val amplitudesArray = result.amplitudesAsList().toIntArray()
+                        if (amplitudesArray.isNotEmpty()) {
+                            val waveformString = amplitudesArray.joinToString(",")
+                            repository.updateWaveform(song.id, waveformString)
+                        }
+                    } catch (_: Exception) {
+                    }
+                }
+            }
         }
     }
 
@@ -147,5 +174,9 @@ class MusicViewModel @Inject constructor(
         viewModelScope.launch {
             repository.saveSortOrder(sortType)
         }
+    }
+
+    fun updateCurrentPlaylist(songs: List<MusicFiles>) {
+        repository.updateCurrentPlaylist(songs)
     }
 }

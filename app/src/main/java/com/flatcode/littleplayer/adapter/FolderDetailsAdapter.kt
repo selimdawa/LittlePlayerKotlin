@@ -14,7 +14,9 @@ import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 
 class FolderDetailsAdapter(
-    private val context: Context, private val songList: ArrayList<MusicFiles>
+    private val context: Context,
+    private val songList: ArrayList<MusicFiles>,
+    private val onItemClick: (Int) -> Unit
 ) : RecyclerView.Adapter<FolderDetailsAdapter.FolderDetailsViewHolder>() {
 
     class FolderDetailsViewHolder(val binding: ItemMusicBinding) :
@@ -37,10 +39,7 @@ class FolderDetailsAdapter(
         holder.binding.imageBlur.loadSongImageBlur(song.albumId, 100)
 
         holder.itemView.setOnClickListener {
-            context.launchActivity<PlayerActivity> {
-                putExtra(DATA.SENDER, DATA.FOLDER_DETAILS)
-                putExtra(DATA.POSITION, holder.bindingAdapterPosition)
-            }
+            onItemClick(holder.bindingAdapterPosition)
         }
     }
 

@@ -7,14 +7,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
+import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadCachedAlbumImage
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -22,7 +25,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAlbumDetailsBinding
     private val context: Context = this@AlbumDetailsActivity
     private val viewModel: AlbumDetailsViewModel by viewModels()
-    private var adapter: ArtistDetailsAdapter? = null
+    private var adapter: AlbumDetailsAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +53,13 @@ class AlbumDetailsActivity : AppCompatActivity() {
                             binding.imageBlur.loadSongImageBlur(state.firstSongAlbumId, 50)
                         }
 
-                        adapter = ArtistDetailsAdapter(context, ArrayList(state.songs))
+                        val arrayListSongs = ArrayList(state.songs)
+                        adapter = AlbumDetailsAdapter(context, arrayListSongs) { position ->
+                            viewModel.updateCurrentPlaylist(arrayListSongs)
+                            launchActivity<PlayerActivity> {
+                                putExtra(DATA.POSITION, position)
+                            }
+                        }
                         binding.recyclerView.adapter = adapter
                     }
                 }

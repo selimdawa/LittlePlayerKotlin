@@ -44,16 +44,31 @@
     <activity
         android:id="@+id/albumDetailsActivity"
         android:name="com.flatcode.littleplayer.activity.AlbumDetailsActivity"
-        android:label="AlbumDetailsActivity" />
+        android:label="AlbumDetailsActivity">
+        <argument
+            android:name="albumName"
+            app:argType="string" />
+    </activity>
 
     <activity
         android:id="@+id/artistDetailsActivity"
         android:name="com.flatcode.littleplayer.activity.ArtistDetailsActivity"
-        android:label="ArtistDetailsActivity" />
+        android:label="ArtistDetailsActivity">
+        <argument
+            android:name="artistName"
+            app:argType="string" />
+    </activity>
 
     <activity
         android:id="@+id/folderDetailsActivity"
         android:name="com.flatcode.littleplayer.activity.FolderDetailsActivity"
-        android:label="FolderDetailsActivity" />
+        android:label="FolderDetailsActivity">
+        <argument
+            android:name="folderName"
+            app:argType="string" />
+        <argument
+            android:name="folderPath"
+            app:argType="string" />
+    </activity>
 
 </navigation>

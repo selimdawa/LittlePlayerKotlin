@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.NonNull
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemArtistBinding
 import com.flatcode.littleplayer.model.Artist
@@ -12,7 +13,7 @@ import me.zhanghai.android.fastscroll.PopupTextProvider
 
 class ArtistAdapter(
     private val context: Context,
-    private val artistList: ArrayList<Artist>,
+    private var artistList: ArrayList<Artist>,
     private val onItemClick: (String) -> Unit
 ) : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>(), PopupTextProvider {
 
@@ -40,5 +41,22 @@ class ArtistAdapter(
     override fun getPopupText(@NonNull view: View, position: Int): CharSequence {
         val artistName = artistList[position].name
         return if (artistName.isNotEmpty()) artistName.substring(0, 1).uppercase() else ""
+    }
+
+    fun updateList(newList: ArrayList<Artist>) {
+        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = artistList.size
+            override fun getNewListSize(): Int = newList.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return artistList[oldItemPosition].name == newList[newItemPosition].name
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return artistList[oldItemPosition] == newList[newItemPosition]
+            }
+        })
+        artistList = newList
+        diffResult.dispatchUpdatesTo(this)
     }
 }

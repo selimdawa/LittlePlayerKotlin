@@ -29,6 +29,7 @@ class NowPlayerViewModel @Inject constructor(
     private val musicFileKey = stringPreferencesKey("STORED_MUSIC")
     private val artistNameKey = stringPreferencesKey("ARTIST NAME")
     private val songNameKey = stringPreferencesKey("SONG NAME")
+    private val albumIdKey = stringPreferencesKey("ALBUM ID")
 
     init {
         loadLastPlayedSong()
@@ -42,7 +43,8 @@ class NowPlayerViewModel @Inject constructor(
                     val song = MusicFiles(
                         path = path,
                         artist = preferences[artistNameKey],
-                        title = preferences[songNameKey]
+                        title = preferences[songNameKey],
+                        albumId = preferences[albumIdKey]
                     )
                     _currentPlayingSong.value = song
                 }
@@ -62,6 +64,7 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[musicFileKey] = song.path ?: ""
                 preferences[artistNameKey] = song.artist ?: "Unknown"
                 preferences[songNameKey] = song.title ?: "Unknown"
+                preferences[albumIdKey] = song.albumId ?: ""
             }
         }
     }

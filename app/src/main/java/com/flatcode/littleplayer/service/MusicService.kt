@@ -61,6 +61,7 @@ class MusicService : MediaSessionService(), Player.Listener {
 
         exoPlayer = ExoPlayer.Builder(this).build().apply {
             addListener(this@MusicService)
+            repeatMode = Player.REPEAT_MODE_ALL // Enable circular navigation by default
         }
 
         exoPlayer?.let { player ->
@@ -84,12 +85,20 @@ class MusicService : MediaSessionService(), Player.Listener {
         position = positionInner
 
         val mediaItems = musicFiles.map { song ->
-            val metadata = MediaMetadata.Builder().setTitle(song.title ?: "Unknown Track")
+            val metadata = MediaMetadata.Builder()
+                .setTitle(song.title ?: "Unknown Track")
                 .setArtist(song.artist ?: "Unknown Artist")
-                .setAlbumTitle(song.album ?: "Unknown Album").build()
+                .setAlbumTitle(song.album ?: "Unknown Album")
+                .setExtras(Bundle().apply {
+                    putString("ALBUM_ID", song.albumId)
+                })
+                .build()
 
-            MediaItem.Builder().setUri(song.path?.toUri() ?: "".toUri()).setMediaMetadata(metadata)
-                .setMediaId(song.id ?: "").build()
+            MediaItem.Builder()
+                .setUri(song.path?.toUri() ?: "".toUri())
+                .setMediaMetadata(metadata)
+                .setMediaId(song.id ?: "")
+                .build()
         }
 
         exoPlayer?.apply {
@@ -149,6 +158,14 @@ class MusicService : MediaSessionService(), Player.Listener {
             position = it.currentMediaItemIndex
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                 loadArtForCurrentItem(it)
+            }
+            
+            // Increment play count
+            val currentId = it.currentMediaItem?.mediaId
+            if (currentId != null) {
+                serviceScope.launch {
+                    repository.incrementPlayCount(currentId)
+                }
             }
         }
         updateLastPlayedInfo()
@@ -223,19 +240,30 @@ class MusicService : MediaSessionService(), Player.Listener {
                         val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: ""
                         val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
                         val path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
+                        val duration = musicFiles.find { it.id == songId }?.duration
 
                         serviceScope.launch {
                             val isFav = repository.isFavorite(songId)
                             if (isFav) {
                                 repository.deleteFavorite(
                                     com.flatcode.littleplayer.data.entity.FavoriteEntity(
-                                        songId, title, artist, album, null, path
+                                        songId = songId,
+                                        title = title,
+                                        artist = artist,
+                                        album = album,
+                                        duration = duration,
+                                        path = path
                                     )
                                 )
                             } else {
                                 repository.insertFavorite(
                                     com.flatcode.littleplayer.data.entity.FavoriteEntity(
-                                        songId, title, artist, album, null, path
+                                        songId = songId,
+                                        title = title,
+                                        artist = artist,
+                                        album = album,
+                                        duration = duration,
+                                        path = path
                                     )
                                 )
                             }

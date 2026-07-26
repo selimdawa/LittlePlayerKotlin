@@ -5,11 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
@@ -24,7 +25,7 @@ class ArtistsFragment : Fragment() {
     private var _binding: FragmentArtistsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: MusicViewModel by hiltNavGraphViewModels(R.id.nav_graph)
+    private val viewModel: MusicViewModel by activityViewModels()
     private var adapter: ArtistAdapter? = null
 
     override fun onCreateView(
@@ -38,31 +39,43 @@ class ArtistsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.btnFilterSort.visibility = View.GONE
 
+        setupAdapter()
+
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.artistFiles.collect { artistList ->
                     if (artistList.isNotEmpty()) {
                         val arrayListArtists = ArrayList(artistList)
-
-                        adapter = ArtistAdapter(requireContext(), arrayListArtists) { artistName ->
-                            val bundle = Bundle().apply {
-                                putString("ARTIST_NAME", artistName)
-                            }
-                            findNavController().navigate(R.id.artistDetailsActivity, bundle)
+                        if (adapter == null) {
+                            setupAdapter()
                         }
-
-                        binding.recyclerView.adapter = adapter
-
-                        FastScrollerBuilder(binding.recyclerView).setPopupTextProvider(adapter as me.zhanghai.android.fastscroll.PopupTextProvider)
-                            .build()
+                        adapter?.updateList(arrayListArtists)
                     }
                 }
             }
         }
     }
 
+    private fun setupAdapter() {
+        if (adapter == null) {
+            adapter = ArtistAdapter(requireContext(), ArrayList()) { artistName ->
+                val bundle = Bundle().apply {
+                    putString("ARTIST_NAME", artistName)
+                }
+                findNavController().navigate(R.id.artistDetailsActivity, bundle)
+            }
+            adapter?.stateRestorationPolicy =
+                RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+
+            FastScrollerBuilder(binding.recyclerView).setPopupTextProvider(adapter as me.zhanghai.android.fastscroll.PopupTextProvider)
+                .build()
+        }
+        binding.recyclerView.adapter = adapter
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.recyclerView.adapter = null
         _binding = null
     }
 }

@@ -1,7 +1,6 @@
 package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
-import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,22 +14,19 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import coil.load
-import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
@@ -68,7 +64,12 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         }
 
         binding.nextBtn.setOnClickListener {
-            mediaController?.seekToNext()
+            mediaController?.let { controller ->
+                controller.seekToNext()
+                if (!controller.playWhenReady) {
+                    controller.play()
+                }
+            }
         }
 
         binding.playPauseBtn.setOnClickListener {
@@ -89,13 +90,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 launch {
                     viewModel.currentPlayingSong.collect { song ->
                         song?.let {
-                            if (lastLoadedPath != it.path) {
-                                lastLoadedPath = it.path
-                                lifecycleScope.launch {
-                                    val art = withContext(Dispatchers.IO) { getAlbumArt(it.path) }
-                                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(enable = true) }
-                                }
-                            }
+                            binding.albumArt.loadSongImage(it.albumId, it.path)
                             binding.name.text = it.title
                             binding.artist.text = it.artist
                         }
@@ -116,22 +111,20 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             val title = currentMediaItem.mediaMetadata.title?.toString() ?: "Unknown Track"
             val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: "Unknown Artist"
             val path = currentMediaItem.localConfiguration?.uri?.path
+            val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
 
             binding.name.text = title
             binding.artist.text = artist
 
             viewModel.saveAndBroadcastNextSong(
                 com.flatcode.littleplayer.model.MusicFiles(
-                    path = path, title = title, artist = artist
+                    path = path, title = title, artist = artist, albumId = albumId
                 )
             )
 
             if (lastLoadedPath != path) {
                 lastLoadedPath = path
-                lifecycleScope.launch {
-                    val art = withContext(Dispatchers.IO) { getAlbumArt(path) }
-                    binding.albumArt.load(art ?: R.drawable.logo) { crossfade(enable = true) }
-                }
+                binding.albumArt.loadSongImage(albumId, path)
             }
         }
         updatePlayPauseAnimation(player.isPlaying)
@@ -195,20 +188,6 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun stopProgressUpdater() {
         progressJob?.cancel()
         progressJob = null
-    }
-
-    private fun getAlbumArt(uri: String?): ByteArray? {
-        if (uri.isNullOrEmpty()) return null
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(uri)
-            val art = retriever.embeddedPicture
-            retriever.release()
-            art
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {

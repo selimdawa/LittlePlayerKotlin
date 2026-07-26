@@ -28,16 +28,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) :
-    RecyclerView.Adapter<MusicAdapter.ViewHolder>() {
+class MusicAdapter(
+    private val context: Context,
+    private var mFiles: ArrayList<MusicFiles>,
+    private val onItemClick: (Int) -> Unit
+) : RecyclerView.Adapter<MusicAdapter.ViewHolder>() {
 
     private val adapterScope = CoroutineScope(Dispatchers.Main)
     private var playingPath: String? = null
     private var isPlaying: Boolean = false
-
-    init {
-        Companion.mFiles = mFiles
-    }
 
     fun updatePlaybackState(path: String?, playing: Boolean) {
         val oldPath = this.playingPath
@@ -72,8 +71,8 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         )
         holder.songDetails.text = songDetailsText
 
-        holder.image.loadSongImage(currentFile.albumId)
-        holder.imageBlur.loadSongImageBlur(currentFile.albumId, 100)
+        holder.image.loadSongImage(currentFile.albumId, currentFile.path)
+        holder.imageBlur.loadSongImageBlur(currentFile.albumId, 100, currentFile.path)
 
         if ((currentFile.path == playingPath) && isPlaying) {
             holder.wave.visibility = View.VISIBLE
@@ -82,10 +81,7 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
         }
 
         holder.itemView.setOnClickListener {
-            updatePlaybackState(currentFile.path, true)
-            context.launchActivity<PlayerActivity> {
-                putExtra(DATA.POSITION, holder.bindingAdapterPosition)
-            }
+            onItemClick(holder.bindingAdapterPosition)
         }
 
         holder.more.setOnClickListener { v ->
@@ -141,6 +137,8 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
 
     override fun getItemCount(): Int = mFiles?.size ?: 0
 
+    fun getMusicFiles(): ArrayList<MusicFiles> = mFiles
+
     class ViewHolder(binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root) {
         val songName: TextView = binding.songName
         val songDetails: TextView = binding.songDetails
@@ -181,9 +179,5 @@ class MusicAdapter(private val context: Context, mFiles: ArrayList<MusicFiles>) 
             diffResult.dispatchUpdatesTo(this@MusicAdapter)
             onCommit?.invoke()
         }
-    }
-
-    companion object {
-        var mFiles: ArrayList<MusicFiles>? = null
     }
 }

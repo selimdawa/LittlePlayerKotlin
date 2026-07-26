@@ -17,8 +17,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
-import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
@@ -30,6 +28,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -46,6 +45,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private val viewModel: PlayerViewModel by viewModels()
 
     private var progressJob: Job? = null
+    private var waveformJob: Job? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private lateinit var amplituda: Amplituda
@@ -88,21 +88,24 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             },
         )
 
-        binding.buttonPanel.shuffle.setOnClickListener {
-            mediaController?.let {
-                it.shuffleModeEnabled = !it.shuffleModeEnabled
-            }
-        }
-
         binding.buttonPanel.repeat.setOnClickListener {
-            mediaController?.let {
-                val nextMode = when (it.repeatMode) {
-                    Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
-                    Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                    Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                    else -> Player.REPEAT_MODE_OFF
+            mediaController?.let { controller ->
+                when {
+                    !controller.shuffleModeEnabled && controller.repeatMode != Player.REPEAT_MODE_ONE -> {
+                        controller.repeatMode = Player.REPEAT_MODE_ONE
+                        controller.shuffleModeEnabled = false
+                    }
+
+                    !controller.shuffleModeEnabled && controller.repeatMode == Player.REPEAT_MODE_ONE -> {
+                        controller.repeatMode = Player.REPEAT_MODE_ALL
+                        controller.shuffleModeEnabled = true
+                    }
+
+                    else -> {
+                        controller.repeatMode = Player.REPEAT_MODE_ALL
+                        controller.shuffleModeEnabled = false
+                    }
                 }
-                it.repeatMode = nextMode
             }
         }
 
@@ -117,7 +120,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.isFavorite.collect { isFavorite ->
-                        val icon = if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+                        val icon =
+                            if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
                         binding.buttonPanel.favorite.setImageResource(icon)
                     }
                 }
@@ -130,7 +134,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                             updateSongUI(it)
                             lifecycleScope.launch {
                                 delay(300.milliseconds)
-                                it.path?.let { path -> loadWaveform(path) }
+                                it.path?.let { path -> it.id?.let { id -> loadWaveform(id, path) } }
                             }
                         }
                     }
@@ -141,36 +145,51 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun updateSongUI(song: com.flatcode.littleplayer.model.MusicFiles) {
         binding.durationTotal.text = formattedTime(song.durationDuration)
-        binding.image.loadSongImage(song.albumId)
-        binding.imageBlur.loadSongImageBlur(song.albumId, 100)
+        binding.image.loadSongImage(song.albumId, song.path)
+        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path)
     }
 
-    private fun loadWaveform(path: String) {
-        amplituda.processAudio(path).get(
-            { result ->
-                val amplitudesList = result.amplitudesAsList()
-                val amplitudesArray = amplitudesList.toIntArray()
-                runOnUiThread {
-                    binding.waveformSeekBar.setSampleFrom(amplitudesArray)
+    private fun loadWaveform(songId: String, path: String) {
+        waveformJob?.cancel()
+        waveformJob = lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // Check Room first
+                val cachedSong = viewModel.getSongById(songId)
+                if (cachedSong?.waveform != null) {
+                    val amplitudes = cachedSong.waveform.split(",").mapNotNull { it.toIntOrNull() }.toIntArray()
+                    if (isActive && amplitudes.isNotEmpty()) {
+                        runOnUiThread {
+                            binding.waveformSeekBar.setSampleFrom(amplitudes)
+                        }
+                        return@launch
+                    }
                 }
-            },
-            { exception ->
-                exception.printStackTrace()
-            },
-        )
+
+                // Analyze if not cached
+                val result = amplituda.processAudio(path).get()
+                val amplitudesArray = result.amplitudesAsList().toIntArray()
+                
+                // Cache to Room
+                if (amplitudesArray.isNotEmpty()) {
+                    val waveformString = amplitudesArray.joinToString(",")
+                    viewModel.updateWaveform(songId, waveformString)
+                }
+
+                if (isActive) {
+                    runOnUiThread {
+                        binding.waveformSeekBar.setSampleFrom(amplitudesArray)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private fun getIntentMethod() {
         val position = intent.getIntExtra(DATA.POSITION, -1)
-        val sender = intent.getStringExtra(DATA.SENDER)
 
-        viewModel.listSongs = if ((sender != null) && (sender == DATA.ALBUM_DETAILS)) {
-            AlbumDetailsAdapter.albumFiles ?: ArrayList()
-        } else {
-            MusicAdapter.mFiles ?: ArrayList()
-        }
-
-        if (viewModel.listSongs.isNotEmpty() && position != -1) {
+        if (position != -1) {
             binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
             viewModel.updatePositionAndSong(position)
         }
@@ -185,11 +204,21 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun prevBtn() {
-        mediaController?.seekToPreviousMediaItem()
+        mediaController?.let { controller ->
+            controller.seekToPreviousMediaItem()
+            if (!controller.playWhenReady) {
+                controller.play()
+            }
+        }
     }
 
     private fun nextBtn() {
-        mediaController?.seekToNextMediaItem()
+        mediaController?.let { controller ->
+            controller.seekToNextMediaItem()
+            if (!controller.playWhenReady) {
+                controller.play()
+            }
+        }
     }
 
     private fun playCurrentSong() {
@@ -212,7 +241,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             updateSongUI(song)
             lifecycleScope.launch {
                 delay(300.milliseconds)
-                song.path?.let { loadWaveform(it) }
+                song.path?.let { path -> song.id?.let { id -> loadWaveform(id, path) } }
             }
 
             resetProgressLoop()
@@ -316,6 +345,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         updatePlayPauseButton(isPlaying)
         if (isPlaying) startProgressUpdater() else stopProgressUpdater()
+
+        mediaController?.let { controller ->
+            val currentPos = controller.currentPosition
+            val duration = controller.duration
+            if (duration > 0) {
+                binding.seekBar.progress = (currentPos / 1000).toInt()
+                binding.waveformSeekBar.progress = (currentPos.toFloat() / duration.toFloat()) * 100
+                binding.durationPlayed.text = formattedTime(currentPos.milliseconds)
+            }
+        }
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -342,16 +381,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updateRepeatShuffleIcons(player: Player) {
-        val repeatIcon = when (player.repeatMode) {
-            Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-            Player.REPEAT_MODE_ALL -> R.drawable.ic_repeat_on
-            else -> R.drawable.ic_repeat_off
+        val cycleIcon = when {
+            player.shuffleModeEnabled -> R.drawable.ic_shuffle_on
+            player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
+            else -> R.drawable.ic_repeat_on
         }
-        binding.buttonPanel.repeat.setImageResource(repeatIcon)
-
-        val shuffleIcon =
-            if (player.shuffleModeEnabled) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_off
-        binding.buttonPanel.shuffle.setImageResource(shuffleIcon)
+        binding.buttonPanel.repeat.setImageResource(cycleIcon)
     }
 
     private fun formattedTime(duration: Duration): String {

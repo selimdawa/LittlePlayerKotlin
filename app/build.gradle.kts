@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.daggerHiltAndroid)
     alias(libs.plugins.ksp.processor)
     alias(libs.plugins.navigation.safeargs)
+    alias(libs.plugins.kotlinParcelize)
 }
 
 android {

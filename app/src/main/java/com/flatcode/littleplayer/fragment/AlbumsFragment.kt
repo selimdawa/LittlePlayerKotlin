@@ -5,11 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumAdapter
 import com.flatcode.littleplayer.databinding.FragmentAlbumsBinding
@@ -23,7 +24,7 @@ class AlbumsFragment : Fragment() {
     private var _binding: FragmentAlbumsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: MusicViewModel by hiltNavGraphViewModels(R.id.nav_graph)
+    private val viewModel: MusicViewModel by activityViewModels()
     private var adapter: AlbumAdapter? = null
 
     override fun onCreateView(
@@ -43,29 +44,40 @@ class AlbumsFragment : Fragment() {
             bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
         }
 
+        setupAdapter()
+
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.albumFiles.collect { albumList ->
                     if (albumList.isNotEmpty()) {
                         val arrayListAlbums = ArrayList(albumList)
-
-                        adapter =
-                            AlbumAdapter(requireContext(), arrayListAlbums) { albumName: String ->
-                                val bundle = Bundle().apply {
-                                    putString("ALBUM_NAME", albumName)
-                                }
-                                findNavController().navigate(R.id.albumDetailsActivity, bundle)
-                            }
-
-                        binding.recyclerView.adapter = adapter
+                        if (adapter == null) {
+                            setupAdapter()
+                        }
+                        adapter?.updateList(arrayListAlbums)
                     }
                 }
             }
         }
     }
 
+    private fun setupAdapter() {
+        if (adapter == null) {
+            adapter = AlbumAdapter(requireContext(), ArrayList()) { albumName: String ->
+                val bundle = Bundle().apply {
+                    putString("ALBUM_NAME", albumName)
+                }
+                findNavController().navigate(R.id.albumDetailsActivity, bundle)
+            }
+            adapter?.stateRestorationPolicy =
+                RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+        }
+        binding.recyclerView.adapter = adapter
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.recyclerView.adapter = null
         _binding = null
     }
 }

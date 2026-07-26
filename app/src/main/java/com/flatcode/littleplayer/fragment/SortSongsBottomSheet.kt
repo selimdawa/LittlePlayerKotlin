@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.flatcode.littleplayer.databinding.DialogSortSongsBinding
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.getLibraryColor
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class SortSongsBottomSheet(
@@ -25,8 +26,7 @@ class SortSongsBottomSheet(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        /*val trackColor =
-            requireContext().getColorFromAttr(com.flatcode.littleplayer.R.attr.mc_track)
+        val trackColor = requireContext().getLibraryColor("mc_track")
         when (currentSort) {
             DATA.SORT_BY_DATE -> {
                 binding.checkByDate.visibility = View.VISIBLE
@@ -57,7 +57,7 @@ class SortSongsBottomSheet(
                 binding.checkBySize.setColorFilter(trackColor)
                 binding.textBySize.setTextColor(trackColor)
             }
-        }*/
+        }
 
         binding.sortByDate.setOnClickListener {
             if (currentSort != DATA.SORT_BY_DATE) onSortSelected(DATA.SORT_BY_DATE)

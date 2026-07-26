@@ -13,12 +13,11 @@ import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 
-class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<MusicFiles>) :
-    RecyclerView.Adapter<AlbumDetailsAdapter.ViewHolder>() {
-
-    init {
-        Companion.albumFiles = albumFiles
-    }
+class AlbumDetailsAdapter(
+    private val context: Context,
+    private var albumFiles: ArrayList<MusicFiles>,
+    private val onItemClick: (Int) -> Unit
+) : RecyclerView.Adapter<AlbumDetailsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
@@ -41,18 +40,11 @@ class AlbumDetailsAdapter(private val context: Context, albumFiles: ArrayList<Mu
         holder.binding.imageBlur.loadSongImageBlur(currentFile.albumId, 50)
 
         holder.itemView.setOnClickListener {
-            context.launchActivity<PlayerActivity> {
-                putExtra(DATA.SENDER, DATA.ALBUM_DETAILS)
-                putExtra(DATA.POSITION, holder.bindingAdapterPosition)
-            }
+            onItemClick(holder.bindingAdapterPosition)
         }
     }
 
-    override fun getItemCount(): Int = albumFiles?.size ?: 0
+    override fun getItemCount(): Int = albumFiles.size
 
     class ViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
-
-    companion object {
-        var albumFiles: ArrayList<MusicFiles>? = null
-    }
 }

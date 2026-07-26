@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
+import com.flatcode.littleplayer.data.entity.RecentEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,4 +36,12 @@ interface MusicDao {
 
     @Query("SELECT DISTINCT playlistName FROM playlists_table")
     fun getAllPlaylistNames(): Flow<List<String>>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRecent(song: RecentEntity)
+
+    @Query("SELECT * FROM recent_table ORDER BY timestamp DESC")
+    fun getAllRecent(): Flow<List<RecentEntity>>
+
+    @Query("DELETE FROM recent_table WHERE songId NOT IN (SELECT songId FROM recent_table ORDER BY timestamp DESC LIMIT 50)")
+    suspend fun trimRecent()
 }

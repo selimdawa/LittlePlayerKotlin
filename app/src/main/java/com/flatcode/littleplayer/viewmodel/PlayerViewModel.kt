@@ -7,7 +7,10 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flatcode.littleplayer.data.entity.FavoriteEntity
+import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,10 +20,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Random
 import javax.inject.Inject
+import androidx.datastore.preferences.core.intPreferencesKey
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>, private val repository: MusicRoomRepository
+    private val dataStore: DataStore<Preferences>,
+    private val musicRepository: MusicRepository,
+    private val repository: MusicRoomRepository
 ) : ViewModel() {
 
     private val _isShuffle = MutableStateFlow(false)
@@ -38,15 +44,13 @@ class PlayerViewModel @Inject constructor(
     private val _currentSong = MutableStateFlow<MusicFiles?>(null)
     val currentSong: StateFlow<MusicFiles?> = _currentSong.asStateFlow()
 
-    var listSongs = ArrayList<MusicFiles>()
+    var listSongs: List<MusicFiles> = emptyList()
     var position = -1
     var uri: Uri? = null
 
     private val shuffleKey = booleanPreferencesKey("SHUFFLE_MODE")
-    private val repeatModeKey =
-        androidx.datastore.preferences.core.intPreferencesKey("REPEAT_MODE_INT")
-    private val playbackCycleModeKey =
-        androidx.datastore.preferences.core.intPreferencesKey("PLAYBACK_CYCLE_MODE")
+    private val repeatModeKey = intPreferencesKey("REPEAT_MODE_INT")
+    private val playbackCycleModeKey = intPreferencesKey("PLAYBACK_CYCLE_MODE")
 
     init {
         viewModelScope.launch {
@@ -54,6 +58,12 @@ class PlayerViewModel @Inject constructor(
             _isShuffle.value = preferences[shuffleKey] ?: false
             _repeatMode.value = preferences[repeatModeKey] ?: 0
             _playbackCycleMode.value = preferences[playbackCycleModeKey] ?: 0
+        }
+
+        viewModelScope.launch {
+            musicRepository.currentPlaylist.collect {
+                listSongs = it
+            }
         }
     }
 
@@ -105,25 +115,27 @@ class PlayerViewModel @Inject constructor(
             val isFav = repository.isFavorite(songId)
             if (isFav) {
                 repository.deleteFavorite(
-                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
-                        songId,
-                        song.safeTitle,
-                        song.safeArtist,
-                        song.album,
-                        song.duration,
-                        song.path ?: ""
+                    FavoriteEntity(
+                        songId = songId,
+                        title = song.safeTitle,
+                        artist = song.safeArtist,
+                        album = song.album,
+                        albumId = song.albumId,
+                        duration = song.duration,
+                        path = song.path ?: ""
                     )
                 )
                 _isFavorite.value = false
             } else {
                 repository.insertFavorite(
-                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
-                        songId,
-                        song.safeTitle,
-                        song.safeArtist,
-                        song.album,
-                        song.duration,
-                        song.path ?: ""
+                    FavoriteEntity(
+                        songId = songId,
+                        title = song.safeTitle,
+                        artist = song.safeArtist,
+                        album = song.album,
+                        albumId = song.albumId,
+                        duration = song.duration,
+                        path = song.path ?: ""
                     )
                 )
                 _isFavorite.value = true
@@ -143,11 +155,34 @@ class PlayerViewModel @Inject constructor(
             val song = listSongs[position]
             uri = Uri.parse(song.path)
             _currentSong.value = song
-            song.id?.let { checkFavorite(it) }
+            song.id?.let { songId ->
+                checkFavorite(songId)
+                viewModelScope.launch {
+                    repository.insertRecent(
+                        RecentEntity(
+                            songId = songId,
+                            title = song.title ?: "Unknown",
+                            artist = song.artist,
+                            album = song.album,
+                            albumId = song.albumId,
+                            duration = song.duration,
+                            path = song.path ?: ""
+                        )
+                    )
+                }
+            }
         }
     }
 
     private fun getRandom(max: Int): Int {
         return if (max > 0) Random().nextInt(max + 1) else 0
+    }
+
+    suspend fun getSongById(songId: String) = repository.getSongById(songId)
+
+    fun updateWaveform(songId: String, waveform: String) {
+        viewModelScope.launch {
+            repository.updateWaveform(songId, waveform)
+        }
     }
 }

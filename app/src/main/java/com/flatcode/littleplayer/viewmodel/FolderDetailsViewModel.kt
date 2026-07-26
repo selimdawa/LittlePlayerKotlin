@@ -41,4 +41,8 @@ class FolderDetailsViewModel @Inject constructor(
             _songs.value = filteredSongs
         }
     }
+
+    fun updateCurrentPlaylist(songs: List<MusicFiles>) {
+        repository.updateCurrentPlaylist(songs)
+    }
 }

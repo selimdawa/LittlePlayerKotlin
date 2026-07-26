@@ -31,16 +31,50 @@ fun Context.getColorFromAttr(attr: Int): Int {
     return typedValue.data
 }
 
-fun ImageView.loadSongImage(albumId: String?) {
-    load(getSongArt(albumId)) {
+fun Context.getLibraryColor(attrName: String): Int {
+    val id = resources.getIdentifier(attrName, "attr", packageName)
+    return if (id != 0) getColorFromAttr(id) else android.graphics.Color.WHITE
+}
+
+fun ImageView.loadSongImage(albumId: String?, path: String? = null) {
+    val model: Any = if (albumId != null && albumId != "-1" && albumId != "0") {
+        getSongArt(albumId)
+    } else if (!path.isNullOrEmpty()) {
+        getAlbumArtBytes(path) ?: R.color.image_profile
+    } else {
+        R.color.image_profile
+    }
+
+    load(model) {
         crossfade(true)
         placeholder(R.color.image_profile)
         error(R.color.image_profile)
     }
 }
 
-fun ImageView.loadSongImageBlur(albumId: String?, level: Int) {
-    load(getSongArt(albumId)) {
+fun ImageView.loadSongImageByPath(path: String?) {
+    val model: Any = if (!path.isNullOrEmpty()) {
+        getAlbumArtBytes(path) ?: R.color.image_profile
+    } else {
+        R.color.image_profile
+    }
+    load(model) {
+        crossfade(true)
+        placeholder(R.color.image_profile)
+        error(R.color.image_profile)
+    }
+}
+
+fun ImageView.loadSongImageBlur(albumId: String?, level: Int, path: String? = null) {
+    val model: Any = if (albumId != null && albumId != "-1" && albumId != "0") {
+        getSongArt(albumId)
+    } else if (!path.isNullOrEmpty()) {
+        getAlbumArtBytes(path) ?: R.color.image_profile
+    } else {
+        R.color.image_profile
+    }
+
+    load(model) {
         crossfade(true)
         placeholder(R.color.image_profile)
         error(R.color.image_profile)
@@ -69,16 +103,19 @@ private fun getSongArt(albumId: String?): Any {
 
 fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -> Unit) {
     if (isPlaying) {
-        button.setBackgroundResource(R.drawable.ic_play)
         button.setImageResource(R.drawable.ic_play)
         pause()
         onPause()
     } else {
-        button.setBackgroundResource(R.drawable.ic_pause)
         button.setImageResource(R.drawable.ic_pause)
         play()
         onStart()
     }
+}
+
+fun android.view.View.showKeyboard() {
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+    imm.showSoftInput(this, 0)
 }
 
 fun getAlbumArtBytes(path: String?): ByteArray? {

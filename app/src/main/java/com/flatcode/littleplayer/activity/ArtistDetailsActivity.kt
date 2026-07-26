@@ -9,9 +9,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.ArtistDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class ArtistDetailsActivity : AppCompatActivity() {
@@ -37,7 +40,13 @@ class ArtistDetailsActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.songs.collect { songList ->
                     if (songList.isNotEmpty()) {
-                        adapter = ArtistDetailsAdapter(context, ArrayList(songList))
+                        val arrayListSongs = ArrayList(songList)
+                        adapter = ArtistDetailsAdapter(context, arrayListSongs) { position ->
+                            viewModel.updateCurrentPlaylist(arrayListSongs)
+                            launchActivity<PlayerActivity> {
+                                putExtra(DATA.POSITION, position)
+                            }
+                        }
                         binding.recyclerView.adapter = adapter
                     }
                 }
