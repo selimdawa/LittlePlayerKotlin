@@ -13,10 +13,11 @@ import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.snackbar
+import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -40,7 +41,7 @@ class SongsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.btnFilterSort.visibility = View.VISIBLE
+        binding.toolbar.btnFilterSort.visible()
 
         binding.toolbar.btnFilterSort.setOnClickListener {
             val bottomSheet = SortSongsBottomSheet(viewModel.sortOrder.value) { sortType ->
@@ -77,11 +78,11 @@ class SongsFragment : Fragment() {
         viewModel.event.collectWithLifecycle(viewLifecycleOwner) { event ->
             when (event) {
                 is MusicEvent.SongDeleted -> {
-                    Snackbar.make(binding.root, "File Deleted: ${event.song.title}", Snackbar.LENGTH_LONG).show()
+                    binding.root.snackbar("File Deleted: ${event.song.title}")
                 }
 
                 is MusicEvent.Error -> {
-                    Snackbar.make(binding.root, event.message, Snackbar.LENGTH_LONG).show()
+                    binding.root.snackbar(event.message)
                 }
             }
         }

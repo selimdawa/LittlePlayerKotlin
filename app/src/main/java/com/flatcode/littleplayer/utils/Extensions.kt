@@ -19,6 +19,9 @@ import coil.load
 import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
+import android.view.View
+import android.widget.Toast
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -67,6 +70,22 @@ fun Duration.formatAsTime(): String {
     val seconds = (totalSeconds % 60).toString()
     val minutes = (totalSeconds / 60).toString()
     return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
+}
+
+fun View.visible() { visibility = View.VISIBLE }
+fun View.gone() { visibility = View.GONE }
+fun View.invisible() { visibility = View.INVISIBLE }
+
+fun View.isVisible(show: Boolean) {
+    visibility = if (show) View.VISIBLE else View.GONE
+}
+
+fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, message, duration).show()
+}
+
+fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
+    Snackbar.make(this, message, duration).show()
 }
 
 fun ImageView.loadSongImage(albumId: String?, path: String? = null, cachedPath: String? = null) {
@@ -154,7 +173,7 @@ fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -
     }
 }
 
-fun android.view.View.showKeyboard() {
+fun View.showKeyboard() {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
     imm.showSoftInput(this, 0)
 }

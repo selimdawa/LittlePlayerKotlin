@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
+import com.flatcode.littleplayer.utils.visible
 import io.selimdawa.multiwave.MultiWaveHeader
 
 class MusicAdapter(
@@ -62,9 +64,9 @@ class MusicAdapter(
         holder.imageBlur.loadSongImageBlur(currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath)
 
         if ((currentFile.path == playingPath) && isPlaying) {
-            holder.wave.visibility = View.VISIBLE
+            holder.wave.visible()
         } else {
-            holder.wave.visibility = View.GONE
+            holder.wave.gone()
         }
 
         holder.itemView.setOnClickListener {
