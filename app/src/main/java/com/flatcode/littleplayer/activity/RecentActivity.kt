@@ -4,20 +4,16 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityRecentBinding
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.RecentViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class RecentActivity : AppCompatActivity() {
@@ -44,33 +40,29 @@ class RecentActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.recentSongs.collect { songs ->
-                        if (songs.isNotEmpty()) {
-                            val arrayListSongs = ArrayList(songs)
-                            if (adapter == null) {
-                                adapter = MusicAdapter(this@RecentActivity, arrayListSongs) { position ->
-                                    musicViewModel.updateCurrentPlaylist(arrayListSongs)
-                                    launchActivity<PlayerActivity> {
-                                        putExtra(DATA.POSITION, position)
-                                    }
-                                }
-                                binding.recyclerView.adapter = adapter
-                            } else {
-                                adapter?.updateList(arrayListSongs)
+        viewModel.recentSongs.collectWithLifecycle(this) { songs ->
+            if (songs.isNotEmpty()) {
+                if (adapter == null) {
+                    adapter = MusicAdapter(
+                        this,
+                        onItemClick = { _, position ->
+                            musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                            launchActivity<PlayerActivity> {
+                                putExtra(DATA.POSITION, position)
                             }
+                        },
+                        onDeleteClick = { song ->
+                            musicViewModel.deleteSong(song)
                         }
-                    }
+                    )
+                    binding.recyclerView.adapter = adapter
                 }
-
-                launch {
-                    nowPlayerViewModel.currentPlayingSong.collect { song ->
-                        binding.fragBottomPlayer.isVisible = song != null
-                    }
-                }
+                adapter?.submitList(songs)
             }
+        }
+
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+            binding.fragBottomPlayer.isVisible = song != null
         }
     }
 }

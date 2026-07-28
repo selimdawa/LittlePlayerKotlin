@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 import kotlinx.coroutines.flow.combine
 
 @HiltViewModel
@@ -28,7 +27,7 @@ class RecentViewModel @Inject constructor(
                 repository.getAllAlbumImages()
             ) { recents, images ->
                 val imageMap = images.associateBy { it.albumName }
-                recents.map {
+                recents.take(20).map {
                     MusicFiles(
                         id = it.songId,
                         title = it.title,

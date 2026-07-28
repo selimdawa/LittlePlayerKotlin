@@ -42,6 +42,6 @@ interface MusicDao {
     @Query("SELECT * FROM recent_table ORDER BY timestamp DESC")
     fun getAllRecent(): Flow<List<RecentEntity>>
 
-    @Query("DELETE FROM recent_table WHERE songId NOT IN (SELECT songId FROM recent_table ORDER BY timestamp DESC LIMIT 50)")
+    @Query("DELETE FROM recent_table WHERE songId NOT IN (SELECT songId FROM recent_table ORDER BY timestamp DESC LIMIT 20)")
     suspend fun trimRecent()
 }

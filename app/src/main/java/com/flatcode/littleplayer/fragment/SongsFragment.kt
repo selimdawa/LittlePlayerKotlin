@@ -6,17 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -50,36 +50,38 @@ class SongsFragment : Fragment() {
         }
 
         setupAdapter()
+        observeViewModel()
+    }
 
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.filteredMusicFiles.collect { files ->
-                        val arrayListFiles = ArrayList(files)
-                        if (musicAdapter == null) {
-                            setupAdapter()
-                        }
-                        
-                        val currentSortOrder = viewModel.sortOrder.value
-                        val shouldScrollToTop = lastSortOrder != null && lastSortOrder != currentSortOrder
-                        lastSortOrder = currentSortOrder
+    private fun observeViewModel() {
+        viewModel.filteredMusicFiles.collectWithLifecycle(viewLifecycleOwner) { files ->
+            val currentSortOrder = viewModel.sortOrder.value
+            val shouldScrollToTop = lastSortOrder != null && lastSortOrder != currentSortOrder
+            lastSortOrder = currentSortOrder
 
-                        musicAdapter?.updateList(arrayListFiles) {
-                            if (shouldScrollToTop) {
-                                binding.recyclerView.scrollToPosition(0)
-                            }
-                        }
-                    }
+            musicAdapter?.submitList(files) {
+                if (shouldScrollToTop) {
+                    binding.recyclerView.scrollToPosition(0)
                 }
-                launch {
-                    nowPlayerViewModel.currentPlayingSong.collect {
-                        updateAdapterState()
-                    }
+            }
+        }
+
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) {
+            updateAdapterState()
+        }
+
+        nowPlayerViewModel.isPlaying.collectWithLifecycle(viewLifecycleOwner) {
+            updateAdapterState()
+        }
+
+        viewModel.event.collectWithLifecycle(viewLifecycleOwner) { event ->
+            when (event) {
+                is MusicEvent.SongDeleted -> {
+                    Snackbar.make(binding.root, "File Deleted: ${event.song.title}", Snackbar.LENGTH_LONG).show()
                 }
-                launch {
-                    nowPlayerViewModel.isPlaying.collect {
-                        updateAdapterState()
-                    }
+
+                is MusicEvent.Error -> {
+                    Snackbar.make(binding.root, event.message, Snackbar.LENGTH_LONG).show()
                 }
             }
         }
@@ -87,13 +89,19 @@ class SongsFragment : Fragment() {
 
     private fun setupAdapter() {
         if (musicAdapter == null) {
-            musicAdapter = MusicAdapter(requireContext(), ArrayList()) { position ->
-                val currentFiles = musicAdapter?.getMusicFiles() ?: return@MusicAdapter
-                viewModel.updateCurrentPlaylist(ArrayList(currentFiles))
-                requireContext().launchActivity<PlayerActivity> {
-                    putExtra(DATA.POSITION, position)
+            musicAdapter = MusicAdapter(
+                requireContext(),
+                onItemClick = { _, position ->
+                    val currentFiles = musicAdapter?.currentList ?: return@MusicAdapter
+                    viewModel.updateCurrentPlaylist(ArrayList(currentFiles))
+                    requireContext().launchActivity<PlayerActivity> {
+                        putExtra(DATA.POSITION, position)
+                    }
+                },
+                onDeleteClick = { song ->
+                    viewModel.deleteSong(song)
                 }
-            }
+            )
             musicAdapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         }

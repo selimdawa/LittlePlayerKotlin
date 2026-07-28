@@ -6,13 +6,11 @@ import android.text.TextWatcher
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivitySearchBinding
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -58,31 +56,27 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.filteredMusicFiles.collect { songs ->
-                        val arrayListSongs = ArrayList(songs)
-                        if (adapter == null) {
-                            adapter = MusicAdapter(this@SearchActivity, arrayListSongs) { position ->
-                                viewModel.updateCurrentPlaylist(arrayListSongs)
-                                launchActivity<PlayerActivity> {
-                                    putExtra(DATA.POSITION, position)
-                                }
-                            }
-                            binding.recyclerView.adapter = adapter
-                        } else {
-                            adapter?.updateList(arrayListSongs)
+        viewModel.filteredMusicFiles.collectWithLifecycle(this) { songs ->
+            if (adapter == null) {
+                adapter = MusicAdapter(
+                    this,
+                    onItemClick = { _, position ->
+                        viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                        launchActivity<PlayerActivity> {
+                            putExtra(DATA.POSITION, position)
                         }
+                    },
+                    onDeleteClick = { song ->
+                        viewModel.deleteSong(song)
                     }
-                }
-
-                launch {
-                    nowPlayerViewModel.currentPlayingSong.collect { song ->
-                        binding.fragBottomPlayer.isVisible = song != null
-                    }
-                }
+                )
+                binding.recyclerView.adapter = adapter
             }
+            adapter?.submitList(songs)
+        }
+
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+            binding.fragBottomPlayer.isVisible = song != null
         }
     }
 }

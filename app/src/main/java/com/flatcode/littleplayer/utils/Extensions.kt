@@ -11,11 +11,18 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.media3.common.Player
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import coil.load
 import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.time.Duration
 
 inline fun <reified T : Activity> Context.launchActivity(
     extras: Intent.() -> Unit = {}
@@ -34,6 +41,32 @@ fun Context.getColorFromAttr(attr: Int): Int {
 fun Context.getLibraryColor(attrName: String): Int {
     val id = resources.getIdentifier(attrName, "attr", packageName)
     return if (id != 0) getColorFromAttr(id) else android.graphics.Color.WHITE
+}
+
+fun <T> Flow<T>.collectWithLifecycle(
+    lifecycleOwner: LifecycleOwner,
+    state: Lifecycle.State = Lifecycle.State.STARTED,
+    action: suspend (T) -> Unit
+) {
+    lifecycleOwner.lifecycleScope.launch {
+        lifecycleOwner.repeatOnLifecycle(state) {
+            collect { action(it) }
+        }
+    }
+}
+
+fun Long.formatAsTime(): String {
+    val totalSeconds = this / 1000
+    val seconds = (totalSeconds % 60).toString()
+    val minutes = (totalSeconds / 60).toString()
+    return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
+}
+
+fun Duration.formatAsTime(): String {
+    val totalSeconds = this.inWholeSeconds
+    val seconds = (totalSeconds % 60).toString()
+    val minutes = (totalSeconds / 60).toString()
+    return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
 }
 
 fun ImageView.loadSongImage(albumId: String?, path: String? = null, cachedPath: String? = null) {

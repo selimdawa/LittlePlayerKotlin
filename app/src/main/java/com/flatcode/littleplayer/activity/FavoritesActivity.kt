@@ -4,21 +4,18 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFavoritesBinding
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImageByPath
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FavoritesActivity : AppCompatActivity() {
@@ -45,41 +42,35 @@ class FavoritesActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.favoriteSongs.collect { songs ->
-                        if (songs.isNotEmpty()) {
-                            val arrayListSongs = ArrayList(songs)
-                            if (adapter == null) {
-                                adapter = MusicAdapter(this@FavoritesActivity, arrayListSongs) { position ->
-                                    musicViewModel.updateCurrentPlaylist(arrayListSongs)
-                                    launchActivity<PlayerActivity> {
-                                        putExtra(DATA.POSITION, position)
-                                    }
-                                }
-                                binding.recyclerView.adapter = adapter
-                            } else {
-                                adapter?.updateList(arrayListSongs)
+        viewModel.favoriteSongs.collectWithLifecycle(this) { songs ->
+            if (songs.isNotEmpty()) {
+                if (adapter == null) {
+                    adapter = MusicAdapter(
+                        this,
+                        onItemClick = { _, position ->
+                            musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                            launchActivity<PlayerActivity> {
+                                putExtra(DATA.POSITION, position)
                             }
-                            updateAdapterState()
+                        },
+                        onDeleteClick = { song ->
+                            musicViewModel.deleteSong(song)
                         }
-                    }
+                    )
+                    binding.recyclerView.adapter = adapter
                 }
-
-                launch {
-                    nowPlayerViewModel.currentPlayingSong.collect { song ->
-                        binding.fragBottomPlayer.isVisible = song != null
-                        updateAdapterState()
-                    }
-                }
-
-                launch {
-                    nowPlayerViewModel.isPlaying.collect {
-                        updateAdapterState()
-                    }
-                }
+                adapter?.submitList(songs)
+                updateAdapterState()
             }
+        }
+
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+            binding.fragBottomPlayer.isVisible = song != null
+            updateAdapterState()
+        }
+
+        nowPlayerViewModel.isPlaying.collectWithLifecycle(this) {
+            updateAdapterState()
         }
     }
 

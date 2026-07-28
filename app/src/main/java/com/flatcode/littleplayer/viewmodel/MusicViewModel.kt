@@ -18,6 +18,9 @@ import javax.inject.Inject
 
 import com.flatcode.littleplayer.utils.DATA
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -42,6 +45,9 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     private val _sortOrder = MutableStateFlow(DATA.SORT_BY_DATE)
     val sortOrder: StateFlow<String> = _sortOrder.asStateFlow()
+
+    private val _event = MutableSharedFlow<MusicEvent>()
+    val event: SharedFlow<MusicEvent> = _event.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -169,4 +175,20 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     fun updateCurrentPlaylist(songs: List<MusicFiles>) {
         repository.updateCurrentPlaylist(songs)
     }
+
+    fun deleteSong(song: MusicFiles) {
+        viewModelScope.launch {
+            val success = repository.deleteMusicFile(song)
+            if (success) {
+                _event.emit(MusicEvent.SongDeleted(song))
+            } else {
+                _event.emit(MusicEvent.Error("Could not delete song"))
+            }
+        }
+    }
+}
+
+sealed class MusicEvent {
+    data class SongDeleted(val song: MusicFiles) : MusicEvent()
+    data class Error(val message: String) : MusicEvent()
 }

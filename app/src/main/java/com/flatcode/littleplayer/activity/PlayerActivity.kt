@@ -7,9 +7,7 @@ import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -21,6 +19,8 @@ import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.togglePlayPause
@@ -117,35 +117,26 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.isFavorite.collect { isFavorite ->
-                        val icon =
-                            if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
-                        binding.buttonPanel.favorite.setImageResource(icon)
-                    }
-                }
+        viewModel.isFavorite.collectWithLifecycle(this) { isFavorite ->
+            val icon = if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+            binding.buttonPanel.favorite.setImageResource(icon)
+        }
 
-                launch {
-                    viewModel.currentSong.collect { song ->
-                        song?.let {
-                            binding.songName.text = it.title
-                            binding.songArtist.text = it.artist
-                            updateSongUI(it)
-                            lifecycleScope.launch {
-                                delay(300.milliseconds)
-                                it.path?.let { path -> it.id?.let { id -> loadWaveform(id, path) } }
-                            }
-                        }
-                    }
+        viewModel.currentSong.collectWithLifecycle(this) { song ->
+            song?.let {
+                binding.songName.text = it.title
+                binding.songArtist.text = it.artist
+                updateSongUI(it)
+                lifecycleScope.launch {
+                    delay(300.milliseconds)
+                    it.path?.let { path -> it.id?.let { id -> loadWaveform(id, path) } }
                 }
             }
         }
     }
 
     private fun updateSongUI(song: MusicFiles) {
-        binding.durationTotal.text = formattedTime(song.durationDuration)
+        binding.durationTotal.text = song.durationDuration.formatAsTime()
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
     }
@@ -223,7 +214,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun playCurrentSong() {
         mediaController?.let { controller ->
-            val mediaItems = viewModel.listSongs.map { song ->
+            val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
                 val uri = song.path?.toUri() ?: "".toUri()
                 val metadata = MediaMetadata.Builder()
                     .setTitle(song.title)
@@ -233,7 +224,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                         putString("CACHED_IMAGE_PATH", song.cachedImagePath)
                     })
                     .build()
-                MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
+                MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaMetadata(metadata)
+                    .setMediaId(song.id ?: "")
                     .build()
             }
 
@@ -278,7 +272,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                         val progressPercentage = (currentPos.toFloat() / duration.toFloat()) * 100
                         binding.waveformSeekBar.progress = progressPercentage
 
-                        binding.durationPlayed.text = formattedTime(currentPos.milliseconds)
+                        binding.durationPlayed.text = currentPos.milliseconds.formatAsTime()
                     }
                 }
                 delay(1000.milliseconds)
@@ -358,7 +352,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             if (duration > 0) {
                 binding.seekBar.progress = (currentPos / 1000).toInt()
                 binding.waveformSeekBar.progress = (currentPos.toFloat() / duration.toFloat()) * 100
-                binding.durationPlayed.text = formattedTime(currentPos.milliseconds)
+                binding.durationPlayed.text = currentPos.milliseconds.formatAsTime()
             }
         }
     }
@@ -393,12 +387,5 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             else -> R.drawable.ic_repeat_on
         }
         binding.buttonPanel.repeat.setImageResource(cycleIcon)
-    }
-
-    private fun formattedTime(duration: Duration): String {
-        val totalSeconds = duration.inWholeSeconds
-        val seconds = (totalSeconds % 60).toString()
-        val minutes = (totalSeconds / 60).toString()
-        return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
     }
 }

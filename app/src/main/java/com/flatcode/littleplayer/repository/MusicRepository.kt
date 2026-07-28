@@ -287,6 +287,21 @@ class MusicRepository @Inject constructor(
         songDao.updateWaveform(songId, waveform)
     }
 
+    suspend fun deleteMusicFile(song: MusicFiles): Boolean = withContext(Dispatchers.IO) {
+        val file = File(song.path ?: return@withContext false)
+        val deleted = file.delete()
+        if (deleted) {
+            val contentUri = android.content.ContentUris.withAppendedId(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, (song.id ?: return@withContext false).toLong()
+            )
+            context.contentResolver.delete(contentUri, null, null)
+            songDao.deleteSongById(song.id)
+            true
+        } else {
+            false
+        }
+    }
+
     fun updateCurrentPlaylist(songs: List<MusicFiles>) {
         _currentPlaylist.value = songs
     }
