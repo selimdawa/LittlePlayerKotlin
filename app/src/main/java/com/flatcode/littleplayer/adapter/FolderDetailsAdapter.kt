@@ -35,8 +35,8 @@ class FolderDetailsAdapter(
             R.string.song_details_format, song.safeArtist, song.album ?: "Unknown Album"
         )
 
-        holder.binding.image.loadSongImage(song.albumId)
-        holder.binding.imageBlur.loadSongImageBlur(song.albumId, 100)
+        holder.binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
+        holder.binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
         holder.itemView.setOnClickListener {
             onItemClick(holder.bindingAdapterPosition)

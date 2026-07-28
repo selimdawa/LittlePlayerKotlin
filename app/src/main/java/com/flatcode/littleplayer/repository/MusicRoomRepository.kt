@@ -61,6 +61,13 @@ class MusicRoomRepository @Inject constructor(
         musicDao.getSongsFromPlaylist(name)
 
     fun getAllPlaylistNames(): Flow<List<String>> = musicDao.getAllPlaylistNames()
+
+    fun getAllAlbumImages(): Flow<List<AlbumImageEntity>> = albumImageDao.getAllAlbumImages()
+
+    suspend fun getAllAlbumImagesSync(): List<AlbumImageEntity> = withContext(Dispatchers.IO) {
+        albumImageDao.getAllAlbumImagesSync()
+    }
+
     suspend fun insertRecent(song: RecentEntity) = withContext(Dispatchers.IO) {
         musicDao.insertRecent(song)
         musicDao.trimRecent()

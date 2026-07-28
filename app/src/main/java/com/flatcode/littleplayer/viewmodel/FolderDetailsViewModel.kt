@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,7 @@ class FolderDetailsViewModel @Inject constructor(
         if (folderPath.isNullOrEmpty()) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val allSongs = repository.getAllAudio()
+            val allSongs = repository.getAllAudio(DATA.SORT_BY_NAME)
 
             val targetFolder = File(folderPath).canonicalPath
 

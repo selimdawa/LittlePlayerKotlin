@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.flatcode.littleplayer.utils.DATA
 import javax.inject.Inject
 
 data class AlbumDetailsUiState(
@@ -36,7 +37,7 @@ class AlbumDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val state = withContext(Dispatchers.IO) {
                 val cachedImage = roomRepository.getAlbumImageByName(albumName)?.imagePath
-                val allSongs = repository.getAllAudio()
+                val allSongs = repository.getAllAudio(DATA.SORT_BY_NAME)
 
                 val filteredList = allSongs.filter { it.album == albumName }
                 val firstSong = filteredList.firstOrNull()

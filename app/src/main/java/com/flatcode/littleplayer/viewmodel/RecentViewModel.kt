@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import kotlinx.coroutines.flow.combine
+
 @HiltViewModel
 class RecentViewModel @Inject constructor(
     private val repository: MusicRoomRepository
@@ -21,8 +23,12 @@ class RecentViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.getAllRecent().collect { entities ->
-                _recentSongs.value = entities.map {
+            combine(
+                repository.getAllRecent(),
+                repository.getAllAlbumImages()
+            ) { recents, images ->
+                val imageMap = images.associateBy { it.albumName }
+                recents.map {
                     MusicFiles(
                         id = it.songId,
                         title = it.title,
@@ -30,9 +36,12 @@ class RecentViewModel @Inject constructor(
                         album = it.album,
                         albumId = it.albumId,
                         duration = it.duration,
-                        path = it.path
+                        path = it.path,
+                        cachedImagePath = imageMap[it.album ?: "Unknown"]?.imagePath
                     )
                 }
+            }.collect {
+                _recentSongs.value = it
             }
         }
     }

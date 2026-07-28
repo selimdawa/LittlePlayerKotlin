@@ -71,8 +71,8 @@ class MusicAdapter(
         )
         holder.songDetails.text = songDetailsText
 
-        holder.image.loadSongImage(currentFile.albumId, currentFile.path)
-        holder.imageBlur.loadSongImageBlur(currentFile.albumId, 100, currentFile.path)
+        holder.image.loadSongImage(currentFile.albumId, currentFile.path, currentFile.cachedImagePath)
+        holder.imageBlur.loadSongImageBlur(currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath)
 
         if ((currentFile.path == playingPath) && isPlaying) {
             holder.wave.visibility = View.VISIBLE

@@ -46,11 +46,11 @@ class AlbumDetailsActivity : AppCompatActivity() {
                         if (!state.imagePath.isNullOrEmpty()) {
                             binding.image.loadCachedAlbumImage(state.imagePath)
                         } else {
-                            binding.image.loadSongImage(state.firstSongAlbumId)
+                            binding.image.loadSongImage(state.firstSongAlbumId, state.firstSongPath)
                         }
 
-                        if (!state.firstSongAlbumId.isNullOrEmpty()) {
-                            binding.imageBlur.loadSongImageBlur(state.firstSongAlbumId, 50)
+                        if (!state.firstSongAlbumId.isNullOrEmpty() || !state.imagePath.isNullOrEmpty()) {
+                            binding.imageBlur.loadSongImageBlur(state.firstSongAlbumId, 50, state.firstSongPath, state.imagePath)
                         }
 
                         val arrayListSongs = ArrayList(state.songs)

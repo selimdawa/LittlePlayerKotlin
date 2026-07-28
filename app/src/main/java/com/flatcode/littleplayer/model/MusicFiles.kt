@@ -17,7 +17,9 @@ data class MusicFiles(
     val id: String? = null,
     val albumId: String? = null,
     val waveform: String? = null,
-    val playCount: Int = 0
+    val playCount: Int = 0,
+    val cachedImagePath: String? = null,
+    val dateAdded: Long = 0
 ) : Parcelable {
     val safeTitle: String
         get() = title ?: "Unknown Track"

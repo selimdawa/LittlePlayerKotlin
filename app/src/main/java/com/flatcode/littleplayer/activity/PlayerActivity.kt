@@ -18,6 +18,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -77,7 +78,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                         val duration = mediaController?.duration ?: 0L
                         if (duration > 0) {
                             val progressPercentage =
-                                (progress.toFloat() * 1000 / duration.toFloat()) * 100
+                                (progress.toFloat() * 1000f / duration.toFloat()) * 100f
                             binding.waveformSeekBar.progress = progressPercentage
                         }
                     }
@@ -143,10 +144,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
-    private fun updateSongUI(song: com.flatcode.littleplayer.model.MusicFiles) {
+    private fun updateSongUI(song: MusicFiles) {
         binding.durationTotal.text = formattedTime(song.durationDuration)
-        binding.image.loadSongImage(song.albumId, song.path)
-        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path)
+        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
+        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
     }
 
     private fun loadWaveform(songId: String, path: String) {
@@ -198,9 +199,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun playPauseBtn() {
         mediaController?.togglePlayPause(
             binding.buttonPanel.playPause,
-            { stopProgressUpdater() },
-            { startProgressUpdater() },
-        )
+            { stopProgressUpdater() }
+        ) { startProgressUpdater() }
     }
 
     private fun prevBtn() {
@@ -225,8 +225,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         mediaController?.let { controller ->
             val mediaItems = viewModel.listSongs.map { song ->
                 val uri = song.path?.toUri() ?: "".toUri()
-                val metadata =
-                    MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist).build()
+                val metadata = MediaMetadata.Builder()
+                    .setTitle(song.title)
+                    .setArtist(song.artist)
+                    .setExtras(Bundle().apply {
+                        putString("ALBUM_ID", song.albumId)
+                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                    })
+                    .build()
                 MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                     .build()
             }

@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                     nowPlayerViewModel.currentPlayingSong.collect { song ->
                         binding.fragBottomPlayer.isVisible = song != null
                         song?.let {
-                            binding.toolbar2.ivRecent.loadSongImage(it.albumId)
+                            binding.toolbar2.ivRecent.loadSongImage(it.albumId, it.path, it.cachedImagePath)
                         }
                     }
                 }
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
                     favoritesViewModel.favoriteSongs.collect { songs ->
                         if (songs.isNotEmpty()) {
                             val lastSong = songs.last()
-                            binding.toolbar2.ivFavourites.loadSongImageByPath(lastSong.path)
+                            binding.toolbar2.ivFavourites.loadSongImageByPath(lastSong.path, lastSong.cachedImagePath)
                         }
                     }
                 }

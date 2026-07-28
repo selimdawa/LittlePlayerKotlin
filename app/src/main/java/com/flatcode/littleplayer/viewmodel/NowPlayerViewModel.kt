@@ -30,6 +30,7 @@ class NowPlayerViewModel @Inject constructor(
     private val artistNameKey = stringPreferencesKey("ARTIST NAME")
     private val songNameKey = stringPreferencesKey("SONG NAME")
     private val albumIdKey = stringPreferencesKey("ALBUM ID")
+    private val cachedImagePathKey = stringPreferencesKey("CACHED_IMAGE_PATH")
 
     init {
         loadLastPlayedSong()
@@ -44,7 +45,8 @@ class NowPlayerViewModel @Inject constructor(
                         path = path,
                         artist = preferences[artistNameKey],
                         title = preferences[songNameKey],
-                        albumId = preferences[albumIdKey]
+                        albumId = preferences[albumIdKey],
+                        cachedImagePath = preferences[cachedImagePathKey]
                     )
                     _currentPlayingSong.value = song
                 }
@@ -65,6 +67,7 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[artistNameKey] = song.artist ?: "Unknown"
                 preferences[songNameKey] = song.title ?: "Unknown"
                 preferences[albumIdKey] = song.albumId ?: ""
+                preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
             }
         }
     }

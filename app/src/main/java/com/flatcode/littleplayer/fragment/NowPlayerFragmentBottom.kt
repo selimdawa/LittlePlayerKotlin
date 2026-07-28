@@ -16,6 +16,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -90,7 +91,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 launch {
                     viewModel.currentPlayingSong.collect { song ->
                         song?.let {
-                            binding.albumArt.loadSongImage(it.albumId, it.path)
+                            binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
                             binding.name.text = it.title
                             binding.artist.text = it.artist
                         }
@@ -112,19 +113,24 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: "Unknown Artist"
             val path = currentMediaItem.localConfiguration?.uri?.path
             val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
+            val cachedPath = currentMediaItem.mediaMetadata.extras?.getString("CACHED_IMAGE_PATH")
 
             binding.name.text = title
             binding.artist.text = artist
 
             viewModel.saveAndBroadcastNextSong(
-                com.flatcode.littleplayer.model.MusicFiles(
-                    path = path, title = title, artist = artist, albumId = albumId
+                MusicFiles(
+                    path = path,
+                    title = title,
+                    artist = artist,
+                    albumId = albumId,
+                    cachedImagePath = cachedPath
                 )
             )
 
             if (lastLoadedPath != path) {
                 lastLoadedPath = path
-                binding.albumArt.loadSongImage(albumId, path)
+                binding.albumArt.loadSongImage(albumId, path, cachedPath)
             }
         }
         updatePlayPauseAnimation(player.isPlaying)

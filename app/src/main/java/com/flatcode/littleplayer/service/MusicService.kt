@@ -21,6 +21,7 @@ import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
+import java.io.File
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,6 +53,8 @@ class MusicService : MediaSessionService(), Player.Listener {
     private val musicFileKey = stringPreferencesKey(MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(SONG_NAME)
+    private val albumIdKey = stringPreferencesKey("ALBUM ID")
+    private val cachedImagePathKey = stringPreferencesKey("CACHED_IMAGE_PATH")
 
     private val customCommandFavorite = SessionCommand(COMMAND_FAVORITE, Bundle.EMPTY)
     private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
@@ -91,6 +94,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                 .setAlbumTitle(song.album ?: "Unknown Album")
                 .setExtras(Bundle().apply {
                     putString("ALBUM_ID", song.albumId)
+                    putString("CACHED_IMAGE_PATH", song.cachedImagePath)
                 })
                 .build()
 
@@ -118,6 +122,8 @@ class MusicService : MediaSessionService(), Player.Listener {
                     preferences[musicFileKey] = song.path ?: ""
                     preferences[artistNameKey] = song.artist ?: "Unknown"
                     preferences[songNameKey] = song.title ?: "Unknown"
+                    preferences[albumIdKey] = song.albumId ?: ""
+                    preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
                 }
             }
         }
@@ -176,9 +182,16 @@ class MusicService : MediaSessionService(), Player.Listener {
         val currentMediaItem = player.currentMediaItem ?: return
         if (currentMediaItem.mediaMetadata.artworkData != null) return
         val path = currentMediaItem.localConfiguration?.uri?.path ?: return
+        val cachedPath = currentMediaItem.mediaMetadata.extras?.getString("CACHED_IMAGE_PATH")
 
         serviceScope.launch(Dispatchers.IO) {
-            val artBytes = getAlbumArtBytes(path)
+            val artBytes = if (!cachedPath.isNullOrEmpty()) {
+                val file = File(cachedPath)
+                if (file.exists()) file.readBytes() else getAlbumArtBytes(path)
+            } else {
+                getAlbumArtBytes(path)
+            }
+
             if (artBytes != null) {
                 val updatedMetadata = currentMediaItem.mediaMetadata.buildUpon()
                     .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER).build()

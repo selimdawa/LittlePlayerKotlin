@@ -36,8 +36,8 @@ class AlbumDetailsAdapter(
             currentFile.album ?: "Unknown Album"
         )
 
-        holder.binding.image.loadSongImage(currentFile.albumId)
-        holder.binding.imageBlur.loadSongImageBlur(currentFile.albumId, 50)
+        holder.binding.image.loadSongImage(currentFile.albumId, currentFile.path, currentFile.cachedImagePath)
+        holder.binding.imageBlur.loadSongImageBlur(currentFile.albumId, 50, currentFile.path, currentFile.cachedImagePath)
 
         holder.itemView.setOnClickListener {
             onItemClick(holder.bindingAdapterPosition)

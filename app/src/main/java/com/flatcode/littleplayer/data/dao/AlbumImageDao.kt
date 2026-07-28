@@ -18,4 +18,7 @@ interface AlbumImageDao {
 
     @Query("SELECT * FROM album_images_table")
     fun getAllAlbumImages(): Flow<List<AlbumImageEntity>>
+
+    @Query("SELECT * FROM album_images_table")
+    suspend fun getAllAlbumImagesSync(): List<AlbumImageEntity>
 }

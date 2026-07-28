@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import kotlinx.coroutines.flow.combine
+
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val repository: MusicRoomRepository
@@ -21,8 +23,12 @@ class FavoritesViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.getAllFavorites().collect { entities ->
-                _favoriteSongs.value = entities.map {
+            combine(
+                repository.getAllFavorites(),
+                repository.getAllAlbumImages()
+            ) { favorites, images ->
+                val imageMap = images.associateBy { it.albumName }
+                favorites.map {
                     MusicFiles(
                         id = it.songId,
                         title = it.title,
@@ -30,9 +36,12 @@ class FavoritesViewModel @Inject constructor(
                         album = it.album,
                         albumId = it.albumId,
                         duration = it.duration,
-                        path = it.path
+                        path = it.path,
+                        cachedImagePath = imageMap[it.album ?: "Unknown"]?.imagePath
                     )
                 }
+            }.collect {
+                _favoriteSongs.value = it
             }
         }
     }

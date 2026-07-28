@@ -36,8 +36,10 @@ fun Context.getLibraryColor(attrName: String): Int {
     return if (id != 0) getColorFromAttr(id) else android.graphics.Color.WHITE
 }
 
-fun ImageView.loadSongImage(albumId: String?, path: String? = null) {
-    val model: Any = if (albumId != null && albumId != "-1" && albumId != "0") {
+fun ImageView.loadSongImage(albumId: String?, path: String? = null, cachedPath: String? = null) {
+    val model: Any = if (!cachedPath.isNullOrEmpty()) {
+        File(cachedPath)
+    } else if (albumId != null && albumId != "-1" && albumId != "0") {
         getSongArt(albumId)
     } else if (!path.isNullOrEmpty()) {
         getAlbumArtBytes(path) ?: R.color.image_profile
@@ -52,8 +54,10 @@ fun ImageView.loadSongImage(albumId: String?, path: String? = null) {
     }
 }
 
-fun ImageView.loadSongImageByPath(path: String?) {
-    val model: Any = if (!path.isNullOrEmpty()) {
+fun ImageView.loadSongImageByPath(path: String?, cachedPath: String? = null) {
+    val model: Any = if (!cachedPath.isNullOrEmpty()) {
+        File(cachedPath)
+    } else if (!path.isNullOrEmpty()) {
         getAlbumArtBytes(path) ?: R.color.image_profile
     } else {
         R.color.image_profile
@@ -65,8 +69,12 @@ fun ImageView.loadSongImageByPath(path: String?) {
     }
 }
 
-fun ImageView.loadSongImageBlur(albumId: String?, level: Int, path: String? = null) {
-    val model: Any = if (albumId != null && albumId != "-1" && albumId != "0") {
+fun ImageView.loadSongImageBlur(
+    albumId: String?, level: Int, path: String? = null, cachedPath: String? = null
+) {
+    val model: Any = if (!cachedPath.isNullOrEmpty()) {
+        File(cachedPath)
+    } else if (albumId != null && albumId != "-1" && albumId != "0") {
         getSongArt(albumId)
     } else if (!path.isNullOrEmpty()) {
         getAlbumArtBytes(path) ?: R.color.image_profile

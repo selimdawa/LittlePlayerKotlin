@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,7 @@ class ArtistDetailsViewModel @Inject constructor(
         if (artistName.isNullOrEmpty()) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val allSongs = repository.getAllAudio()
+            val allSongs = repository.getAllAudio(DATA.SORT_BY_NAME)
             val filteredSongs = allSongs.filter {
                 it.artist?.equals(artistName, ignoreCase = true) == true
             }
