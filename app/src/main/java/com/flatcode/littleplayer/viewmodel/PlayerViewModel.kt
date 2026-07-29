@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
-import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
@@ -122,19 +121,6 @@ class PlayerViewModel @Inject constructor(
             _currentSong.value = song
             song.id?.let { songId ->
                 checkFavorite(songId)
-                viewModelScope.launch {
-                    repository.insertRecent(
-                        RecentEntity(
-                            songId = songId,
-                            title = song.title ?: DATA.UNKNOWN,
-                            artist = song.artist,
-                            album = song.album,
-                            albumId = song.albumId,
-                            duration = song.duration,
-                            path = song.path ?: ""
-                        )
-                    )
-                }
             }
         }
     }

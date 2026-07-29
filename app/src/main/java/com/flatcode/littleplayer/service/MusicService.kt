@@ -18,6 +18,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
@@ -85,18 +86,40 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     private fun updateLastPlayedInfo() {
         val player = exoPlayer ?: return
+        val currentMediaItem = player.currentMediaItem ?: return
+        val metadata = currentMediaItem.mediaMetadata
+
+        val songId = currentMediaItem.mediaId
+        val title = metadata.title?.toString() ?: DATA.UNKNOWN
+        val artist = metadata.artist?.toString() ?: DATA.UNKNOWN
+        val album = metadata.albumTitle?.toString() ?: DATA.UNKNOWN
+        val albumId = metadata.extras?.getString("ALBUM_ID")
+        val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
+        val path = currentMediaItem.localConfiguration?.uri?.path ?: ""
         val currentIndex = player.currentMediaItemIndex
-        if (currentIndex in musicFiles.indices) {
-            val song = musicFiles[currentIndex]
-            serviceScope.launch(Dispatchers.IO) {
-                dataStore.edit { preferences ->
-                    preferences[musicFileKey] = song.path ?: ""
-                    preferences[artistNameKey] = song.artist ?: DATA.UNKNOWN
-                    preferences[songNameKey] = song.title ?: DATA.UNKNOWN
-                    preferences[albumIdKey] = song.albumId ?: ""
-                    preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
-                    preferences[intPreferencesKey(DATA.LAST_POSITION)] = currentIndex
-                }
+
+        serviceScope.launch(Dispatchers.IO) {
+            // Add to Recent
+            repository.insertRecent(
+                RecentEntity(
+                    songId = songId,
+                    title = title,
+                    artist = artist,
+                    album = album,
+                    albumId = albumId,
+                    duration = null,
+                    path = path
+                )
+            )
+
+            // Save to DataStore
+            dataStore.edit { preferences ->
+                preferences[musicFileKey] = path
+                preferences[artistNameKey] = artist
+                preferences[songNameKey] = title
+                preferences[albumIdKey] = albumId ?: ""
+                preferences[cachedImagePathKey] = cachedPath ?: ""
+                preferences[intPreferencesKey(DATA.LAST_POSITION)] = currentIndex
             }
         }
     }
