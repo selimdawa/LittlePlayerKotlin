@@ -16,6 +16,7 @@ import com.flatcode.littleplayer.databinding.ActivityPlaylistsBinding
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
+import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -36,7 +37,7 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.customToolbar)
+        val toolbar = findViewById<MaterialToolbar>(R.id.customToolbar)
         toolbar.title = getString(R.string.playlists)
         toolbar.setNavigationOnClickListener { finish() }
         binding.addPlaylist.setOnClickListener { showCreatePlaylistDialog() }
@@ -45,8 +46,7 @@ class PlaylistsActivity : AppCompatActivity() {
     private fun showCreatePlaylistDialog() {
         val container = FrameLayout(this)
         val params = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT
         )
         params.setMargins(48, 24, 48, 24)
         val editText = EditText(this)
@@ -54,17 +54,13 @@ class PlaylistsActivity : AppCompatActivity() {
         editText.hint = "Playlist Name"
         container.addView(editText)
 
-        AlertDialog.Builder(this)
-            .setTitle("New Playlist")
-            .setView(container)
+        AlertDialog.Builder(this).setTitle("New Playlist").setView(container)
             .setPositiveButton("Create") { _, _ ->
                 val name = editText.text.toString()
                 if (name.isNotEmpty()) {
                     viewModel.createPlaylist(name)
                 }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+            }.setNegativeButton("Cancel", null).show()
     }
 
     private fun observeViewModel() {

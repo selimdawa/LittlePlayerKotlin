@@ -7,7 +7,9 @@ import android.view.ViewGroup
 import com.flatcode.littleplayer.databinding.DialogSortSongsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getLibraryColor
+import com.flatcode.littleplayer.utils.visible
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.R as MaterialR
 
 class SortSongsBottomSheet(
     private val currentSort: String?, private val onSortSelected: (String) -> Unit
@@ -29,31 +31,31 @@ class SortSongsBottomSheet(
         val trackColor = requireContext().getLibraryColor("mc_track")
         when (currentSort) {
             DATA.SORT_BY_DATE -> {
-                binding.checkByDate.visibility = View.VISIBLE
+                binding.checkByDate.visible()
                 binding.checkByDate.setColorFilter(trackColor)
                 binding.textByDate.setTextColor(trackColor)
             }
 
             DATA.SORT_BY_NAME -> {
-                binding.checkByName.visibility = View.VISIBLE
+                binding.checkByName.visible()
                 binding.checkByName.setColorFilter(trackColor)
                 binding.textByName.setTextColor(trackColor)
             }
 
             DATA.SORT_BY_PLAY_COUNT -> {
-                binding.checkByPlayCount.visibility = View.VISIBLE
+                binding.checkByPlayCount.visible()
                 binding.checkByPlayCount.setColorFilter(trackColor)
                 binding.textByPlayCount.setTextColor(trackColor)
             }
 
             DATA.SORT_BY_RELEASE_DATE -> {
-                binding.checkByReleaseDate.visibility = View.VISIBLE
+                binding.checkByReleaseDate.visible()
                 binding.checkByReleaseDate.setColorFilter(trackColor)
                 binding.textByReleaseDate.setTextColor(trackColor)
             }
 
             DATA.SORT_BY_SIZE -> {
-                binding.checkBySize.visibility = View.VISIBLE
+                binding.checkBySize.visible()
                 binding.checkBySize.setColorFilter(trackColor)
                 binding.textBySize.setTextColor(trackColor)
             }
@@ -88,7 +90,7 @@ class SortSongsBottomSheet(
     override fun onStart() {
         super.onStart()
         dialog?.window?.apply {
-            findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.setBackgroundResource(
+            findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
                 android.R.color.transparent
             )
         }

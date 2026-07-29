@@ -34,7 +34,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
@@ -148,7 +147,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 // Check Room first
                 val cachedSong = viewModel.getSongById(songId)
                 if (cachedSong?.waveform != null) {
-                    val amplitudes = cachedSong.waveform.split(",").mapNotNull { it.toIntOrNull() }.toIntArray()
+                    val amplitudes =
+                        cachedSong.waveform.split(",").mapNotNull { it.toIntOrNull() }.toIntArray()
                     if (isActive && amplitudes.isNotEmpty()) {
                         runOnUiThread {
                             binding.waveformSeekBar.setSampleFrom(amplitudes)
@@ -160,7 +160,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 // Analyze if not cached
                 val result = amplituda.processAudio(path).get()
                 val amplitudesArray = result.amplitudesAsList().toIntArray()
-                
+
                 // Cache to Room
                 if (amplitudesArray.isNotEmpty()) {
                     val waveformString = amplitudesArray.joinToString(",")
@@ -189,9 +189,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun playPauseBtn() {
         mediaController?.togglePlayPause(
-            binding.buttonPanel.playPause,
-            { stopProgressUpdater() }
-        ) { startProgressUpdater() }
+            binding.buttonPanel.playPause, { stopProgressUpdater() }) { startProgressUpdater() }
     }
 
     private fun prevBtn() {
@@ -216,18 +214,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         mediaController?.let { controller ->
             val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
                 val uri = song.path?.toUri() ?: "".toUri()
-                val metadata = MediaMetadata.Builder()
-                    .setTitle(song.title)
-                    .setArtist(song.artist)
+                val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
                     .setExtras(Bundle().apply {
                         putString("ALBUM_ID", song.albumId)
                         putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                    })
-                    .build()
-                MediaItem.Builder()
-                    .setUri(uri)
-                    .setMediaMetadata(metadata)
-                    .setMediaId(song.id ?: "")
+                    }).build()
+                MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                     .build()
             }
 
@@ -320,9 +312,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             resetProgressLoop()
             updatePlayPauseButton(controller.isPlaying)
             updateRepeatShuffleIcons(controller)
-            viewModel.updatePlaybackCycleFromController(
-                controller.repeatMode, controller.shuffleModeEnabled
-            )
         }
     }
 
@@ -374,9 +363,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             )
         ) {
             updateRepeatShuffleIcons(player)
-            viewModel.updatePlaybackCycleFromController(
-                player.repeatMode, player.shuffleModeEnabled
-            )
         }
     }
 

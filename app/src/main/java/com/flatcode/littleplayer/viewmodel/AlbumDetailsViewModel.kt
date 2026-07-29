@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.flatcode.littleplayer.utils.DATA
 import javax.inject.Inject
 
 data class AlbumDetailsUiState(

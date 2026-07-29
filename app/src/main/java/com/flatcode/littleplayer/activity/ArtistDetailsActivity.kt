@@ -14,7 +14,6 @@ import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.ArtistDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class ArtistDetailsActivity : AppCompatActivity() {

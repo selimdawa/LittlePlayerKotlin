@@ -2,17 +2,15 @@ package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
@@ -52,28 +50,32 @@ class MusicAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentFile = getItem(position)
 
-        holder.songName.text = currentFile.title
+        holder.binding.songName.text = currentFile.title
         val songDetailsText = context.getString(
             R.string.song_details_format,
             currentFile.safeArtist,
-            currentFile.album ?: "Unknown Album"
+            currentFile.album ?: DATA.UNKNOWN
         )
-        holder.songDetails.text = songDetailsText
+        holder.binding.songDetails.text = songDetailsText
 
-        holder.image.loadSongImage(currentFile.albumId, currentFile.path, currentFile.cachedImagePath)
-        holder.imageBlur.loadSongImageBlur(currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath)
+        holder.binding.image.loadSongImage(
+            currentFile.albumId, currentFile.path, currentFile.cachedImagePath
+        )
+        holder.binding.imageBlur.loadSongImageBlur(
+            currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath
+        )
 
         if ((currentFile.path == playingPath) && isPlaying) {
-            holder.wave.visible()
+            holder.binding.wave.visible()
         } else {
-            holder.wave.gone()
+            holder.binding.wave.gone()
         }
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition)
         }
 
-        holder.more.setOnClickListener { v ->
+        holder.binding.more.setOnClickListener { v ->
             val popupMenu = PopupMenu(context, v)
             popupMenu.menuInflater.inflate(R.menu.popup, popupMenu.menu)
             popupMenu.show()
@@ -88,14 +90,7 @@ class MusicAdapter(
         }
     }
 
-    class ViewHolder(binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root) {
-        val songName: TextView = binding.songName
-        val songDetails: TextView = binding.songDetails
-        val image: ImageView = binding.image
-        val imageBlur: ImageView = binding.imageBlur
-        val more: ImageView = binding.more
-        var wave: MultiWaveHeader = binding.wave
-    }
+    class ViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
 
     private class MusicDiffCallback : DiffUtil.ItemCallback<MusicFiles>() {
         override fun areItemsTheSame(oldItem: MusicFiles, newItem: MusicFiles): Boolean {

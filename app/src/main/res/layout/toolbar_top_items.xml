@@ -23,10 +23,11 @@
             android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
+            android:contentDescription="@null"
             android:focusable="true"
             android:padding="4dp"
             android:src="@drawable/ic_shuffle"
-            app:tint="?attr/mc_track" /> />
+            app:tint="?attr/mc_track" />
 
         <TextView
             android:id="@+id/btnShufflePlayback"
@@ -55,10 +56,11 @@
             android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
+            android:contentDescription="@null"
             android:focusable="true"
             android:padding="4dp"
             android:src="@drawable/ic_sort"
-            app:tint="?attr/mc_track" /> />
+            app:tint="?attr/mc_track" />
 
     </LinearLayout>
 

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,7 @@ class PlaylistsViewModel @Inject constructor(
                         playlistName = name,
                         songId = song.id ?: "",
                         title = song.title ?: "",
-                        artist = song.artist ?: "Unknown Artist",
+                        artist = song.artist ?: DATA.UNKNOWN,
                         path = song.path ?: ""
                     )
                 )

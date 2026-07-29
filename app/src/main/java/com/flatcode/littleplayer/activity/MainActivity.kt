@@ -10,9 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
 import com.flatcode.littleplayer.fragment.AlbumsFragment
@@ -20,6 +17,7 @@ import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageByPath
@@ -28,7 +26,6 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -52,26 +49,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    nowPlayerViewModel.currentPlayingSong.collect { song ->
-                        binding.fragBottomPlayer.isVisible = song != null
-                        song?.let {
-                            binding.toolbar2.ivRecent.loadSongImage(it.albumId, it.path, it.cachedImagePath)
-                        }
-                    }
-                }
-                launch {
-                    favoritesViewModel.favoriteSongs.collect { songs ->
-                        if (songs.isNotEmpty()) {
-                            val lastSong = songs.last()
-                            binding.toolbar2.ivFavourites.loadSongImageByPath(lastSong.path, lastSong.cachedImagePath)
-                        }
-                    }
-                }
-            }
-        }
+        observeViewModel()
 
         binding.toolbar.searchBar.setOnClickListener { launchActivity<SearchActivity>() }
         binding.toolbar.tvSearchView.setOnClickListener { launchActivity<SearchActivity>() }
@@ -80,6 +58,24 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar2.cardRecent.setOnClickListener { launchActivity<RecentActivity>() }
 
         checkPermissions()
+    }
+
+    private fun observeViewModel() {
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+            binding.fragBottomPlayer.isVisible = song != null
+            song?.let {
+                binding.toolbar2.ivRecent.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+            }
+        }
+
+        favoritesViewModel.favoriteSongs.collectWithLifecycle(this) { songs ->
+            if (songs.isNotEmpty()) {
+                val lastSong = songs.last()
+                binding.toolbar2.ivFavourites.loadSongImageByPath(
+                    lastSong.path, lastSong.cachedImagePath
+                )
+            }
+        }
     }
 
     private fun checkPermissions() {

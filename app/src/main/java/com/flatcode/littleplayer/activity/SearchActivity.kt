@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.activity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -12,12 +13,11 @@ import com.flatcode.littleplayer.databinding.ActivitySearchBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
-import com.flatcode.littleplayer.utils.showKeyboard
+import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class SearchActivity : AppCompatActivity() {
@@ -37,10 +37,10 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.customToolbar)
+        val toolbar = findViewById<MaterialToolbar>(R.id.customToolbar)
         toolbar.setNavigationOnClickListener { finish() }
-        
-        val searchEditText = findViewById<android.widget.EditText>(R.id.searchEditText)
+
+        val searchEditText = findViewById<EditText>(R.id.searchEditText)
         searchEditText.requestFocus()
         searchEditText.postDelayed({
             searchEditText.showKeyboard()
@@ -51,6 +51,7 @@ class SearchActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 viewModel.filterSongs(s.toString())
             }
+
             override fun afterTextChanged(s: Editable?) {}
         })
     }
@@ -59,17 +60,14 @@ class SearchActivity : AppCompatActivity() {
         viewModel.filteredMusicFiles.collectWithLifecycle(this) { songs ->
             if (adapter == null) {
                 adapter = MusicAdapter(
-                    this,
-                    onItemClick = { _, position ->
+                    this, onItemClick = { _, position ->
                         viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
                         launchActivity<PlayerActivity> {
                             putExtra(DATA.POSITION, position)
                         }
-                    },
-                    onDeleteClick = { song ->
-                        viewModel.deleteSong(song)
-                    }
-                )
+                    }) { song ->
+                    viewModel.deleteSong(song)
+                }
                 binding.recyclerView.adapter = adapter
             }
             adapter?.submitList(songs)

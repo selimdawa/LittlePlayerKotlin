@@ -5,16 +5,15 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFavoritesBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
-import com.flatcode.littleplayer.utils.loadSongImageByPath
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -36,7 +35,7 @@ class FavoritesActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.customToolbar)
+        val toolbar = findViewById<MaterialToolbar>(R.id.customToolbar)
         toolbar.title = getString(R.string.favourites)
         toolbar.setNavigationOnClickListener { finish() }
     }
@@ -46,17 +45,16 @@ class FavoritesActivity : AppCompatActivity() {
             if (songs.isNotEmpty()) {
                 if (adapter == null) {
                     adapter = MusicAdapter(
-                        this,
-                        onItemClick = { _, position ->
-                            musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                        this, onItemClick = { _, position ->
+                            musicViewModel.updateCurrentPlaylist(
+                                adapter?.currentList ?: emptyList()
+                            )
                             launchActivity<PlayerActivity> {
                                 putExtra(DATA.POSITION, position)
                             }
-                        },
-                        onDeleteClick = { song ->
-                            musicViewModel.deleteSong(song)
-                        }
-                    )
+                        }) { song ->
+                        musicViewModel.deleteSong(song)
+                    }
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songs)

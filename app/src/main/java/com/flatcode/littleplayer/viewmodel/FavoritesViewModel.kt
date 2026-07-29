@@ -4,14 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-import kotlinx.coroutines.flow.combine
 
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
@@ -24,8 +24,7 @@ class FavoritesViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                repository.getAllFavorites(),
-                repository.getAllAlbumImages()
+                repository.getAllFavorites(), repository.getAllAlbumImages()
             ) { favorites, images ->
                 val imageMap = images.associateBy { it.albumName }
                 favorites.map {
@@ -37,7 +36,7 @@ class FavoritesViewModel @Inject constructor(
                         albumId = it.albumId,
                         duration = it.duration,
                         path = it.path,
-                        cachedImagePath = imageMap[it.album ?: "Unknown"]?.imagePath
+                        cachedImagePath = imageMap[it.album ?: DATA.UNKNOWN]?.imagePath
                     )
                 }
             }.collect {

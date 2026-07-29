@@ -17,7 +17,6 @@ import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.util.ArrayList
 
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
@@ -50,7 +49,9 @@ class AlbumDetailsActivity : AppCompatActivity() {
                         }
 
                         if (!state.firstSongAlbumId.isNullOrEmpty() || !state.imagePath.isNullOrEmpty()) {
-                            binding.imageBlur.loadSongImageBlur(state.firstSongAlbumId, 50, state.firstSongPath, state.imagePath)
+                            binding.imageBlur.loadSongImageBlur(
+                                state.firstSongAlbumId, 50, state.firstSongPath, state.imagePath
+                            )
                         }
 
                         val arrayListSongs = ArrayList(state.songs)

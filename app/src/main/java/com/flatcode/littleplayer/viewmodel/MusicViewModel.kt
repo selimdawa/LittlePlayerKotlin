@@ -6,24 +6,23 @@ import com.flatcode.littleplayer.model.Artist
 import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
-
-import com.flatcode.littleplayer.utils.DATA
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -58,8 +57,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
         viewModelScope.launch {
             combine(
-                _sortOrder.flatMapLatest { order -> repository.getSongsFlow(order) },
-                _searchQuery
+                _sortOrder.flatMapLatest { order -> repository.getSongsFlow(order) }, _searchQuery
             ) { songs, query ->
                 Pair(songs, query)
             }.distinctUntilChanged().collect { (songs, query) ->
@@ -80,7 +78,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         val duplicates = HashSet<String>()
 
         for (song in allAudio) {
-            val albumName = song.album ?: "Unknown"
+            val albumName = song.album ?: DATA.UNKNOWN
             if (!duplicates.contains(albumName)) {
                 uniqueAlbums.add(song)
                 duplicates.add(albumName)
@@ -141,7 +139,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         val artistsMap = HashMap<String, Pair<Int, MusicFiles?>>()
 
         for (song in songsList) {
-            val artistName = song.artist ?: "Unknown"
+            val artistName = song.artist ?: DATA.UNKNOWN
             val currentData = artistsMap[artistName]
             if (currentData == null) {
                 artistsMap[artistName] = Pair(1, song)

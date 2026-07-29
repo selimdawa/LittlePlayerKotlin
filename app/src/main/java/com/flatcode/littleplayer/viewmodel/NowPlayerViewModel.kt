@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,8 +65,8 @@ class NowPlayerViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[musicFileKey] = song.path ?: ""
-                preferences[artistNameKey] = song.artist ?: "Unknown"
-                preferences[songNameKey] = song.title ?: "Unknown"
+                preferences[artistNameKey] = song.artist ?: DATA.UNKNOWN
+                preferences[songNameKey] = song.title ?: DATA.UNKNOWN
                 preferences[albumIdKey] = song.albumId ?: ""
                 preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
             }

@@ -6,8 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemFolderBinding
 
 class PlaylistAdapter(
-    private val playlistNames: List<String>,
-    private val onItemClick: (String) -> Unit
+    private val playlistNames: List<String>, private val onItemClick: (String) -> Unit
 ) : RecyclerView.Adapter<PlaylistAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)

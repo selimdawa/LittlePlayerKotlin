@@ -43,6 +43,7 @@
             android:id="@+id/checkByDate"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
@@ -72,6 +73,7 @@
             android:id="@+id/checkByName"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
@@ -101,6 +103,7 @@
             android:id="@+id/checkByPlayCount"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
@@ -130,6 +133,7 @@
             android:id="@+id/checkByReleaseDate"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
@@ -159,6 +163,7 @@
             android:id="@+id/checkBySize"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />

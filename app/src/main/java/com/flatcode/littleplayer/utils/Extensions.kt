@@ -20,6 +20,7 @@ import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
@@ -174,7 +175,7 @@ fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -
 }
 
 fun View.showKeyboard() {
-    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.showSoftInput(this, 0)
 }
 

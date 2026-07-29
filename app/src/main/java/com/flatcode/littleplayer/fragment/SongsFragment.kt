@@ -19,7 +19,6 @@ import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SongsFragment : Fragment() {
@@ -91,18 +90,15 @@ class SongsFragment : Fragment() {
     private fun setupAdapter() {
         if (musicAdapter == null) {
             musicAdapter = MusicAdapter(
-                requireContext(),
-                onItemClick = { _, position ->
+                requireContext(), onItemClick = { _, position ->
                     val currentFiles = musicAdapter?.currentList ?: return@MusicAdapter
                     viewModel.updateCurrentPlaylist(ArrayList(currentFiles))
                     requireContext().launchActivity<PlayerActivity> {
                         putExtra(DATA.POSITION, position)
                     }
-                },
-                onDeleteClick = { song ->
-                    viewModel.deleteSong(song)
-                }
-            )
+                }) { song ->
+                viewModel.deleteSong(song)
+            }
             musicAdapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         }
@@ -112,7 +108,7 @@ class SongsFragment : Fragment() {
 
     private fun updateAdapterState() {
         val song = nowPlayerViewModel.currentPlayingSong.value
-        val isPlaying = nowPlayerViewModel.isPlaying.value ?: false
+        val isPlaying = nowPlayerViewModel.isPlaying.value
         musicAdapter?.updatePlaybackState(song?.path, isPlaying)
     }
 

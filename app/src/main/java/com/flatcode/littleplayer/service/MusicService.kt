@@ -2,7 +2,6 @@ package com.flatcode.littleplayer.service
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -20,8 +19,8 @@ import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
-import java.io.File
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @UnstableApi
@@ -64,7 +64,7 @@ class MusicService : MediaSessionService(), Player.Listener {
 
         exoPlayer = ExoPlayer.Builder(this).build().apply {
             addListener(this@MusicService)
-            repeatMode = Player.REPEAT_MODE_ALL // Enable circular navigation by default
+            repeatMode = Player.REPEAT_MODE_ALL
         }
 
         exoPlayer?.let { player ->
@@ -82,36 +82,6 @@ class MusicService : MediaSessionService(), Player.Listener {
         return START_STICKY
     }
 
-    fun createMediaPlayer(positionInner: Int) {
-        if (musicFiles.isEmpty() || (positionInner !in musicFiles.indices)) return
-
-        position = positionInner
-
-        val mediaItems = musicFiles.map { song ->
-            val metadata = MediaMetadata.Builder()
-                .setTitle(song.title ?: "Unknown Track")
-                .setArtist(song.artist ?: "Unknown Artist")
-                .setAlbumTitle(song.album ?: "Unknown Album")
-                .setExtras(Bundle().apply {
-                    putString("ALBUM_ID", song.albumId)
-                    putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                })
-                .build()
-
-            MediaItem.Builder()
-                .setUri(song.path?.toUri() ?: "".toUri())
-                .setMediaMetadata(metadata)
-                .setMediaId(song.id ?: "")
-                .build()
-        }
-
-        exoPlayer?.apply {
-            setMediaItems(mediaItems, position, 0L)
-            prepare()
-            play()
-        }
-    }
-
     private fun updateLastPlayedInfo() {
         val player = exoPlayer ?: return
         val currentIndex = player.currentMediaItemIndex
@@ -120,8 +90,8 @@ class MusicService : MediaSessionService(), Player.Listener {
             serviceScope.launch(Dispatchers.IO) {
                 dataStore.edit { preferences ->
                     preferences[musicFileKey] = song.path ?: ""
-                    preferences[artistNameKey] = song.artist ?: "Unknown"
-                    preferences[songNameKey] = song.title ?: "Unknown"
+                    preferences[artistNameKey] = song.artist ?: DATA.UNKNOWN
+                    preferences[songNameKey] = song.title ?: DATA.UNKNOWN
                     preferences[albumIdKey] = song.albumId ?: ""
                     preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
                 }
@@ -165,7 +135,7 @@ class MusicService : MediaSessionService(), Player.Listener {
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                 loadArtForCurrentItem(it)
             }
-            
+
             // Increment play count
             val currentId = it.currentMediaItem?.mediaId
             if (currentId != null) {

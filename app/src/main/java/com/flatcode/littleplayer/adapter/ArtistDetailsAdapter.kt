@@ -5,11 +5,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 
@@ -32,11 +30,13 @@ class ArtistDetailsAdapter(
 
         holder.binding.songName.text = song.safeTitle
         holder.binding.songDetails.text = context.getString(
-            R.string.song_details_format, song.safeArtist, song.album ?: "Unknown Album"
+            R.string.song_details_format, song.safeArtist, song.album ?: DATA.UNKNOWN
         )
 
         holder.binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
-        holder.binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
+        holder.binding.imageBlur.loadSongImageBlur(
+            song.albumId, 100, song.path, song.cachedImagePath
+        )
 
         holder.itemView.setOnClickListener {
             onItemClick(holder.bindingAdapterPosition)

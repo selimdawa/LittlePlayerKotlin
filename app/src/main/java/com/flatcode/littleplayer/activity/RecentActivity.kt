@@ -13,6 +13,7 @@ import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.RecentViewModel
+import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -34,7 +35,7 @@ class RecentActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.customToolbar)
+        val toolbar = findViewById<MaterialToolbar>(R.id.customToolbar)
         toolbar.title = getString(R.string.recent)
         toolbar.setNavigationOnClickListener { finish() }
     }
@@ -44,17 +45,16 @@ class RecentActivity : AppCompatActivity() {
             if (songs.isNotEmpty()) {
                 if (adapter == null) {
                     adapter = MusicAdapter(
-                        this,
-                        onItemClick = { _, position ->
-                            musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                        this, onItemClick = { _, position ->
+                            musicViewModel.updateCurrentPlaylist(
+                                adapter?.currentList ?: emptyList()
+                            )
                             launchActivity<PlayerActivity> {
                                 putExtra(DATA.POSITION, position)
                             }
-                        },
-                        onDeleteClick = { song ->
-                            musicViewModel.deleteSong(song)
-                        }
-                    )
+                        }) { song ->
+                        musicViewModel.deleteSong(song)
+                    }
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songs)

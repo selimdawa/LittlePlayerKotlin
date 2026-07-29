@@ -8,9 +8,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.flatcode.littleplayer.data.dao.AlbumImageDao
 import com.flatcode.littleplayer.data.dao.SongDao
+import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,19 +21,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
-
-import com.flatcode.littleplayer.data.dao.AlbumImageDao
-import com.flatcode.littleplayer.data.entity.AlbumImageEntity
-import com.flatcode.littleplayer.utils.getAlbumArtBytes
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import java.io.File
 import java.io.FileOutputStream
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class MusicRepository @Inject constructor(
@@ -50,8 +49,7 @@ class MusicRepository @Inject constructor(
 
     fun getSongsFlow(sortOrder: String): Flow<List<MusicFiles>> {
         return combine(
-            songDao.getAllSongs(),
-            albumImageDao.getAllAlbumImages()
+            songDao.getAllSongs(), albumImageDao.getAllAlbumImages()
         ) { dbSongs, cachedImages ->
             val sortedDbSongs = when (sortOrder) {
                 DATA.SORT_BY_NAME -> dbSongs.sortedBy { it.title.lowercase() }
@@ -62,129 +60,141 @@ class MusicRepository @Inject constructor(
 
             val imageMap = cachedImages.associateBy { it.albumName }
             sortedDbSongs.map { dbSong ->
-                MusicFiles(
-                    path = dbSong.path,
-                    title = dbSong.title,
-                    artist = dbSong.artist,
-                    album = dbSong.album,
-                    duration = dbSong.duration.toString(),
-                    id = dbSong.id,
-                    albumId = dbSong.albumId,
-                    waveform = dbSong.waveform,
-                    playCount = dbSong.playCount,
-                    cachedImagePath = imageMap[dbSong.album ?: "Unknown"]?.imagePath,
-                    dateAdded = dbSong.dateAdded
-                )
+                    MusicFiles(
+                        path = dbSong.path,
+                        title = dbSong.title,
+                        artist = dbSong.artist,
+                        album = dbSong.album,
+                        duration = dbSong.duration.toString(),
+                        id = dbSong.id,
+                        albumId = dbSong.albumId,
+                        waveform = dbSong.waveform,
+                        playCount = dbSong.playCount,
+                        cachedImagePath = imageMap[dbSong.album ?: DATA.UNKNOWN]?.imagePath,
+                        dateAdded = dbSong.dateAdded
+                    )
             }
         }
     }
 
-    suspend fun getAllAudio(sortOrder: String): ArrayList<MusicFiles> = withContext(Dispatchers.IO) {
-        val tempAudioList = ArrayList<MusicFiles>()
+    suspend fun getAllAudio(sortOrder: String): ArrayList<MusicFiles> =
+        withContext(Dispatchers.IO) {
+            val tempAudioList = ArrayList<MusicFiles>()
 
-        try {
-            val dbSongs = songDao.getAllSongsSync()
-            if (dbSongs.isNotEmpty()) {
-                val cachedImages = try {
-                    albumImageDao.getAllAlbumImagesSync().associateBy { it.albumName }
-                } catch (_: Exception) {
-                    emptyMap()
-                }
-
-                dbSongs.forEach { dbSong ->
-                    tempAudioList.add(
-                        MusicFiles(
-                            path = dbSong.path,
-                            title = dbSong.title,
-                            artist = dbSong.artist,
-                            album = dbSong.album,
-                            duration = dbSong.duration.toString(),
-                            id = dbSong.id,
-                            albumId = dbSong.albumId,
-                            waveform = dbSong.waveform,
-                            playCount = dbSong.playCount,
-                            cachedImagePath = cachedImages[dbSong.album ?: "Unknown"]?.imagePath,
-                            dateAdded = dbSong.dateAdded
-                        )
-                    )
-                }
-
-                when (sortOrder) {
-                    DATA.SORT_BY_NAME -> tempAudioList.sortBy { it.title?.lowercase() }
-                    DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortByDescending { it.playCount }
-                    DATA.SORT_BY_DATE -> tempAudioList.sortByDescending { it.dateAdded }
-                }
-
-                if (tempAudioList.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try { syncWithMediaStore() } catch (_: Exception) {}
+            try {
+                val dbSongs = songDao.getAllSongsSync()
+                if (dbSongs.isNotEmpty()) {
+                    val cachedImages = try {
+                        albumImageDao.getAllAlbumImagesSync().associateBy { it.albumName }
+                    } catch (_: Exception) {
+                        emptyMap()
                     }
-                    return@withContext tempAudioList
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
-        try {
-            val mediaStoreSortOrder = when (sortOrder) {
-                DATA.SORT_BY_NAME -> MediaStore.Audio.Media.TITLE + " ASC"
-                DATA.SORT_BY_DATE -> MediaStore.Audio.Media.DATE_ADDED + " DESC"
-                DATA.SORT_BY_SIZE -> MediaStore.Audio.Media.SIZE + " DESC"
-                DATA.SORT_BY_RELEASE_DATE -> MediaStore.Audio.Media.YEAR + " DESC"
-                else -> MediaStore.Audio.Media.TITLE + " ASC"
-            }
-
-            val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            val projection = arrayOf(
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media._ID,
-                MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.DATE_ADDED
-            )
-
-            context.contentResolver.query(uri, projection, null, null, mediaStoreSortOrder)
-                ?.use { cursor ->
-                    val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                    val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                    val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                    val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-                    val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                    val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                    val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                    val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
-
-                    while (cursor.moveToNext()) {
+                    dbSongs.forEach { dbSong ->
                         tempAudioList.add(
                             MusicFiles(
-                                path = cursor.getString(pathColumn) ?: "",
-                                title = cursor.getString(titleColumn) ?: "Unknown",
-                                artist = cursor.getString(artistColumn) ?: "Unknown",
-                                album = cursor.getString(albumColumn) ?: "Unknown",
-                                duration = cursor.getLong(durationColumn).toString(),
-                                id = cursor.getString(idColumn) ?: "",
-                                albumId = cursor.getString(albumIdColumn) ?: "",
-                                dateAdded = cursor.getLong(dateAddedColumn)
+                                path = dbSong.path,
+                                title = dbSong.title,
+                                artist = dbSong.artist,
+                                album = dbSong.album,
+                                duration = dbSong.duration.toString(),
+                                id = dbSong.id,
+                                albumId = dbSong.albumId,
+                                waveform = dbSong.waveform,
+                                playCount = dbSong.playCount,
+                                cachedImagePath = cachedImages[dbSong.album
+                                    ?: DATA.UNKNOWN]?.imagePath,
+                                dateAdded = dbSong.dateAdded
                             )
                         )
                     }
-                }
 
-            if (tempAudioList.isNotEmpty()) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    try { syncWithMediaStore() } catch (_: Exception) {}
+                    when (sortOrder) {
+                        DATA.SORT_BY_NAME -> tempAudioList.sortBy { it.title?.lowercase() }
+                        DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortByDescending { it.playCount }
+                        DATA.SORT_BY_DATE -> tempAudioList.sortByDescending { it.dateAdded }
+                    }
+
+                    if (tempAudioList.isNotEmpty()) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                syncWithMediaStore()
+                            } catch (_: Exception) {
+                            }
+                        }
+                        return@withContext tempAudioList
+                    }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
-        tempAudioList
-    }
+            try {
+                val mediaStoreSortOrder = when (sortOrder) {
+                    DATA.SORT_BY_NAME -> MediaStore.Audio.Media.TITLE + " ASC"
+                    DATA.SORT_BY_DATE -> MediaStore.Audio.Media.DATE_ADDED + " DESC"
+                    DATA.SORT_BY_SIZE -> MediaStore.Audio.Media.SIZE + " DESC"
+                    DATA.SORT_BY_RELEASE_DATE -> MediaStore.Audio.Media.YEAR + " DESC"
+                    else -> MediaStore.Audio.Media.TITLE + " ASC"
+                }
+
+                val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                val projection = arrayOf(
+                    MediaStore.Audio.Media.ALBUM,
+                    MediaStore.Audio.Media.TITLE,
+                    MediaStore.Audio.Media.DURATION,
+                    MediaStore.Audio.Media.DATA,
+                    MediaStore.Audio.Media.ARTIST,
+                    MediaStore.Audio.Media._ID,
+                    MediaStore.Audio.Media.ALBUM_ID,
+                    MediaStore.Audio.Media.DATE_ADDED
+                )
+
+                context.contentResolver.query(uri, projection, null, null, mediaStoreSortOrder)
+                    ?.use { cursor ->
+                        val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                        val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                        val durationColumn =
+                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+                        val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+                        val artistColumn =
+                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                        val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                        val albumIdColumn =
+                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                        val dateAddedColumn =
+                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+
+                        while (cursor.moveToNext()) {
+                            tempAudioList.add(
+                                MusicFiles(
+                                    path = cursor.getString(pathColumn) ?: "",
+                                    title = cursor.getString(titleColumn) ?: DATA.UNKNOWN,
+                                    artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN,
+                                    album = cursor.getString(albumColumn) ?: DATA.UNKNOWN,
+                                    duration = cursor.getLong(durationColumn).toString(),
+                                    id = cursor.getString(idColumn) ?: "",
+                                    albumId = cursor.getString(albumIdColumn) ?: "",
+                                    dateAdded = cursor.getLong(dateAddedColumn)
+                                )
+                            )
+                        }
+                    }
+
+                if (tempAudioList.isNotEmpty()) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            syncWithMediaStore()
+                        } catch (_: Exception) {
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            tempAudioList
+        }
 
     private suspend fun syncWithMediaStore() {
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -212,11 +222,11 @@ class MusicRepository @Inject constructor(
             val dateAddedColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
 
             while (it.moveToNext()) {
-                val album = it.getString(albumColumn) ?: "Unknown"
-                val title = it.getString(titleColumn) ?: "Unknown"
+                val album = it.getString(albumColumn) ?: DATA.UNKNOWN
+                val title = it.getString(titleColumn) ?: DATA.UNKNOWN
                 val duration = it.getLong(durationColumn)
                 val path = it.getString(pathColumn) ?: ""
-                val artist = it.getString(artistColumn) ?: "Unknown"
+                val artist = it.getString(artistColumn) ?: DATA.UNKNOWN
                 val id = it.getString(idColumn) ?: ""
                 val albumId = it.getString(albumIdColumn) ?: ""
                 val dateAdded = it.getLong(dateAddedColumn)
@@ -241,8 +251,8 @@ class MusicRepository @Inject constructor(
     }
 
     suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {
-        val albumName = song.album ?: "Unknown"
-        if (albumName == "Unknown") return@withContext
+        val albumName = song.album ?: DATA.UNKNOWN
+        if (albumName == DATA.UNKNOWN) return@withContext
 
         val existing = albumImageDao.getAlbumImageByName(albumName)
         if ((existing != null) && File(existing.imagePath).exists()) return@withContext
@@ -268,8 +278,8 @@ class MusicRepository @Inject constructor(
     suspend fun startBackgroundArtCaching(songs: List<MusicFiles>) = withContext(Dispatchers.IO) {
         val processedAlbums = mutableSetOf<String>()
         songs.forEach { song ->
-            val album = song.album ?: "Unknown"
-            if (album != "Unknown" && !processedAlbums.contains(album)) {
+            val album = song.album ?: DATA.UNKNOWN
+            if (album != DATA.UNKNOWN && !processedAlbums.contains(album)) {
                 cacheAlbumArt(song)
                 processedAlbums.add(album)
             }
@@ -283,16 +293,13 @@ class MusicRepository @Inject constructor(
         }
     }
 
-    suspend fun updateWaveform(songId: String, waveform: String) = withContext(Dispatchers.IO) {
-        songDao.updateWaveform(songId, waveform)
-    }
-
     suspend fun deleteMusicFile(song: MusicFiles): Boolean = withContext(Dispatchers.IO) {
         val file = File(song.path ?: return@withContext false)
         val deleted = file.delete()
         if (deleted) {
             val contentUri = android.content.ContentUris.withAppendedId(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, (song.id ?: return@withContext false).toLong()
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                (song.id ?: return@withContext false).toLong()
             )
             context.contentResolver.delete(contentUri, null, null)
             songDao.deleteSongById(song.id)
