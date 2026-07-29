@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.SeekBar
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
@@ -57,15 +58,29 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        amplituda = Amplituda(this)
+        amplituda = amplituda ?: Amplituda(this)
 
         getIntentMethod()
         setupListeners()
         observeViewModel()
+        setupBackPressed()
+    }
+
+    private fun setupBackPressed() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finishWithAnimation()
+            }
+        })
+    }
+
+    private fun finishWithAnimation() {
+        finish()
+        overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down)
     }
 
     private fun setupListeners() {
-        binding.back.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
+        binding.back.setOnClickListener { finishWithAnimation() }
 
         binding.seekBar.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {

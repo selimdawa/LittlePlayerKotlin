@@ -106,8 +106,7 @@
                         app:lottie_autoPlay="false"
                         app:lottie_loop="false"
                         app:lottie_rawRes="@raw/play_pause_morph"
-                        app:tint="@color/dark"
-                        app:tintMode="@color/dark"/>
+                        app:tint="?attr/colorOnSurface" />
 
                 </FrameLayout>
 

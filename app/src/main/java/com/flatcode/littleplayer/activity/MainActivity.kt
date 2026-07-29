@@ -1,16 +1,24 @@
 package com.flatcode.littleplayer.activity
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.animation.AnimationUtils
+import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
 import com.flatcode.littleplayer.fragment.AlbumsFragment
 import com.flatcode.littleplayer.fragment.ArtistsFragment
@@ -18,19 +26,19 @@ import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageByPath
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
-import android.view.LayoutInflater
-import android.widget.TextView
-import com.flatcode.littleplayer.R
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -55,14 +63,63 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         observeViewModel()
+        setupSearchSwitcher()
 
-        binding.toolbar.searchBar.setOnClickListener { launchActivity<SearchActivity>() }
-        binding.toolbar.tvSearchView.setOnClickListener { launchActivity<SearchActivity>() }
-        binding.toolbar2.cardFavourites.setOnClickListener { launchActivity<FavoritesActivity>() }
+        binding.toolbar.searchContainer.setOnClickListener { startSearchActivity() }
         binding.toolbar2.cardPlaylists.setOnClickListener { launchActivity<PlaylistsActivity>() }
+        binding.toolbar2.cardFavourites.setOnClickListener { launchActivity<FavoritesActivity>() }
         binding.toolbar2.cardRecent.setOnClickListener { launchActivity<RecentActivity>() }
 
         checkPermissions()
+        setupBackPressed()
+    }
+
+    private fun startSearchActivity() {
+        val intent = Intent(this, SearchActivity::class.java)
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
+    }
+
+    private fun setupSearchSwitcher() {
+        binding.toolbar.searchTextSwitcher.setFactory {
+            TextView(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                textSize = 14f
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                setTextColor(getLibraryColor("colorError"))
+            }
+        }
+
+        binding.toolbar.searchTextSwitcher.inAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_in_up)
+        binding.toolbar.searchTextSwitcher.outAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_out_up)
+        binding.toolbar.searchTextSwitcher.setText(getString(R.string.search))
+
+        lifecycleScope.launch {
+            delay(5000)
+            viewModel.filteredMusicFiles.collect { songs ->
+                if (songs.isNotEmpty()) {
+                    var index = 0
+                    while (true) {
+                        binding.toolbar.searchTextSwitcher.setText(songs[index].title)
+                        index = (index + 1) % songs.size
+                        delay(5000)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupBackPressed() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.tabLayout.selectedTabPosition != 0) {
+                    binding.tabLayout.getTabAt(0)?.select()
+                } else {
+                    finish()
+                }
+            }
+        })
     }
 
     private fun observeViewModel() {

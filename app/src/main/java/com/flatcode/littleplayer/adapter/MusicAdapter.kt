@@ -12,6 +12,7 @@ import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
+import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
@@ -65,8 +66,10 @@ class MusicAdapter(
 
         if ((currentFile.path == playingPath) && isPlaying) {
             holder.binding.wave.visible()
+            holder.binding.songName.setTextColor(context.getLibraryColor("mc_track"))
         } else {
             holder.binding.wave.gone()
+            holder.binding.songName.setTextColor(context.getLibraryColor("colorError"))
         }
 
         holder.itemView.setOnClickListener {

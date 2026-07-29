@@ -72,6 +72,9 @@ fun Context.openPlayer(position: Int) {
     launchActivity<PlayerActivity> {
         putExtra(DATA.POSITION, position)
     }
+    if (this is Activity) {
+        overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
+    }
 }
 
 fun LifecycleOwner.observePlaybackSync(
