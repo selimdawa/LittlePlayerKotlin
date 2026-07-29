@@ -15,13 +15,12 @@ import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.visible
-import io.selimdawa.multiwave.MultiWaveHeader
 
 class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit
-) : ListAdapter<MusicFiles, MusicAdapter.ViewHolder>(MusicDiffCallback()) {
+) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
 
     private var playingPath: String? = null
     private var isPlaying: Boolean = false
@@ -42,19 +41,17 @@ class MusicAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
-        return ViewHolder(binding)
+        return MusicViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
         val currentFile = getItem(position)
 
         holder.binding.songName.text = currentFile.title
         val songDetailsText = context.getString(
-            R.string.song_details_format,
-            currentFile.safeArtist,
-            currentFile.album ?: DATA.UNKNOWN
+            R.string.song_details_format, currentFile.safeArtist, currentFile.album ?: DATA.UNKNOWN
         )
         holder.binding.songDetails.text = songDetailsText
 
@@ -90,7 +87,7 @@ class MusicAdapter(
         }
     }
 
-    class ViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
+    class MusicViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
 
     private class MusicDiffCallback : DiffUtil.ItemCallback<MusicFiles>() {
         override fun areItemsTheSame(oldItem: MusicFiles, newItem: MusicFiles): Boolean {

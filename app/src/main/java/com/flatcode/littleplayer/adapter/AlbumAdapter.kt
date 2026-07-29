@@ -16,17 +16,17 @@ class AlbumAdapter(
     private val context: Context,
     private var albumFiles: ArrayList<MusicFiles>,
     private val onItemClick: (String) -> Unit
-) : RecyclerView.Adapter<AlbumAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>() {
 
-    class ViewHolder(val binding: ItemAlbumBinding) : RecyclerView.ViewHolder(binding.root)
+    class AlbumViewHolder(val binding: ItemAlbumBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumViewHolder {
         val binding = ItemAlbumBinding.inflate(LayoutInflater.from(context), parent, false)
-        return ViewHolder(binding)
+        return AlbumViewHolder(binding)
     }
 
     @OptIn(UnstableApi::class)
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         val currentFile = albumFiles[position]
         holder.binding.name.text = currentFile.album
 

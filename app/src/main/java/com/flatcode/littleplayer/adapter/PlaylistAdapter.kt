@@ -7,16 +7,16 @@ import com.flatcode.littleplayer.databinding.ItemFolderBinding
 
 class PlaylistAdapter(
     private val playlistNames: List<String>, private val onItemClick: (String) -> Unit
-) : RecyclerView.Adapter<PlaylistAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder>() {
 
-    class ViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
+    class PlaylistViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaylistViewHolder {
         val binding = ItemFolderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
+        return PlaylistViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
         val name = playlistNames[position]
         holder.binding.folderName.text = name
         holder.binding.folderDetails.text = "Playlist"

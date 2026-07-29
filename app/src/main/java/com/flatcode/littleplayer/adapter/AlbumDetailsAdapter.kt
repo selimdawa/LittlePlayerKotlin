@@ -15,14 +15,14 @@ class AlbumDetailsAdapter(
     private val context: Context,
     private var albumFiles: ArrayList<MusicFiles>,
     private val onItemClick: (Int) -> Unit
-) : RecyclerView.Adapter<AlbumDetailsAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<AlbumDetailsAdapter.AlbumDetailsViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumDetailsViewHolder {
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
-        return ViewHolder(binding)
+        return AlbumDetailsViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: AlbumDetailsViewHolder, position: Int) {
         val filesList = albumFiles ?: return
         if (position !in filesList.indices) return
 
@@ -48,5 +48,6 @@ class AlbumDetailsAdapter(
 
     override fun getItemCount(): Int = albumFiles.size
 
-    class ViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
+    class AlbumDetailsViewHolder(val binding: ItemMusicBinding) :
+        RecyclerView.ViewHolder(binding.root)
 }
