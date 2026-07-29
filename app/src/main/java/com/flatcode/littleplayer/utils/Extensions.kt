@@ -10,6 +10,7 @@ import android.widget.ImageView
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
+import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.Player
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -19,6 +20,8 @@ import coil.load
 import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.PlayerActivity
+import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
@@ -56,6 +59,37 @@ fun <T> Flow<T>.collectWithLifecycle(
         lifecycleOwner.repeatOnLifecycle(state) {
             collect { action(it) }
         }
+    }
+}
+
+interface PlaybackAnimatable {
+    fun updatePlaybackState(path: String?, isPlaying: Boolean)
+}
+
+fun <T> List<T>.toArrayList(): ArrayList<T> = ArrayList(this)
+
+fun Context.openPlayer(position: Int) {
+    launchActivity<PlayerActivity> {
+        putExtra(DATA.POSITION, position)
+    }
+}
+
+fun LifecycleOwner.observePlaybackSync(
+    nowPlayerViewModel: NowPlayerViewModel,
+    adapterProvider: () -> PlaybackAnimatable?
+) {
+    nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+        adapterProvider()?.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
+    }
+    nowPlayerViewModel.isPlaying.collectWithLifecycle(this) { isPlaying ->
+        adapterProvider()?.updatePlaybackState(nowPlayerViewModel.currentPlayingSong.value?.path, isPlaying)
+    }
+}
+
+fun AppCompatActivity.initToolbar(title: String? = null) {
+    findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.customToolbar)?.apply {
+        title?.let { this.title = it }
+        setNavigationOnClickListener { finish() }
     }
 }
 

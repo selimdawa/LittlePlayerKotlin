@@ -6,13 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
-import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicEvent
@@ -56,7 +54,7 @@ class SongsFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.filteredMusicFiles.collectWithLifecycle(viewLifecycleOwner) { files ->
             val currentSortOrder = viewModel.sortOrder.value
-            val shouldScrollToTop = lastSortOrder != null && lastSortOrder != currentSortOrder
+            val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
             lastSortOrder = currentSortOrder
 
             musicAdapter?.submitList(files) {
@@ -66,13 +64,7 @@ class SongsFragment : Fragment() {
             }
         }
 
-        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) {
-            updateAdapterState()
-        }
-
-        nowPlayerViewModel.isPlaying.collectWithLifecycle(viewLifecycleOwner) {
-            updateAdapterState()
-        }
+        observePlaybackSync(nowPlayerViewModel) { musicAdapter }
 
         viewModel.event.collectWithLifecycle(viewLifecycleOwner) { event ->
             when (event) {
@@ -93,23 +85,12 @@ class SongsFragment : Fragment() {
                 requireContext(), onItemClick = { _, position ->
                     val currentFiles = musicAdapter?.currentList ?: return@MusicAdapter
                     viewModel.updateCurrentPlaylist(ArrayList(currentFiles))
-                    requireContext().launchActivity<PlayerActivity> {
-                        putExtra(DATA.POSITION, position)
-                    }
+                    requireContext().openPlayer(position)
                 }) { song ->
                 viewModel.deleteSong(song)
             }
-            musicAdapter?.stateRestorationPolicy =
-                RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         }
         binding.recyclerView.adapter = musicAdapter
-        updateAdapterState()
-    }
-
-    private fun updateAdapterState() {
-        val song = nowPlayerViewModel.currentPlayingSong.value
-        val isPlaying = nowPlayerViewModel.isPlaying.value
-        musicAdapter?.updatePlaybackState(song?.path, isPlaying)
     }
 
     override fun onDestroyView() {

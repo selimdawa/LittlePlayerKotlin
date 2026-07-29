@@ -16,8 +16,8 @@
         android:layout_height="match_parent"
         android:layout_above="@id/fragBottomPlayer"
         android:layout_below="@id/customToolbar"
-        android:paddingTop="10dp"
         android:clipToPadding="false"
+        android:paddingTop="10dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_music" />
 
@@ -32,9 +32,10 @@
             android:id="@+id/nowPlayerBottom"
             android:name="com.flatcode.littleplayer.fragment.NowPlayerFragmentBottom"
             android:layout_width="match_parent"
-            android:background="@android:color/transparent"
             android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
             tools:layout="@layout/fragment_now_player_bottom" />
+
     </FrameLayout>
 
 </RelativeLayout>

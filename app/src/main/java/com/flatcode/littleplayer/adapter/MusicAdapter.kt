@@ -11,6 +11,7 @@ import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.PlaybackAnimatable
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
@@ -20,19 +21,19 @@ class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit
-) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
+) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable {
 
     private var playingPath: String? = null
     private var isPlaying: Boolean = false
 
-    fun updatePlaybackState(path: String?, playing: Boolean) {
+    override fun updatePlaybackState(path: String?, isPlaying: Boolean) {
         val oldPath = this.playingPath
         val oldPlaying = this.isPlaying
 
         this.playingPath = path
-        this.isPlaying = playing
+        this.isPlaying = isPlaying
 
-        if ((oldPath != path) || (oldPlaying != playing)) {
+        if ((oldPath != path) || (oldPlaying != isPlaying)) {
             currentList.forEachIndexed { index, musicFiles ->
                 if ((musicFiles.path == oldPath) || (musicFiles.path == path)) {
                     notifyItemChanged(index)

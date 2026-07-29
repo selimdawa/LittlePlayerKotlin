@@ -4,16 +4,15 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
-import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.initToolbar
+import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.ArtistDetailsViewModel
+import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ArtistDetailsActivity : AppCompatActivity() {
@@ -21,6 +20,7 @@ class ArtistDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityArtistDetailsBinding
     private val context: Context = this@ArtistDetailsActivity
     private val viewModel: ArtistDetailsViewModel by viewModels()
+    private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: ArtistDetailsAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +28,7 @@ class ArtistDetailsActivity : AppCompatActivity() {
         binding = ActivityArtistDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        initToolbar()
         observeViewModel()
 
         val artistName = intent.extras?.getString("ARTIST_NAME")
@@ -35,21 +36,19 @@ class ArtistDetailsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.songs.collect { songList ->
-                    if (songList.isNotEmpty()) {
-                        val arrayListSongs = ArrayList(songList)
-                        adapter = ArtistDetailsAdapter(context, arrayListSongs) { position ->
-                            viewModel.updateCurrentPlaylist(arrayListSongs)
-                            launchActivity<PlayerActivity> {
-                                putExtra(DATA.POSITION, position)
-                            }
-                        }
-                        binding.recyclerView.adapter = adapter
+        viewModel.songs.collectWithLifecycle(this) { songList ->
+            if (songList.isNotEmpty()) {
+                if (adapter == null) {
+                    adapter = ArtistDetailsAdapter(context) { _, position ->
+                        viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                        openPlayer(position)
                     }
+                    binding.recyclerView.adapter = adapter
                 }
+                adapter?.submitList(songList)
             }
         }
+
+        observePlaybackSync(nowPlayerViewModel) { adapter }
     }
 }

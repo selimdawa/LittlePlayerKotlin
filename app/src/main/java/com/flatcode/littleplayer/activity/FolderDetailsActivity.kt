@@ -4,16 +4,15 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.adapter.FolderDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityFolderDetailsBinding
-import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.initToolbar
+import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.FolderDetailsViewModel
+import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FolderDetailsActivity : AppCompatActivity() {
@@ -21,6 +20,7 @@ class FolderDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFolderDetailsBinding
     private val context: Context = this@FolderDetailsActivity
     private val viewModel: FolderDetailsViewModel by viewModels()
+    private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: FolderDetailsAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +28,7 @@ class FolderDetailsActivity : AppCompatActivity() {
         binding = ActivityFolderDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        initToolbar()
         observeViewModel()
 
         val folderPath = intent.extras?.getString("FOLDER_PATH")
@@ -35,21 +36,19 @@ class FolderDetailsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.songs.collect { songList ->
-                    if (songList.isNotEmpty()) {
-                        val arrayListSongs = ArrayList(songList)
-                        adapter = FolderDetailsAdapter(context, arrayListSongs) { position ->
-                            viewModel.updateCurrentPlaylist(arrayListSongs)
-                            launchActivity<PlayerActivity> {
-                                putExtra(DATA.POSITION, position)
-                            }
-                        }
-                        binding.recyclerView.adapter = adapter
+        viewModel.songs.collectWithLifecycle(this) { songList ->
+            if (songList.isNotEmpty()) {
+                if (adapter == null) {
+                    adapter = FolderDetailsAdapter(context) { _, position ->
+                        viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                        openPlayer(position)
                     }
+                    binding.recyclerView.adapter = adapter
                 }
+                adapter?.submitList(songList)
             }
         }
+
+        observePlaybackSync(nowPlayerViewModel) { adapter }
     }
 }
