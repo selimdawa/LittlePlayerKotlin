@@ -304,18 +304,26 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 // Restore session to controller
                 val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
                     val uri = song.path?.toUri() ?: "".toUri()
-                    val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
-                        .setExtras(Bundle().apply {
-                            putString("ALBUM_ID", song.albumId)
-                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                        }).build()
-                    MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
-                        .build()
+                    val metadata =
+                        MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
+                            .setExtras(Bundle().apply {
+                                putString("ALBUM_ID", song.albumId)
+                                putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                            }).build()
+                    MediaItem.Builder().setUri(uri).setMediaMetadata(metadata)
+                        .setMediaId(song.id ?: "").build()
                 }
                 controller.setMediaItems(mediaItems, viewModel.position, 0L)
                 controller.prepare()
-            } else if (intentPosition != -1 && controller.currentMediaItem?.mediaId != viewModel.currentSong.value?.id) {
-                playCurrentSong()
+            } else if (intentPosition != -1) {
+                val isQueueMatch =
+                    controller.mediaItemCount == viewModel.listSongs.size && intentPosition < controller.mediaItemCount && controller.getMediaItemAt(
+                        intentPosition
+                    ).mediaId == viewModel.listSongs[intentPosition].id
+
+                if (!isQueueMatch || controller.currentMediaItemIndex != intentPosition) {
+                    playCurrentSong()
+                }
             }
 
             val duration = (controller.duration / 1000).toInt()
