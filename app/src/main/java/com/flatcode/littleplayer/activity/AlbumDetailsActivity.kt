@@ -64,6 +64,6 @@ class AlbumDetailsActivity : AppCompatActivity() {
             }
         }
 
-        observePlaybackSync(nowPlayerViewModel) { adapter }
+        observePlaybackSync(nowPlayerViewModel, binding.root) { adapter }
     }
 }

@@ -76,9 +76,11 @@ fun Context.openPlayer(position: Int) {
 
 fun LifecycleOwner.observePlaybackSync(
     nowPlayerViewModel: NowPlayerViewModel,
+    viewBindingRoot: View? = null,
     adapterProvider: () -> PlaybackAnimatable?
 ) {
     nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+        viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
         adapterProvider()?.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
     }
     nowPlayerViewModel.isPlaying.collectWithLifecycle(this) { isPlaying ->

@@ -78,7 +78,7 @@ class PlaylistsActivity : AppCompatActivity() {
 
                 launch {
                     nowPlayerViewModel.currentPlayingSong.collect { song ->
-                        binding.fragBottomPlayer.isVisible = song != null
+                        binding.fragBottomPlayer.root.isVisible = song != null
                     }
                 }
             }

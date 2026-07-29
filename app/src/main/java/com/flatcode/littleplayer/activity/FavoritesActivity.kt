@@ -49,6 +49,6 @@ class FavoritesActivity : AppCompatActivity() {
             }
         }
 
-        observePlaybackSync(nowPlayerViewModel) { adapter }
+        observePlaybackSync(nowPlayerViewModel, binding.root) { adapter }
     }
 }

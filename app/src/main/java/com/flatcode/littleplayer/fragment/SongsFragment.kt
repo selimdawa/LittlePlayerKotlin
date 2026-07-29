@@ -64,7 +64,7 @@ class SongsFragment : Fragment() {
             }
         }
 
-        observePlaybackSync(nowPlayerViewModel) { musicAdapter }
+        observePlaybackSync(nowPlayerViewModel, binding.root) { musicAdapter }
 
         viewModel.event.collectWithLifecycle(viewLifecycleOwner) { event ->
             when (event) {

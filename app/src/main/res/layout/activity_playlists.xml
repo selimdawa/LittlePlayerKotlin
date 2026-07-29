@@ -31,20 +31,11 @@
         app:backgroundTint="?mc_track"
         app:tint="@color/white" />
 
-    <FrameLayout
+    <include
         android:id="@+id/fragBottomPlayer"
+        layout="@layout/layout_now_player_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="@android:color/transparent">
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/nowPlayerBottom"
-            android:name="com.flatcode.littleplayer.fragment.NowPlayerFragmentBottom"
-            android:layout_width="match_parent"
-            android:background="@android:color/transparent"
-            android:layout_height="wrap_content"
-            tools:layout="@layout/fragment_now_player_bottom" />
-    </FrameLayout>
+        android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

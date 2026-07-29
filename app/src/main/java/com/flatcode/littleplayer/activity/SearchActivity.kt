@@ -74,7 +74,7 @@ class SearchActivity : AppCompatActivity() {
         }
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
-            binding.fragBottomPlayer.isVisible = song != null
+            binding.fragBottomPlayer.root.isVisible = song != null
         }
     }
 }

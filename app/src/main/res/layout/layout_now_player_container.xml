@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragBottomPlayer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent">
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nowPlayerBottom"
+        android:name="com.flatcode.littleplayer.fragment.NowPlayerFragmentBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        tools:layout="@layout/fragment_now_player_bottom" />
+
+</FrameLayout>

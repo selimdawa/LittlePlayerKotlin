@@ -11,11 +11,12 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardFavourites"
-        android:layout_width="130dp"
+        android:layout_width="0dp"
         android:layout_height="70dp"
         android:layout_marginStart="5dp"
         android:layout_marginEnd="5dp"
-        app:cardCornerRadius="16dp"
+        android:layout_weight="1"
+        app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 
@@ -44,8 +45,8 @@
                 android:padding="12dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="21dp"
+                    android:layout_height="21dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_favorite"
                     app:tint="@color/white" />
@@ -56,7 +57,7 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/favourites"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -67,11 +68,12 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardPlaylists"
-        android:layout_width="130dp"
+        android:layout_width="0dp"
         android:layout_height="70dp"
-        android:layout_marginStart="5sp"
-        android:layout_marginEnd="5sp"
-        app:cardCornerRadius="16dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_weight="1"
+        app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 
@@ -100,8 +102,8 @@
                 android:padding="12dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="21dp"
+                    android:layout_height="21dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_music"
                     app:tint="@color/white" />
@@ -112,7 +114,7 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/playlists"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -123,11 +125,12 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardRecent"
-        android:layout_width="130dp"
+        android:layout_width="0dp"
         android:layout_height="70dp"
         android:layout_marginStart="5dp"
         android:layout_marginEnd="5dp"
-        app:cardCornerRadius="16dp"
+        android:layout_weight="1"
+        app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 
@@ -156,8 +159,8 @@
                 android:padding="12dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="21dp"
+                    android:layout_height="21dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_recent"
                     app:tint="@color/white" />
@@ -168,7 +171,7 @@
                     android:layout_marginTop="4dp"
                     android:text="@string/recent"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
             </LinearLayout>

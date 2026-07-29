@@ -96,10 +96,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_marginEnd="8dp"
-                    android:background="@drawable/circle_border"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackgroundBorderless">
+                    android:background="@drawable/circle_border">
 
                     <com.airbnb.lottie.LottieAnimationView
                         android:id="@+id/playPauseAnimView"
@@ -108,7 +105,9 @@
                         android:layout_gravity="center"
                         app:lottie_autoPlay="false"
                         app:lottie_loop="false"
-                        app:lottie_rawRes="@raw/play_pause_morph" />
+                        app:lottie_rawRes="@raw/play_pause_morph"
+                        app:tint="@color/dark"
+                        app:tintMode="@color/dark"/>
 
                 </FrameLayout>
 
