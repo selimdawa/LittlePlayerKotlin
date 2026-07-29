@@ -27,7 +27,6 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import android.view.LayoutInflater
 import android.widget.TextView
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.utils.getLibraryColor
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -117,36 +116,6 @@ class MainActivity : AppCompatActivity() {
             title.text = adapter.getPageTitle(pos)
             tab.customView = tabView
         }.attach()
-
-        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                updateTabView(tab, true)
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) {
-                updateTabView(tab, false)
-            }
-
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
-
-        for (i in 0 until binding.tabLayout.tabCount) {
-            updateTabView(binding.tabLayout.getTabAt(i), i == 0)
-        }
-    }
-
-    private fun updateTabView(tab: TabLayout.Tab?, isSelected: Boolean) {
-        val view = tab?.customView ?: return
-        val container = view.findViewById<android.view.View>(R.id.tabContainer)
-        val title = view.findViewById<TextView>(R.id.tabTitle)
-
-        if (isSelected) {
-            container.setBackgroundResource(R.drawable.background_tab_selected)
-            title.setTextColor(ContextCompat.getColor(this, R.color.white))
-        } else {
-            container.setBackgroundResource(R.drawable.background_tab_unselected)
-            title.setTextColor(getLibraryColor("colorError"))
-        }
     }
 
     class ViewPagerAdapter(act: AppCompatActivity) : FragmentStateAdapter(act) {

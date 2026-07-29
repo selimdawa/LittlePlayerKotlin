@@ -7,7 +7,7 @@
                 android:endColor="?mc_tick"
                 android:startColor="?mc_track"
                 android:type="linear" />
-            <corners android:radius="16dp" />
+            <corners android:radius="8dp" />
         </shape>
     </item>
     <item
@@ -16,9 +16,8 @@
         android:right="1.5dp"
         android:top="1.5dp">
         <shape android:shape="rectangle">
-            <!-- Use @color/dark to match TabLayout background, effectively making it look like a border only -->
             <solid android:color="?colorOnBackground" />
-            <corners android:radius="16dp" />
+            <corners android:radius="8dp" />
         </shape>
     </item>
 </layer-list>
