@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -50,11 +51,11 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val musicFileKey = stringPreferencesKey(MUSIC_FILE)
-    private val artistNameKey = stringPreferencesKey(ARTIST_NAME)
-    private val songNameKey = stringPreferencesKey(SONG_NAME)
-    private val albumIdKey = stringPreferencesKey("ALBUM ID")
-    private val cachedImagePathKey = stringPreferencesKey("CACHED_IMAGE_PATH")
+    private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
+    private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
+    private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
+    private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
+    private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
 
     private val customCommandFavorite = SessionCommand(COMMAND_FAVORITE, Bundle.EMPTY)
     private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
@@ -94,6 +95,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     preferences[songNameKey] = song.title ?: DATA.UNKNOWN
                     preferences[albumIdKey] = song.albumId ?: ""
                     preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
+                    preferences[intPreferencesKey(DATA.LAST_POSITION)] = currentIndex
                 }
             }
         }
@@ -292,9 +294,6 @@ class MusicService : MediaSessionService(), Player.Listener {
     }
 
     companion object {
-        const val MUSIC_FILE = "STORED_MUSIC"
-        const val ARTIST_NAME = "ARTIST NAME"
-        const val SONG_NAME = "SONG NAME"
         const val COMMAND_FAVORITE = "COMMAND_FAVORITE"
         const val COMMAND_PLAYBACK_CYCLE = "COMMAND_PLAYBACK_CYCLE"
     }

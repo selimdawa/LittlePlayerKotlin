@@ -1,6 +1,10 @@
 package com.flatcode.littleplayer.viewmodel
 
 import android.net.Uri
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
@@ -18,6 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
+    private val dataStore: DataStore<Preferences>,
     private val musicRepository: MusicRepository,
     private val repository: MusicRoomRepository,
 ) : ViewModel() {
@@ -36,6 +41,34 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             musicRepository.currentPlaylist.collect {
                 listSongs = it
+                if (_currentSong.value == null && it.isNotEmpty() && position != -1) {
+                    updatePositionAndSong(position)
+                }
+            }
+        }
+
+        loadSession()
+    }
+
+    private fun loadSession() {
+        viewModelScope.launch {
+            dataStore.data.collect { preferences ->
+                if (_currentSong.value == null) {
+                    val path = preferences[stringPreferencesKey(DATA.MUSIC_FILE)]
+                    if (!path.isNullOrEmpty()) {
+                        val song = MusicFiles(
+                            path = path,
+                            artist = preferences[stringPreferencesKey(DATA.ARTIST_NAME)],
+                            title = preferences[stringPreferencesKey(DATA.SONG_NAME)],
+                            albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
+                            cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)]
+                        )
+                        _currentSong.value = song
+                    }
+                }
+                if (position == -1) {
+                    position = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
+                }
             }
         }
     }

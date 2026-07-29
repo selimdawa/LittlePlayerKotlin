@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NowPlayerViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
+    private val dataStore: DataStore<Preferences>, private val repository: MusicRepository
 ) : ViewModel() {
 
     private val _currentPlayingSong = MutableStateFlow<MusicFiles?>(null)
@@ -27,25 +28,30 @@ class NowPlayerViewModel @Inject constructor(
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
-    private val musicFileKey = stringPreferencesKey("STORED_MUSIC")
-    private val artistNameKey = stringPreferencesKey("ARTIST NAME")
-    private val songNameKey = stringPreferencesKey("SONG NAME")
-    private val albumIdKey = stringPreferencesKey("ALBUM ID")
-    private val cachedImagePathKey = stringPreferencesKey("CACHED_IMAGE_PATH")
+    private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
+    private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
+    private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
+    private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
+    private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
 
     init {
-        loadLastPlayedSong()
+        restoreSession()
     }
 
-    private fun loadLastPlayedSong() {
+    private fun restoreSession() {
         viewModelScope.launch {
+            val queue = repository.loadCurrentQueue()
+            if (queue.isNotEmpty()) {
+                repository.updateCurrentPlaylist(queue)
+            }
+
             dataStore.data.collect { preferences ->
                 val path = preferences[musicFileKey]
                 if (!path.isNullOrEmpty()) {
                     val song = MusicFiles(
                         path = path,
-                        artist = preferences[artistNameKey],
-                        title = preferences[songNameKey],
+                        artist = preferences[artistNameKey] ?: DATA.UNKNOWN,
+                        title = preferences[songNameKey] ?: DATA.UNKNOWN,
                         albumId = preferences[albumIdKey],
                         cachedImagePath = preferences[cachedImagePathKey]
                     )
@@ -57,6 +63,10 @@ class NowPlayerViewModel @Inject constructor(
 
     fun updatePlaybackState(playing: Boolean) {
         _isPlaying.value = playing
+    }
+
+    suspend fun getCurrentQueue(): List<MusicFiles> {
+        return repository.loadCurrentQueue()
     }
 
     fun saveAndBroadcastNextSong(song: MusicFiles) {

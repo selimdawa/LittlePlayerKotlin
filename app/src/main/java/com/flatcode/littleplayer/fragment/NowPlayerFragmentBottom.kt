@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -18,11 +20,12 @@ import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -75,48 +78,75 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
         binding.playPauseBtn.setOnClickListener {
             mediaController?.let { controller ->
-                if (controller.isPlaying) {
-                    controller.pause()
+                if (controller.currentMediaItem == null) {
+                    val song = viewModel.currentPlayingSong.value
+                    lifecycleScope.launch {
+                        val currentQueue = viewModel.getCurrentQueue()
+                        if (song != null && currentQueue.isNotEmpty()) {
+                            val mediaItems = currentQueue.map { item ->
+                                MediaItem.Builder().setUri(item.path?.toUri())
+                                    .setMediaId(item.id ?: "").setMediaMetadata(
+                                        MediaMetadata.Builder().setTitle(item.title)
+                                            .setArtist(item.artist).setExtras(Bundle().apply {
+                                                putString("ALBUM_ID", item.albumId)
+                                                putString("CACHED_IMAGE_PATH", item.cachedImagePath)
+                                            }).build()
+                                    ).build()
+                            }
+                            val startIndex =
+                                currentQueue.indexOfFirst { it.path == song.path }.coerceAtLeast(0)
+                            controller.setMediaItems(mediaItems, startIndex, 0L)
+                            controller.prepare()
+                            controller.play()
+                        } else if (song != null) {
+                            val mediaItem = MediaItem.Builder().setUri(song.path?.toUri())
+                                .setMediaId(song.id ?: "").setMediaMetadata(
+                                    MediaMetadata.Builder().setTitle(song.title)
+                                        .setArtist(song.artist).setExtras(Bundle().apply {
+                                            putString("ALBUM_ID", song.albumId)
+                                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                                        }).build()
+                                ).build()
+                            controller.setMediaItem(mediaItem)
+                            controller.prepare()
+                            controller.play()
+                        }
+                        viewModel.updatePlaybackState(controller.isPlaying)
+                    }
                 } else {
-                    controller.play()
+                    if (controller.isPlaying) {
+                        controller.pause()
+                    } else {
+                        controller.play()
+                    }
+                    viewModel.updatePlaybackState(controller.isPlaying)
                 }
-                viewModel.updatePlaybackState(controller.isPlaying)
             }
         }
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.currentPlayingSong.collect { song ->
-                        song?.let {
-                            binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
-                            binding.name.text = it.title
-                            binding.artist.text = it.artist
-                        }
-                    }
-                }
-                launch {
-                    viewModel.isPlaying.collect { isPlaying ->
-                        updatePlayPauseAnimation(isPlaying)
-                    }
-                }
+        viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
+            song?.let {
+                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.name.text = it.safeTitle
+                binding.artist.text = it.safeArtist
             }
+        }
+
+        viewModel.isPlaying.collectWithLifecycle(viewLifecycleOwner) { isPlaying ->
+            updatePlayPauseAnimation(isPlaying)
         }
     }
 
     private fun updateUiFromPlayer(player: Player) {
         val currentMediaItem = player.currentMediaItem
         if (currentMediaItem != null) {
-            val title = currentMediaItem.mediaMetadata.title?.toString() ?: "Unknown Track"
-            val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: "Unknown Artist"
+            val title = currentMediaItem.mediaMetadata.title?.toString() ?: DATA.UNKNOWN
+            val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: DATA.UNKNOWN
             val path = currentMediaItem.localConfiguration?.uri?.path
             val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
             val cachedPath = currentMediaItem.mediaMetadata.extras?.getString("CACHED_IMAGE_PATH")
-
-            binding.name.text = title
-            binding.artist.text = artist
 
             viewModel.saveAndBroadcastNextSong(
                 MusicFiles(
@@ -131,6 +161,15 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             if (lastLoadedPath != path) {
                 lastLoadedPath = path
                 binding.albumArt.loadSongImage(albumId, path, cachedPath)
+                binding.name.text = title
+                binding.artist.text = artist
+            }
+        } else {
+            val song = viewModel.currentPlayingSong.value
+            song?.let {
+                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.name.text = it.safeTitle
+                binding.artist.text = it.safeArtist
             }
         }
         updatePlayPauseAnimation(player.isPlaying)
@@ -160,7 +199,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 mediaController?.let { updateUiFromPlayer(it) }
                 startProgressUpdater()
             },
-            MoreExecutors.directExecutor(),
+            ContextCompat.getMainExecutor(currentContext),
         )
     }
 
@@ -202,7 +241,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         if (isPlaying) startProgressUpdater() else stopProgressUpdater()
     }
 
-    override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         mediaController?.let { updateUiFromPlayer(it) }
     }
 

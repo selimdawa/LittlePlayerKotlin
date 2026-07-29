@@ -9,8 +9,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.flatcode.littleplayer.data.dao.AlbumImageDao
+import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
+import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
@@ -36,7 +38,8 @@ class MusicRepository @Inject constructor(
     @param:ApplicationContext val context: Context,
     private val dataStore: DataStore<Preferences>,
     private val songDao: SongDao,
-    private val albumImageDao: AlbumImageDao
+    private val albumImageDao: AlbumImageDao,
+    private val musicDao: MusicDao
 ) {
     private val sortingKey = stringPreferencesKey(DATA.SORTING)
 
@@ -60,19 +63,19 @@ class MusicRepository @Inject constructor(
 
             val imageMap = cachedImages.associateBy { it.albumName }
             sortedDbSongs.map { dbSong ->
-                    MusicFiles(
-                        path = dbSong.path,
-                        title = dbSong.title,
-                        artist = dbSong.artist,
-                        album = dbSong.album,
-                        duration = dbSong.duration.toString(),
-                        id = dbSong.id,
-                        albumId = dbSong.albumId,
-                        waveform = dbSong.waveform,
-                        playCount = dbSong.playCount,
-                        cachedImagePath = imageMap[dbSong.album ?: DATA.UNKNOWN]?.imagePath,
-                        dateAdded = dbSong.dateAdded
-                    )
+                MusicFiles(
+                    path = dbSong.path,
+                    title = dbSong.title,
+                    artist = dbSong.artist,
+                    album = dbSong.album,
+                    duration = dbSong.duration.toString(),
+                    id = dbSong.id,
+                    albumId = dbSong.albumId,
+                    waveform = dbSong.waveform,
+                    playCount = dbSong.playCount,
+                    cachedImagePath = imageMap[dbSong.album ?: DATA.UNKNOWN]?.imagePath,
+                    dateAdded = dbSong.dateAdded
+                )
             }
         }
     }
@@ -311,5 +314,37 @@ class MusicRepository @Inject constructor(
 
     fun updateCurrentPlaylist(songs: List<MusicFiles>) {
         _currentPlaylist.value = songs
+        CoroutineScope(Dispatchers.IO).launch {
+            musicDao.clearQueue()
+            val entities = songs.mapIndexed { index, song ->
+                CurrentQueueEntity(
+                    songId = song.id ?: "",
+                    title = song.title,
+                    artist = song.artist,
+                    album = song.album,
+                    albumId = song.albumId,
+                    duration = song.duration,
+                    path = song.path,
+                    cachedImagePath = song.cachedImagePath,
+                    orderIndex = index
+                )
+            }
+            musicDao.insertQueue(entities)
+        }
+    }
+
+    suspend fun loadCurrentQueue(): List<MusicFiles> = withContext(Dispatchers.IO) {
+        musicDao.getQueue().map {
+            MusicFiles(
+                id = it.songId,
+                title = it.title,
+                artist = it.artist,
+                album = it.album,
+                albumId = it.albumId,
+                duration = it.duration,
+                path = it.path,
+                cachedImagePath = it.cachedImagePath
+            )
+        }
     }
 }

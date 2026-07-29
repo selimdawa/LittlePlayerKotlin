@@ -15,4 +15,12 @@ object DATA {
     const val ARTISTS = "Artists"
     const val FOLDERS = "Folders"
     const val POSITION = "position"
+
+    // Media Keys
+    const val MUSIC_FILE = "STORED_MUSIC"
+    const val ARTIST_NAME = "ARTIST NAME"
+    const val SONG_NAME = "SONG NAME"
+    const val ALBUM_ID = "ALBUM ID"
+    const val CACHED_IMAGE_PATH = "CACHED_IMAGE_PATH"
+    const val LAST_POSITION = "LAST_POSITION"
 }

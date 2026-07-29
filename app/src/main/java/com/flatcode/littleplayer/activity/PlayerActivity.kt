@@ -300,6 +300,20 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 if (index in viewModel.listSongs.indices) {
                     viewModel.updatePositionAndSong(index)
                 }
+            } else if (intentPosition == -1 && controller.currentMediaItem == null && viewModel.position != -1) {
+                // Restore session to controller
+                val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
+                    val uri = song.path?.toUri() ?: "".toUri()
+                    val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
+                        .setExtras(Bundle().apply {
+                            putString("ALBUM_ID", song.albumId)
+                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                        }).build()
+                    MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
+                        .build()
+                }
+                controller.setMediaItems(mediaItems, viewModel.position, 0L)
+                controller.prepare()
             } else if (intentPosition != -1 && controller.currentMediaItem?.mediaId != viewModel.currentSong.value?.id) {
                 playCurrentSong()
             }
