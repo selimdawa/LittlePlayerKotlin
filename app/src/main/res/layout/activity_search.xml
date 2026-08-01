@@ -18,8 +18,22 @@
         android:layout_below="@id/customToolbar"
         android:paddingTop="10dp"
         android:clipToPadding="false"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:scrollbarThumbVertical="@drawable/fast_scrollbar_thumb"
+        android:scrollbarSize="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_music" />
+
+    <TextView
+        android:id="@+id/emptyState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/no_items_found"
+        android:textColor="@color/gray"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
     <include
         android:id="@+id/fragBottomPlayer"

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -43,12 +44,15 @@ class FoldersFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.folderFiles.collect { folderList ->
+                    binding.emptyState.isVisible = folderList.isEmpty()
                     if (folderList.isNotEmpty()) {
                         val arrayListFolders = ArrayList(folderList)
                         if (adapter == null) {
                             setupAdapter()
                         }
                         adapter?.updateList(arrayListFolders)
+                    } else {
+                        adapter?.updateList(ArrayList())
                     }
                 }
             }

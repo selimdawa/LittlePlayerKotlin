@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.flatcode.littleplayer.adapter.MusicAdapter
@@ -57,6 +58,7 @@ class SongsFragment : Fragment() {
             val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
             lastSortOrder = currentSortOrder
 
+            binding.emptyState.isVisible = files.isEmpty()
             musicAdapter?.submitList(files) {
                 if (shouldScrollToTop) {
                     binding.recyclerView.scrollToPosition(0)

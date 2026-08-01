@@ -58,6 +58,7 @@ class SearchActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.filteredMusicFiles.collectWithLifecycle(this) { songs ->
+            binding.emptyState.isVisible = songs.isEmpty()
             if (adapter == null) {
                 adapter = MusicAdapter(
                     this, onItemClick = { _, position ->

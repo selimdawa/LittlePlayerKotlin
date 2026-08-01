@@ -68,6 +68,7 @@ class PlaylistsActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.playlistNames.collect { names ->
+                        binding.emptyState.isVisible = names.isEmpty()
                         binding.recyclerView.adapter = PlaylistAdapter(names) { playlistName ->
                             launchActivity<PlaylistDetailsActivity> {
                                 putExtra("PLAYLIST_NAME", playlistName)

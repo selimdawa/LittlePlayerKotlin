@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -17,7 +18,6 @@ import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import me.zhanghai.android.fastscroll.FastScrollerBuilder
 
 @AndroidEntryPoint
 class ArtistsFragment : Fragment() {
@@ -44,12 +44,15 @@ class ArtistsFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.artistFiles.collect { artistList ->
+                    binding.emptyState.isVisible = artistList.isEmpty()
                     if (artistList.isNotEmpty()) {
                         val arrayListArtists = ArrayList(artistList)
                         if (adapter == null) {
                             setupAdapter()
                         }
                         adapter?.updateList(arrayListArtists)
+                    } else {
+                        adapter?.updateList(ArrayList())
                     }
                 }
             }
@@ -66,9 +69,6 @@ class ArtistsFragment : Fragment() {
             }
             adapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-
-            FastScrollerBuilder(binding.recyclerView).setPopupTextProvider(adapter as me.zhanghai.android.fastscroll.PopupTextProvider)
-                .build()
         }
         binding.recyclerView.adapter = adapter
     }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -49,12 +50,15 @@ class AlbumsFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.albumFiles.collect { albumList ->
+                    binding.emptyState.isVisible = albumList.isEmpty()
                     if (albumList.isNotEmpty()) {
                         val arrayListAlbums = ArrayList(albumList)
                         if (adapter == null) {
                             setupAdapter()
                         }
                         adapter?.updateList(arrayListAlbums)
+                    } else {
+                        adapter?.updateList(ArrayList())
                     }
                 }
             }

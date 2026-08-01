@@ -72,6 +72,12 @@ class MusicAdapter(
             holder.binding.songName.setTextColor(context.getLibraryColor("colorError"))
         }
 
+        if (position == itemCount - 1) {
+            holder.binding.bottomPadding.visible()
+        } else {
+            holder.binding.bottomPadding.gone()
+        }
+
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition)
         }

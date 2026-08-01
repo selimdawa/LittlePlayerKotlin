@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.activity
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFavoritesBinding
@@ -35,6 +36,7 @@ class FavoritesActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.favoriteSongs.collectWithLifecycle(this) { songs ->
+            binding.emptyState.isVisible = songs.isEmpty()
             if (songs.isNotEmpty()) {
                 if (adapter == null) {
                     adapter = MusicAdapter(this, onItemClick = { _, position ->
