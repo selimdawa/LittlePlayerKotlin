@@ -58,6 +58,8 @@ class MusicRepository @Inject constructor(
                 DATA.SORT_BY_NAME -> dbSongs.sortedBy { it.title.lowercase() }
                 DATA.SORT_BY_DATE -> dbSongs.sortedByDescending { it.dateAdded }
                 DATA.SORT_BY_PLAY_COUNT -> dbSongs.sortedByDescending { it.playCount }
+                DATA.SORT_BY_SIZE -> dbSongs.sortedByDescending { it.size }
+                DATA.SORT_BY_RELEASE_DATE -> dbSongs.sortedByDescending { it.year }
                 else -> dbSongs
             }
 
@@ -74,7 +76,9 @@ class MusicRepository @Inject constructor(
                     waveform = dbSong.waveform,
                     playCount = dbSong.playCount,
                     cachedImagePath = imageMap[dbSong.album ?: DATA.UNKNOWN]?.imagePath,
-                    dateAdded = dbSong.dateAdded
+                    dateAdded = dbSong.dateAdded,
+                    size = dbSong.size,
+                    year = dbSong.year
                 )
             }
         }
@@ -107,7 +111,9 @@ class MusicRepository @Inject constructor(
                                 playCount = dbSong.playCount,
                                 cachedImagePath = cachedImages[dbSong.album
                                     ?: DATA.UNKNOWN]?.imagePath,
-                                dateAdded = dbSong.dateAdded
+                                dateAdded = dbSong.dateAdded,
+                                size = dbSong.size,
+                                year = dbSong.year
                             )
                         )
                     }
@@ -116,6 +122,8 @@ class MusicRepository @Inject constructor(
                         DATA.SORT_BY_NAME -> tempAudioList.sortBy { it.title?.lowercase() }
                         DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortByDescending { it.playCount }
                         DATA.SORT_BY_DATE -> tempAudioList.sortByDescending { it.dateAdded }
+                        DATA.SORT_BY_SIZE -> tempAudioList.sortByDescending { it.size }
+                        DATA.SORT_BY_RELEASE_DATE -> tempAudioList.sortByDescending { it.year }
                     }
 
                     if (tempAudioList.isNotEmpty()) {
@@ -150,7 +158,9 @@ class MusicRepository @Inject constructor(
                     MediaStore.Audio.Media.ARTIST,
                     MediaStore.Audio.Media._ID,
                     MediaStore.Audio.Media.ALBUM_ID,
-                    MediaStore.Audio.Media.DATE_ADDED
+                    MediaStore.Audio.Media.DATE_ADDED,
+                    MediaStore.Audio.Media.SIZE,
+                    MediaStore.Audio.Media.YEAR
                 )
 
                 context.contentResolver.query(uri, projection, null, null, mediaStoreSortOrder)
@@ -167,6 +177,8 @@ class MusicRepository @Inject constructor(
                             cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
                         val dateAddedColumn =
                             cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+                        val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
+                        val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
 
                         while (cursor.moveToNext()) {
                             tempAudioList.add(
@@ -178,7 +190,9 @@ class MusicRepository @Inject constructor(
                                     duration = cursor.getLong(durationColumn).toString(),
                                     id = cursor.getString(idColumn) ?: "",
                                     albumId = cursor.getString(albumIdColumn) ?: "",
-                                    dateAdded = cursor.getLong(dateAddedColumn)
+                                    dateAdded = cursor.getLong(dateAddedColumn),
+                                    size = cursor.getLong(sizeColumn),
+                                    year = cursor.getInt(yearColumn)
                                 )
                             )
                         }
@@ -209,7 +223,9 @@ class MusicRepository @Inject constructor(
             MediaStore.Audio.Media.ARTIST,
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.ALBUM_ID,
-            MediaStore.Audio.Media.DATE_ADDED
+            MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.SIZE,
+            MediaStore.Audio.Media.YEAR
         )
 
         val cursor: Cursor? = context.contentResolver.query(uri, projection, null, null, null)
@@ -223,6 +239,8 @@ class MusicRepository @Inject constructor(
             val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val albumIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
             val dateAddedColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+            val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
+            val yearColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
 
             while (it.moveToNext()) {
                 val album = it.getString(albumColumn) ?: DATA.UNKNOWN
@@ -233,6 +251,8 @@ class MusicRepository @Inject constructor(
                 val id = it.getString(idColumn) ?: ""
                 val albumId = it.getString(albumIdColumn) ?: ""
                 val dateAdded = it.getLong(dateAddedColumn)
+                val size = it.getLong(sizeColumn)
+                val year = it.getInt(yearColumn)
 
                 songEntities.add(
                     com.flatcode.littleplayer.data.entity.SongEntity(
@@ -243,7 +263,9 @@ class MusicRepository @Inject constructor(
                         duration = duration,
                         path = path,
                         albumId = albumId,
-                        dateAdded = dateAdded
+                        dateAdded = dateAdded,
+                        size = size,
+                        year = year
                     )
                 )
             }

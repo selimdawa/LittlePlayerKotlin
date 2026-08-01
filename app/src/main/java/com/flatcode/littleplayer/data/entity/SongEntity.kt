@@ -15,5 +15,7 @@ data class SongEntity(
     val isFavorite: Boolean = false,
     val waveform: String? = null,
     val playCount: Int = 0,
-    val dateAdded: Long = 0
+    val dateAdded: Long = 0,
+    val size: Long = 0,
+    val year: Int = 0
 )
