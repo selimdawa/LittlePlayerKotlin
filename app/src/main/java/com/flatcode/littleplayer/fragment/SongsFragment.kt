@@ -18,6 +18,8 @@ import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
+import me.zhanghai.android.fastscroll.PopupTextProvider
 
 @AndroidEntryPoint
 class SongsFragment : Fragment() {
@@ -91,6 +93,8 @@ class SongsFragment : Fragment() {
                 }) { song ->
                 viewModel.deleteSong(song)
             }
+            FastScrollerBuilder(binding.recyclerView).setPopupTextProvider(musicAdapter as PopupTextProvider)
+                .build()
         }
         binding.recyclerView.adapter = musicAdapter
     }

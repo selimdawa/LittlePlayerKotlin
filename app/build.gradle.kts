@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.multiwave)                     //Multi Wave
     //Other's
     implementation(libs.androidx.datastore.preferences)          //New Preference
+    implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable
     //Memory Leaks
     //debugImplementation(libs.squareup.leakcanary.android)
 }

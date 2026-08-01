@@ -108,10 +108,4 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <View
-        android:id="@+id/bottomPadding"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:visibility="gone" />
-
 </LinearLayout>
