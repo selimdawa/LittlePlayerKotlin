@@ -15,11 +15,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
+import com.flatcode.littleplayer.utils.FastScrollerHelper
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import me.zhanghai.android.fastscroll.FastScrollerBuilder
-import me.zhanghai.android.fastscroll.PopupTextProvider
 
 @AndroidEntryPoint
 class ArtistsFragment : Fragment() {
@@ -72,8 +71,7 @@ class ArtistsFragment : Fragment() {
             adapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
-            FastScrollerBuilder(binding.recyclerView).setPopupTextProvider(adapter as PopupTextProvider)
-                .build()
+            FastScrollerHelper(binding.recyclerView, binding.fastScrollThumb, binding.fastScrollBubble)
         }
         binding.recyclerView.adapter = adapter
     }

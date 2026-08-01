@@ -17,14 +17,12 @@ import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.visible
-import me.zhanghai.android.fastscroll.PopupTextProvider
 
 class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit
-) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable,
-    PopupTextProvider {
+) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable {
 
     private var playingPath: String? = null
     private var isPlaying: Boolean = false
@@ -94,11 +92,6 @@ class MusicAdapter(
     }
 
     override fun getItemCount(): Int = currentList.size
-
-    override fun getPopupText(view: android.view.View, position: Int): CharSequence {
-        val title = getItem(position).title ?: ""
-        return if (title.isNotEmpty()) title.substring(0, 1).uppercase() else ""
-    }
 
     class MusicViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
 

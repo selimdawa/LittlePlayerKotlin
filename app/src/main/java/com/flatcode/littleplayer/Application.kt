@@ -3,6 +3,7 @@ package com.flatcode.littleplayer
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.graphics.Color
 import android.os.Build
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -10,12 +11,26 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import dagger.hilt.android.HiltAndroidApp
 import io.selimdawa.multicolors.MultiColorManager
+import io.selimdawa.multicolors.MultiColorTheme
+import io.selimdawa.multicolors.ThemeRegistry
 
 @HiltAndroidApp
 class Application : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+
+        //Test
+        /*
+        ThemeRegistry.register(MultiColorTheme.Dynamic("BLUE", "Ocean Blue", Color.BLUE))
+        ThemeRegistry.register(MultiColorTheme.Dynamic("RED", "Flaming Red", Color.RED))
+        ThemeRegistry.register(MultiColorTheme.Dynamic("GREEN", "Nature Green", Color.GREEN))
+        ThemeRegistry.register(MultiColorTheme.Dynamic("PURPLE", "Royal Purple", Color.parseColor("#9C27B0")))
+        ThemeRegistry.register(MultiColorTheme.Dynamic("ORANGE", "Sunset Orange", Color.parseColor("#FF9800")))
+        ThemeRegistry.register(MultiColorTheme.Dynamic("TEAL", "Teal Breeze", Color.parseColor("#009688")))
+        ThemeRegistry.register(MultiColorTheme.Dynamic("DARK_GRAY", "Midnight Gray", Color.DKGRAY))
+*/
+
         MultiColorManager.init(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

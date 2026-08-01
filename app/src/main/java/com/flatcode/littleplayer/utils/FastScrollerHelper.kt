@@ -1,0 +1,127 @@
+package com.flatcode.littleplayer.utils
+
+import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
+import android.view.MotionEvent
+import android.view.View
+import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+class FastScrollerHelper(
+    private val recyclerView: RecyclerView,
+    private val thumb: View,
+    private val bubble: TextView
+) {
+    private val hideHandler = Handler(Looper.getMainLooper())
+    private val hideRunnable = Runnable {
+        thumb.animate().alpha(0f).setDuration(300).withEndAction { 
+            thumb.visibility = View.INVISIBLE 
+        }.start()
+        bubble.visibility = View.GONE
+    }
+
+    init {
+        // Ensure initial state
+        thumb.visibility = View.INVISIBLE
+        thumb.alpha = 0f
+        bubble.visibility = View.GONE
+
+        setupScrollListener()
+        setupTouchListener()
+    }
+
+    private fun setupScrollListener() {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+                    showThumb()
+                    updateThumbPosition()
+                }
+            }
+        })
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupTouchListener() {
+        thumb.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                    val relativeY = event.rawY - getRecyclerViewTopOnScreen()
+                    scrollTo(relativeY)
+                    
+                    showThumb()
+                    updateThumbPosition()
+                    
+                    bubble.visibility = View.VISIBLE
+                    updateBubbleText()
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    bubble.visibility = View.GONE
+                    hideThumbDelayed()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun getRecyclerViewTopOnScreen(): Int {
+        val location = IntArray(2)
+        recyclerView.getLocationOnScreen(location)
+        return location[1]
+    }
+
+    private fun updateThumbPosition() {
+        val offset = recyclerView.computeVerticalScrollOffset()
+        val extent = recyclerView.computeVerticalScrollExtent()
+        val range = recyclerView.computeVerticalScrollRange()
+
+        if (range > extent) {
+            val percentage = offset.toFloat() / (range - extent).toFloat()
+            val availableHeight = recyclerView.height - thumb.height
+            val newY = (percentage * availableHeight).coerceIn(0f, availableHeight.toFloat())
+            thumb.translationY = newY
+            
+            // Sync bubble position to follow thumb center
+            val thumbCenter = newY + (thumb.height / 2)
+            val bubbleY = thumbCenter - (bubble.height / 2)
+            bubble.translationY = bubbleY.coerceIn(0f, (recyclerView.height - bubble.height).toFloat())
+        }
+    }
+
+    private fun showThumb() {
+        hideHandler.removeCallbacks(hideRunnable)
+        if (thumb.visibility != View.VISIBLE) {
+            thumb.visibility = View.VISIBLE
+            thumb.animate().alpha(1f).setDuration(150).start()
+        }
+        hideThumbDelayed()
+    }
+
+    private fun hideThumbDelayed() {
+        hideHandler.removeCallbacks(hideRunnable)
+        hideHandler.postDelayed(hideRunnable, 2000)
+    }
+
+    private fun scrollTo(y: Float) {
+        val percentage = (y / recyclerView.height).coerceIn(0f, 1f)
+        val itemCount = recyclerView.adapter?.itemCount ?: 0
+        if (itemCount > 0) {
+            val targetPos = (percentage * itemCount).toInt().coerceIn(0, itemCount - 1)
+            (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(targetPos, 0)
+        }
+    }
+
+    private fun updateBubbleText() {
+        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
+        val firstPos = layoutManager.findFirstVisibleItemPosition()
+        if (firstPos != RecyclerView.NO_POSITION) {
+            val adapter = recyclerView.adapter as? com.flatcode.littleplayer.adapter.ArtistAdapter
+            val text = adapter?.getPopupText(firstPos) ?: ""
+            bubble.text = text
+        }
+    }
+}
