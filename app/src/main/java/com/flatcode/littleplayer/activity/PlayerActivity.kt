@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.SeekBar
@@ -58,7 +59,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        amplituda = amplituda ?: Amplituda(this)
+        amplituda = Amplituda(this)
 
         getIntentMethod()
         setupListeners()
@@ -76,7 +77,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun finishWithAnimation() {
         finish()
-        overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(
+                OVERRIDE_TRANSITION_CLOSE, R.anim.slide_in_down, R.anim.slide_out_down
+            )
+        } else {
+            overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down)
+        }
     }
 
     private fun setupListeners() {

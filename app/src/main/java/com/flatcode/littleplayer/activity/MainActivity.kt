@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.activity
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -33,10 +34,9 @@ import com.flatcode.littleplayer.utils.loadSongImageByPath
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
-import com.google.android.material.card.MaterialCardView
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -76,8 +76,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startSearchActivity() {
         val intent = Intent(this, SearchActivity::class.java)
-        startActivity(intent)
-        overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
+        val options = ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_up, R.anim.slide_out_up)
+        startActivity(intent, options.toBundle())
     }
 
     private fun setupSearchSwitcher() {
@@ -91,19 +91,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.toolbar.searchTextSwitcher.inAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_in_up)
-        binding.toolbar.searchTextSwitcher.outAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_out_up)
+        binding.toolbar.searchTextSwitcher.inAnimation =
+            AnimationUtils.loadAnimation(this, R.anim.slide_in_up)
+        binding.toolbar.searchTextSwitcher.outAnimation =
+            AnimationUtils.loadAnimation(this, R.anim.slide_out_up)
         binding.toolbar.searchTextSwitcher.setText(getString(R.string.search))
 
         lifecycleScope.launch {
-            delay(5000)
+            delay(5.seconds)
             viewModel.filteredMusicFiles.collect { songs ->
                 if (songs.isNotEmpty()) {
                     var index = 0
                     while (true) {
                         binding.toolbar.searchTextSwitcher.setText(songs[index].title)
                         index = (index + 1) % songs.size
-                        delay(5000)
+                        delay(5.seconds)
                     }
                 }
             }
@@ -168,9 +170,20 @@ class MainActivity : AppCompatActivity() {
         }
         binding.viewPager.adapter = adapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
-            val tabView = LayoutInflater.from(this).inflate(R.layout.item_tab, null)
+            val tabView = LayoutInflater.from(this).inflate(R.layout.item_tab, binding.tabLayout, false)
             val title = tabView.findViewById<TextView>(R.id.tabTitle)
             title.text = adapter.getPageTitle(pos)
+
+            val container = tabView.findViewById<android.view.View>(R.id.tabContainer)
+            val params = container.layoutParams as android.view.ViewGroup.MarginLayoutParams
+            val density = resources.displayMetrics.density
+            val margin10 = (10 * density).toInt()
+            val margin5 = (5 * density).toInt()
+
+            params.marginStart = if (pos == 0) margin10 else margin5
+            params.marginEnd = if (pos == adapter.itemCount - 1) margin10 else margin5
+            container.layoutParams = params
+
             tab.customView = tabView
         }.attach()
     }

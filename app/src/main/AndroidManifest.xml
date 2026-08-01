@@ -51,7 +51,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.PlayerActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.PlayerActivity" />
         <activity
             android:name=".activity.AlbumDetailsActivity"
             android:screenOrientation="portrait" />

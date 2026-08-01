@@ -1,5 +1,20 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="ShapeAppearance.App.CircleImage" parent="">
         <item name="cornerSize">8dp</item>
+    </style>
+
+    <!-- Custom Activity Animations -->
+    <style name="ActivityAnimation.SlideUpDown" parent="android:Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_up</item>
+        <item name="android:activityOpenExitAnimation">@anim/slide_out_up</item>
+        <item name="android:activityCloseEnterAnimation">@anim/slide_in_down</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_down</item>
+    </style>
+
+    <!-- Theme for PlayerActivity with Slide Animations -->
+    <style name="Theme.PlayerActivity" parent="Theme.MC.One">
+        <item name="android:windowAnimationStyle">@style/ActivityAnimation.SlideUpDown</item>
+        <!-- Ensure the activity is fullscreen if needed, as seen in PlayerActivity.kt -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
     </style>
 </resources>

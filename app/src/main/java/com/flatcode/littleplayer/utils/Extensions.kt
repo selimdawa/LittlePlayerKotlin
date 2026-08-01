@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.util.UnstableApi
 import coil.load
 import coil.size.Scale
 import coil.transform.Transformation
@@ -68,12 +69,10 @@ interface PlaybackAnimatable {
 
 fun <T> List<T>.toArrayList(): ArrayList<T> = ArrayList(this)
 
+@UnstableApi
 fun Context.openPlayer(position: Int) {
     launchActivity<PlayerActivity> {
         putExtra(DATA.POSITION, position)
-    }
-    if (this is Activity) {
-        overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up)
     }
 }
 

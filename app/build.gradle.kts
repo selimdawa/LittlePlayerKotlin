@@ -51,9 +51,9 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
     implementation(libs.multicolors)                       //Theme Colors
+    implementation(libs.androidx.core.splashscreen)        //Splash Screen
     //Image
     implementation(libs.coil)                              //Coil Image
-    implementation(libs.androidx.core.splashscreen)        //Splash Screen
     implementation(libs.airbnb.lottie)                     //Animation
     implementation(libs.androidx.palette.ktx)              //Background Color
     //Lifecycle
@@ -81,7 +81,6 @@ dependencies {
     implementation(libs.multiwave)                     //Multi Wave
     //Other's
     implementation(libs.androidx.datastore.preferences)          //New Preference
-    implementation(libs.zhanghai.fastscroll)                     //Need New Style |From| Drawable
     //Memory Leaks
     //debugImplementation(libs.squareup.leakcanary.android)
 }
