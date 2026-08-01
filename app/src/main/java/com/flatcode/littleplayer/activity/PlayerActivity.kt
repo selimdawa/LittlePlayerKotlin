@@ -1,11 +1,12 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
+import android.content.res.ColorStateList
+import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.SeekBar
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
@@ -16,6 +17,10 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.palette.graphics.Palette
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.model.MusicFiles
@@ -64,15 +69,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         getIntentMethod()
         setupListeners()
         observeViewModel()
-        setupBackPressed()
-    }
-
-    private fun setupBackPressed() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                finishWithAnimation()
-            }
-        })
     }
 
     private fun finishWithAnimation() {
@@ -82,6 +78,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 OVERRIDE_TRANSITION_CLOSE, R.anim.slide_in_down, R.anim.slide_out_down
             )
         } else {
+            @Suppress("DEPRECATION")
             overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down)
         }
     }
@@ -160,6 +157,24 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.durationTotal.text = song.durationDuration.formatAsTime()
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
+
+        // Extract palette color
+        lifecycleScope.launch {
+            val request = ImageRequest.Builder(this@PlayerActivity)
+                .data(song.cachedImagePath ?: song.path)
+                .build()
+            val result = imageLoader.execute(request)
+            if (result is SuccessResult) {
+                val bitmap = (result.drawable as? BitmapDrawable)?.bitmap
+                bitmap?.let {
+                    Palette.from(it).generate { palette ->
+                        val dominantColor = palette?.getDominantColor(android.graphics.Color.GRAY)
+                            ?: android.graphics.Color.GRAY
+                        binding.image2.backgroundTintList = ColorStateList.valueOf(dominantColor)
+                    }
+                }
+            }
+        }
     }
 
     private fun loadWaveform(songId: String, path: String) {

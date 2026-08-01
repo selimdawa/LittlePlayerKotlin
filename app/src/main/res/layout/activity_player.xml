@@ -47,31 +47,25 @@
                 android:src="@drawable/ic_down"
                 app:tint="@color/white" />
 
-            <ImageView
+            <View
                 android:id="@+id/image1"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:layout_alignParentEnd="true"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="10dp"
-                android:clickable="true"
-                android:contentDescription="@null"
-                android:focusable="true"
-                android:src="@drawable/ic_down"
-                app:tint="@color/white" />
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="24dp"
+                android:background="@drawable/circle_solid"
+                android:backgroundTint="?mc_track" />
 
-            <ImageView
+            <View
                 android:id="@+id/image2"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="10dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
                 android:layout_toStartOf="@+id/image1"
-                android:clickable="true"
-                android:contentDescription="@null"
-                android:focusable="true"
-                android:src="@drawable/ic_down"
-                app:tint="@color/white" />
+                android:background="@drawable/circle_solid"
+                android:backgroundTint="@color/gray" />
 
         </RelativeLayout>
 
