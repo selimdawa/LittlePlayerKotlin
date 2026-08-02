@@ -83,9 +83,7 @@ class SongsFragment : Fragment() {
                 is MusicEvent.Error -> {
                     binding.root.snackbar(event.message)
                 }
-                is MusicEvent.PlaySong -> {
-                    requireContext().openPlayer(event.position)
-                }
+                else -> {}
             }
         }
     }

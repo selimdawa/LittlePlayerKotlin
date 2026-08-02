@@ -18,8 +18,6 @@ import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollerHelper
-import com.flatcode.littleplayer.utils.openPlayer
-import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -70,10 +68,8 @@ class ArtistsFragment : Fragment() {
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.event.collect { event ->
-                    if (event is MusicEvent.PlaySong) {
-                        requireContext().openPlayer(event.position)
-                    }
+                viewModel.event.collect { _ ->
+                    // Handle fragment-specific events if any
                 }
             }
         }

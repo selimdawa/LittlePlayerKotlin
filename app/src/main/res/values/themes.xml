@@ -17,4 +17,15 @@
         <!-- Ensure the activity is fullscreen if needed, as seen in PlayerActivity.kt -->
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
     </style>
+
+    <!-- Custom Alert Dialog -->
+    <style name="CustomAlertDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="CustomBottomSheetDialog" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 </resources>

@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.adapter
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
@@ -86,12 +87,22 @@ class MusicAdapter(
         }
 
         holder.binding.more.setOnClickListener {
-            val activity = context as? AppCompatActivity
-            activity?.let {
+            getAppCompatActivity(context)?.let { activity ->
                 val bottomSheet = SongOptionsBottomSheet(currentFile, onDeleteClick)
-                bottomSheet.show(it.supportFragmentManager, "SongOptionsBottomSheet")
+                bottomSheet.show(activity.supportFragmentManager, "SongOptionsBottomSheet")
             }
         }
+    }
+
+    private fun getAppCompatActivity(context: Context): AppCompatActivity? {
+        var currentContext = context
+        while (currentContext is ContextWrapper) {
+            if (currentContext is AppCompatActivity) {
+                return currentContext
+            }
+            currentContext = currentContext.baseContext
+        }
+        return null
     }
 
     override fun getItemCount(): Int = currentList.size
