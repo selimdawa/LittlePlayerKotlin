@@ -29,6 +29,14 @@ class ArtistAdapter(
         holder.binding.songsCount.text =
             if (artist.songsCount == 1) "1 song" else "${artist.songsCount} songs"
 
+        val params = holder.itemView.layoutParams as ViewGroup.MarginLayoutParams
+        params.bottomMargin = if (position == itemCount - 1) {
+            (95 * context.resources.displayMetrics.density).toInt()
+        } else {
+            (10 * context.resources.displayMetrics.density).toInt()
+        }
+        holder.itemView.layoutParams = params
+
         holder.itemView.setOnClickListener {
             onItemClick(artist.name)
         }

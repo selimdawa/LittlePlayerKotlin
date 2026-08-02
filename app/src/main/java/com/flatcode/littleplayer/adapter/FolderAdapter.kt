@@ -26,6 +26,14 @@ class FolderAdapter(
         holder.binding.folderName.text = folder.name
         holder.binding.folderDetails.text = "${folder.songsCount} songs | ${folder.path}"
 
+        val params = holder.itemView.layoutParams as ViewGroup.MarginLayoutParams
+        params.bottomMargin = if (position == itemCount - 1) {
+            (95 * context.resources.displayMetrics.density).toInt()
+        } else {
+            (10 * context.resources.displayMetrics.density).toInt()
+        }
+        holder.itemView.layoutParams = params
+
         holder.itemView.setOnClickListener {
             onItemClick(folder.name, folder.path)
         }
