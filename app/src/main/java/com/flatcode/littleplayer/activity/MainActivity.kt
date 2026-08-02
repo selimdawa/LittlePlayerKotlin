@@ -30,7 +30,9 @@ import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageByPath
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.tabs.TabLayoutMediator
@@ -39,6 +41,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
+@androidx.media3.common.util.UnstableApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -125,6 +128,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
+        viewModel.event.collectWithLifecycle(this) { event ->
+            if (event is MusicEvent.PlaySong) {
+                openPlayer(event.position)
+            }
+        }
+
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
             song?.let {

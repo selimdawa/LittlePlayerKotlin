@@ -46,9 +46,15 @@ class MusicRepository @Inject constructor(
     private val _currentPlaylist = MutableStateFlow<List<MusicFiles>>(emptyList())
     val currentPlaylist: StateFlow<List<MusicFiles>> = _currentPlaylist.asStateFlow()
 
-    val sortOrderFlow: Flow<String> = dataStore.data.map { preferences ->
-        preferences[sortingKey] ?: DATA.SORT_BY_DATE
+    fun getSortOrder(category: String): Flow<String> = dataStore.data.map { preferences ->
+        preferences[stringPreferencesKey(category)] ?: if (category == DATA.SONGS) DATA.SORT_BY_DATE else DATA.SORT_BY_NAME
     }.distinctUntilChanged()
+
+    suspend fun saveSortOrder(category: String, sortType: String) {
+        dataStore.edit { preferences ->
+            preferences[stringPreferencesKey(category)] = sortType
+        }
+    }
 
     fun getSongsFlow(sortOrder: String): Flow<List<MusicFiles>> {
         return combine(

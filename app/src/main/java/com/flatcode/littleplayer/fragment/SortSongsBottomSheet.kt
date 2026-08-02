@@ -12,7 +12,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.R as MaterialR
 
 class SortSongsBottomSheet(
-    private val currentSort: String?, private val onSortSelected: (String) -> Unit
+    private val category: String,
+    private val currentSort: String?,
+    private val onSortSelected: (String, String) -> Unit
 ) : BottomSheetDialogFragment() {
 
     private var _binding: DialogSortSongsBinding? = null
@@ -62,28 +64,34 @@ class SortSongsBottomSheet(
         }
 
         binding.sortByDate.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_DATE) onSortSelected(DATA.SORT_BY_DATE)
+            if (currentSort != DATA.SORT_BY_DATE) onSortSelected(category, DATA.SORT_BY_DATE)
             dismiss()
         }
 
         binding.sortByName.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_NAME) onSortSelected(DATA.SORT_BY_NAME)
+            if (currentSort != DATA.SORT_BY_NAME) onSortSelected(category, DATA.SORT_BY_NAME)
             dismiss()
         }
 
         binding.sortByPlayCount.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_PLAY_COUNT) onSortSelected(DATA.SORT_BY_PLAY_COUNT)
+            if (currentSort != DATA.SORT_BY_PLAY_COUNT) onSortSelected(category, DATA.SORT_BY_PLAY_COUNT)
             dismiss()
         }
 
         binding.sortByReleaseDate.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_RELEASE_DATE) onSortSelected(DATA.SORT_BY_RELEASE_DATE)
+            if (currentSort != DATA.SORT_BY_RELEASE_DATE) onSortSelected(category, DATA.SORT_BY_RELEASE_DATE)
             dismiss()
         }
 
         binding.sortBySize.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_SIZE) onSortSelected(DATA.SORT_BY_SIZE)
+            if (currentSort != DATA.SORT_BY_SIZE) onSortSelected(category, DATA.SORT_BY_SIZE)
             dismiss()
+        }
+
+        if (category == DATA.ALBUMS) {
+            binding.sortByPlayCount.visibility = View.GONE
+            binding.sortByReleaseDate.visibility = View.GONE
+            binding.sortBySize.visibility = View.GONE
         }
     }
 
