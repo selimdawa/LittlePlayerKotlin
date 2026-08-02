@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         setupSearchSwitcher()
 
         binding.toolbar.searchContainer.setOnClickListener { startSearchActivity() }
+        binding.toolbar.settings.setOnClickListener { launchActivity<SettingsActivity>() }
         binding.toolbar2.cardPlaylists.setOnClickListener { launchActivity<PlaylistsActivity>() }
         binding.toolbar2.cardFavourites.setOnClickListener { launchActivity<FavoritesActivity>() }
         binding.toolbar2.cardRecent.setOnClickListener { launchActivity<RecentActivity>() }
