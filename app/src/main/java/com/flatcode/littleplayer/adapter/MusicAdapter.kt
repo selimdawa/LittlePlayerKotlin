@@ -3,12 +3,13 @@ package com.flatcode.littleplayer.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.PopupMenu
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
+import com.flatcode.littleplayer.fragment.SongOptionsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
@@ -72,21 +73,23 @@ class MusicAdapter(
             holder.binding.songName.setTextColor(context.getLibraryColor("colorError"))
         }
 
+        val params = holder.itemView.layoutParams as ViewGroup.MarginLayoutParams
+        params.bottomMargin = if (position == itemCount - 1) {
+            (95 * context.resources.displayMetrics.density).toInt()
+        } else {
+            (10 * context.resources.displayMetrics.density).toInt()
+        }
+        holder.itemView.layoutParams = params
+
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition)
         }
 
-        holder.binding.more.setOnClickListener { v ->
-            val popupMenu = PopupMenu(context, v)
-            popupMenu.menuInflater.inflate(R.menu.popup, popupMenu.menu)
-            popupMenu.show()
-            popupMenu.setOnMenuItemClickListener { item ->
-                if (item.itemId == R.id.delete) {
-                    onDeleteClick(currentFile)
-                    true
-                } else {
-                    false
-                }
+        holder.binding.more.setOnClickListener {
+            val activity = context as? AppCompatActivity
+            activity?.let {
+                val bottomSheet = SongOptionsBottomSheet(currentFile, onDeleteClick)
+                bottomSheet.show(it.supportFragmentManager, "SongOptionsBottomSheet")
             }
         }
     }

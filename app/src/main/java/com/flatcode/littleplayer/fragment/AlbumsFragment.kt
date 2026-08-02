@@ -10,15 +10,20 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.AlbumAdapter
 import com.flatcode.littleplayer.databinding.FragmentAlbumsBinding
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.openPlayer
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@UnstableApi
 @AndroidEntryPoint
 class AlbumsFragment : Fragment() {
 
@@ -39,10 +44,14 @@ class AlbumsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.btnFilterSort.visibility = View.VISIBLE
         binding.toolbar.btnFilterSort.setOnClickListener {
-            val bottomSheet = SortSongsBottomSheet(viewModel.sortOrder.value) { sortType ->
-                viewModel.updateSortOrder(sortType)
+            val bottomSheet = SortSongsBottomSheet(DATA.ALBUMS, viewModel.albumsSortOrder.value) { category, sortType ->
+                viewModel.updateSortOrder(category, sortType)
             }
             bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
+        }
+
+        binding.toolbar.btnShuffle.setOnClickListener {
+            viewModel.smartShuffle(DATA.ALBUMS)
         }
 
         setupAdapter()
@@ -59,6 +68,16 @@ class AlbumsFragment : Fragment() {
                         adapter?.updateList(arrayListAlbums)
                     } else {
                         adapter?.updateList(ArrayList())
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.event.collect { event ->
+                    if (event is MusicEvent.PlaySong) {
+                        requireContext().openPlayer(event.position)
                     }
                 }
             }

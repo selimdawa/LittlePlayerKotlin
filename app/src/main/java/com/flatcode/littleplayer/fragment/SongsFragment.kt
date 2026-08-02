@@ -7,8 +7,10 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.observePlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
@@ -19,6 +21,7 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
 @AndroidEntryPoint
 class SongsFragment : Fragment() {
 
@@ -42,10 +45,14 @@ class SongsFragment : Fragment() {
         binding.toolbar.btnFilterSort.visible()
 
         binding.toolbar.btnFilterSort.setOnClickListener {
-            val bottomSheet = SortSongsBottomSheet(viewModel.sortOrder.value) { sortType ->
-                viewModel.updateSortOrder(sortType)
+            val bottomSheet = SortSongsBottomSheet(DATA.SONGS, viewModel.songsSortOrder.value) { category, sortType ->
+                viewModel.updateSortOrder(category, sortType)
             }
             bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
+        }
+
+        binding.toolbar.btnShuffle.setOnClickListener {
+            viewModel.smartShuffle(DATA.SONGS)
         }
 
         setupAdapter()
@@ -54,7 +61,7 @@ class SongsFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.filteredMusicFiles.collectWithLifecycle(viewLifecycleOwner) { files ->
-            val currentSortOrder = viewModel.sortOrder.value
+            val currentSortOrder = viewModel.songsSortOrder.value
             val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
             lastSortOrder = currentSortOrder
 
@@ -73,9 +80,11 @@ class SongsFragment : Fragment() {
                 is MusicEvent.SongDeleted -> {
                     binding.root.snackbar("File Deleted: ${event.song.title}")
                 }
-
                 is MusicEvent.Error -> {
                     binding.root.snackbar(event.message)
+                }
+                is MusicEvent.PlaySong -> {
+                    requireContext().openPlayer(event.position)
                 }
             }
         }

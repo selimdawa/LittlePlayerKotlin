@@ -10,16 +10,21 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollerHelper
+import com.flatcode.littleplayer.utils.openPlayer
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@UnstableApi
 @AndroidEntryPoint
 class ArtistsFragment : Fragment() {
 
@@ -40,6 +45,10 @@ class ArtistsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.btnFilterSort.visibility = View.GONE
 
+        binding.toolbar.btnShuffle.setOnClickListener {
+            viewModel.smartShuffle(DATA.ARTISTS)
+        }
+
         setupAdapter()
 
         lifecycleScope.launch {
@@ -54,6 +63,16 @@ class ArtistsFragment : Fragment() {
                         adapter?.updateList(arrayListArtists)
                     } else {
                         adapter?.updateList(ArrayList())
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.event.collect { event ->
+                    if (event is MusicEvent.PlaySong) {
+                        requireContext().openPlayer(event.position)
                     }
                 }
             }

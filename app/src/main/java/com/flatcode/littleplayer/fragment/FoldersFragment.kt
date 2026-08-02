@@ -10,15 +10,20 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.FolderAdapter
 import com.flatcode.littleplayer.databinding.FragmentFoldersBinding
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.openPlayer
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@UnstableApi
 @AndroidEntryPoint
 class FoldersFragment : Fragment() {
 
@@ -39,6 +44,10 @@ class FoldersFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.btnFilterSort.visibility = View.GONE
 
+        binding.toolbar.btnShuffle.setOnClickListener {
+            viewModel.smartShuffle(DATA.FOLDERS)
+        }
+
         setupAdapter()
 
         lifecycleScope.launch {
@@ -53,6 +62,16 @@ class FoldersFragment : Fragment() {
                         adapter?.updateList(arrayListFolders)
                     } else {
                         adapter?.updateList(ArrayList())
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.event.collect { event ->
+                    if (event is MusicEvent.PlaySong) {
+                        requireContext().openPlayer(event.position)
                     }
                 }
             }
