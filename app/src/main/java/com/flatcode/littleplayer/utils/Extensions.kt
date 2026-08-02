@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.utils
 
+import com.google.android.material.appbar.MaterialToolbar
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentResolver
@@ -7,23 +8,28 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.TypedValue
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.media3.common.Player
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import coil.load
 import coil.size.Scale
@@ -31,9 +37,6 @@ import coil.transform.Transformation
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
-import android.view.View
-import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -49,14 +52,14 @@ inline fun <reified T : Activity> Context.launchActivity(
 }
 
 fun Context.getColorFromAttr(attr: Int): Int {
-    val typedValue = android.util.TypedValue()
+    val typedValue = TypedValue()
     theme.resolveAttribute(attr, typedValue, true)
     return typedValue.data
 }
 
 fun Context.getLibraryColor(attrName: String): Int {
     val id = resources.getIdentifier(attrName, "attr", packageName)
-    return if (id != 0) getColorFromAttr(id) else android.graphics.Color.WHITE
+    return if (id != 0) getColorFromAttr(id) else Color.WHITE
 }
 
 fun <T> Flow<T>.collectWithLifecycle(
@@ -99,7 +102,7 @@ fun LifecycleOwner.observePlaybackSync(
 }
 
 fun AppCompatActivity.initToolbar(title: String? = null) {
-    findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.customToolbar)?.apply {
+    findViewById<MaterialToolbar>(R.id.customToolbar)?.apply {
         title?.let { this.title = it }
         setNavigationOnClickListener { finish() }
     }

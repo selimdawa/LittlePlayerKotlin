@@ -37,9 +37,10 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        val toolbar = findViewById<MaterialToolbar>(R.id.customToolbar)
-        toolbar.title = getString(R.string.playlists)
-        toolbar.setNavigationOnClickListener { finish() }
+        binding.customToolbar.root.apply {
+            title = getString(R.string.playlists)
+            setNavigationOnClickListener { finish() }
+        }
         binding.addPlaylist.setOnClickListener { showCreatePlaylistDialog() }
     }
 

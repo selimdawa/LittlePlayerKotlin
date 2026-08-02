@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.DiffUtil
@@ -38,7 +39,7 @@ class AlbumAdapter(
         )
 
         // Dynamic Bottom Margin for last item
-        val params = holder.itemView.layoutParams as ViewGroup.MarginLayoutParams
+        val params = holder.itemView.layoutParams as MarginLayoutParams
         params.bottomMargin = if (position == itemCount - 1) {
             (95 * context.resources.displayMetrics.density).toInt()
         } else {

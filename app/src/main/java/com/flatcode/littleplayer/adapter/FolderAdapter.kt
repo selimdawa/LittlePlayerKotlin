@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemFolderBinding
@@ -26,7 +27,7 @@ class FolderAdapter(
         holder.binding.folderName.text = folder.name
         holder.binding.folderDetails.text = "${folder.songsCount} songs | ${folder.path}"
 
-        val params = holder.itemView.layoutParams as ViewGroup.MarginLayoutParams
+        val params = holder.itemView.layoutParams as MarginLayoutParams
         params.bottomMargin = if (position == itemCount - 1) {
             (95 * context.resources.displayMetrics.density).toInt()
         } else {

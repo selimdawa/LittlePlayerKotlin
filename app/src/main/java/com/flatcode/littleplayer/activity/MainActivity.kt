@@ -6,8 +6,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.text.TextUtils.TruncateAt
 import android.view.Gravity
-import android.view.LayoutInflater
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
@@ -18,9 +19,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
+import com.flatcode.littleplayer.databinding.ItemTabBinding
 import com.flatcode.littleplayer.fragment.AlbumsFragment
 import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
@@ -41,7 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
-@androidx.media3.common.util.UnstableApi
+@UnstableApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -79,7 +82,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startSearchActivity() {
         val intent = Intent(this, SearchActivity::class.java)
-        val options = ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_up, R.anim.slide_out_up)
+        val options =
+            ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_up, R.anim.slide_out_up)
         startActivity(intent, options.toBundle())
     }
 
@@ -89,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER_VERTICAL
                 textSize = 14f
                 maxLines = 1
-                ellipsize = android.text.TextUtils.TruncateAt.END
+                ellipsize = TruncateAt.END
                 setTextColor(ContextCompat.getColor(this@MainActivity, R.color.gray))
             }
         }
@@ -179,21 +183,19 @@ class MainActivity : AppCompatActivity() {
         }
         binding.viewPager.adapter = adapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
-            val tabView = LayoutInflater.from(this).inflate(R.layout.item_tab, binding.tabLayout, false)
-            val title = tabView.findViewById<TextView>(R.id.tabTitle)
-            title.text = adapter.getPageTitle(pos)
+            val tabBinding = ItemTabBinding.inflate(layoutInflater, binding.tabLayout, false)
+            tabBinding.tabTitle.text = adapter.getPageTitle(pos)
 
-            val container = tabView.findViewById<android.view.View>(R.id.tabContainer)
-            val params = container.layoutParams as android.view.ViewGroup.MarginLayoutParams
             val density = resources.displayMetrics.density
+            val margin20 = (20 * density).toInt()
             val margin10 = (10 * density).toInt()
-            val margin5 = (5 * density).toInt()
 
-            params.marginStart = if (pos == 0) margin10 else margin5
-            params.marginEnd = if (pos == adapter.itemCount - 1) margin10 else margin5
-            container.layoutParams = params
+            val params = tabBinding.tabContainer.layoutParams as MarginLayoutParams
+            params.marginStart = if (pos == 0) margin20 else margin10
+            params.marginEnd = if (pos == adapter.itemCount - 1) margin20 else margin10
+            tabBinding.tabContainer.layoutParams = params
 
-            tab.customView = tabView
+            tab.customView = tabBinding.root
         }.attach()
     }
 

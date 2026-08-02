@@ -1,5 +1,7 @@
 package com.flatcode.littleplayer.activity
 
+import android.view.LayoutInflater
+import android.view.View
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -37,10 +39,9 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        val toolbar = findViewById<MaterialToolbar>(R.id.customToolbar)
-        toolbar.setNavigationOnClickListener { finish() }
+        binding.customToolbar.root.setNavigationOnClickListener { finish() }
 
-        val searchEditText = findViewById<EditText>(R.id.searchEditText)
+        val searchEditText = binding.customToolbar.searchEditText
         searchEditText.requestFocus()
         searchEditText.postDelayed({
             searchEditText.showKeyboard()

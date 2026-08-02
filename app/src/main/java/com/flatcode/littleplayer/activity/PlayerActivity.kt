@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.activity
 
+import android.graphics.Color
 import android.content.ComponentName
 import android.content.res.ColorStateList
 import android.graphics.drawable.BitmapDrawable
@@ -56,7 +57,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private lateinit var amplituda: Amplituda
-    private var currentDominantColor: Int = android.graphics.Color.GRAY
+    private var currentDominantColor: Int = Color.GRAY
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -179,8 +180,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 bitmap?.let {
                     Palette.from(it).generate { palette ->
                         currentDominantColor =
-                            palette?.getDominantColor(android.graphics.Color.GRAY)
-                                ?: android.graphics.Color.GRAY
+                            palette?.getDominantColor(Color.GRAY)
+                                ?: Color.GRAY
                         binding.paletteColor.setCardBackgroundColor(currentDominantColor)
                     }
                 }
