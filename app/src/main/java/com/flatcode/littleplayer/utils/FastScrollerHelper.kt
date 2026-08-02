@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.flatcode.littleplayer.adapter.ArtistAdapter
 
 class FastScrollerHelper(
     private val recyclerView: RecyclerView,
@@ -119,7 +120,7 @@ class FastScrollerHelper(
         val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
         val firstPos = layoutManager.findFirstVisibleItemPosition()
         if (firstPos != RecyclerView.NO_POSITION) {
-            val adapter = recyclerView.adapter as? com.flatcode.littleplayer.adapter.ArtistAdapter
+            val adapter = recyclerView.adapter as? ArtistAdapter
             val text = adapter?.getPopupText(firstPos) ?: ""
             bubble.text = text
         }

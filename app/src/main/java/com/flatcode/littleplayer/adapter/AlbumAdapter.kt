@@ -38,7 +38,6 @@ class AlbumAdapter(
             currentFile.albumId, 50, currentFile.path, currentFile.cachedImagePath
         )
 
-        // Dynamic Bottom Margin for last item
         val params = holder.itemView.layoutParams as MarginLayoutParams
         params.bottomMargin = if (position == itemCount - 1) {
             (95 * context.resources.displayMetrics.density).toInt()

@@ -1,11 +1,11 @@
 package com.flatcode.littleplayer.utils
 
-import com.google.android.material.appbar.MaterialToolbar
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -37,6 +37,7 @@ import coil.transform.Transformation
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -267,6 +268,17 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
         e.printStackTrace()
         null
     }
+}
+
+fun Context.getAppCompatActivity(): AppCompatActivity? {
+    var currentContext = this
+    while (currentContext is ContextWrapper) {
+        if (currentContext is AppCompatActivity) {
+            return currentContext
+        }
+        currentContext = currentContext.baseContext
+    }
+    return null
 }
 
 class SimpleBlurTransformation(private val radius: Float) : Transformation {

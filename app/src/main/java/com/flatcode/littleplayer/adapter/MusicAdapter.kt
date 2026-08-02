@@ -1,11 +1,9 @@
 package com.flatcode.littleplayer.adapter
 
 import android.content.Context
-import android.content.ContextWrapper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +13,7 @@ import com.flatcode.littleplayer.fragment.SongOptionsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
+import com.flatcode.littleplayer.utils.getAppCompatActivity
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -88,22 +87,11 @@ class MusicAdapter(
         }
 
         holder.binding.more.setOnClickListener {
-            getAppCompatActivity(context)?.let { activity ->
+            context.getAppCompatActivity()?.let { activity ->
                 val bottomSheet = SongOptionsBottomSheet(currentFile, onDeleteClick)
                 bottomSheet.show(activity.supportFragmentManager, "SongOptionsBottomSheet")
             }
         }
-    }
-
-    private fun getAppCompatActivity(context: Context): AppCompatActivity? {
-        var currentContext = context
-        while (currentContext is ContextWrapper) {
-            if (currentContext is AppCompatActivity) {
-                return currentContext
-            }
-            currentContext = currentContext.baseContext
-        }
-        return null
     }
 
     override fun getItemCount(): Int = currentList.size

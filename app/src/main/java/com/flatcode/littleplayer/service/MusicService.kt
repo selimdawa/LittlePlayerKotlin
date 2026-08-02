@@ -18,6 +18,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
@@ -254,7 +255,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                             val isFav = repository.isFavorite(songId)
                             if (isFav) {
                                 repository.deleteFavorite(
-                                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
+                                    FavoriteEntity(
                                         songId = songId,
                                         title = title,
                                         artist = artist,
@@ -265,7 +266,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                                 )
                             } else {
                                 repository.insertFavorite(
-                                    com.flatcode.littleplayer.data.entity.FavoriteEntity(
+                                    FavoriteEntity(
                                         songId = songId,
                                         title = title,
                                         artist = artist,

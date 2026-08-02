@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.repository
 
+import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
@@ -47,7 +48,8 @@ class MusicRepository @Inject constructor(
     val currentPlaylist: StateFlow<List<MusicFiles>> = _currentPlaylist.asStateFlow()
 
     fun getSortOrder(category: String): Flow<String> = dataStore.data.map { preferences ->
-        preferences[stringPreferencesKey(category)] ?: if (category == DATA.SONGS) DATA.SORT_BY_DATE else DATA.SORT_BY_NAME
+        preferences[stringPreferencesKey(category)]
+            ?: if (category == DATA.SONGS) DATA.SORT_BY_DATE else DATA.SORT_BY_NAME
     }.distinctUntilChanged()
 
     suspend fun saveSortOrder(category: String, sortType: String) {
@@ -329,9 +331,8 @@ class MusicRepository @Inject constructor(
     }
 
     fun getSongUri(songId: String): Uri {
-        return android.content.ContentUris.withAppendedId(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            songId.toLong()
+        return ContentUris.withAppendedId(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()
         )
     }
 
