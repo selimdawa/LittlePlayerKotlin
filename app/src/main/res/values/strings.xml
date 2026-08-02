@@ -38,4 +38,10 @@
     <string name="add_to_playlist">Add to Playlist</string>
     <string name="share">Share</string>
     <string name="song_options">Song Options</string>
+    <string name="appearance">Appearance</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="audio">Audio</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="library">Library</string>
+    <string name="rescan_media">Rescan Media</string>
 </resources>

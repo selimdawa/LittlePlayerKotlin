@@ -23,7 +23,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Appearance"
+                android:text="@string/appearance"
                 android:textColor="?attr/mc_track"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -55,7 +55,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Dark Mode"
+                            android:text="@string/dark_mode"
                             android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp" />
 
@@ -73,7 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Audio"
+                android:text="@string/audio"
                 android:textColor="?attr/mc_track"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -105,7 +105,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Equalizer"
+                            android:text="@string/equalizer"
                             android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp" />
 
@@ -124,7 +124,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Library"
+                android:text="@string/library"
                 android:textColor="?attr/mc_track"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -156,7 +156,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Rescan Media"
+                            android:text="@string/rescan_media"
                             android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp" />
                     </LinearLayout>

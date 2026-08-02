@@ -16,7 +16,7 @@
         android:clickable="false"
         android:focusable="false"
         android:gravity="center"
-        android:paddingHorizontal="15dp"
+        android:paddingHorizontal="@dimen/tab_padding_horizontal"
         android:textAllCaps="false"
         android:textColor="@color/color_tab_text_selector"
         android:textSize="14sp"
