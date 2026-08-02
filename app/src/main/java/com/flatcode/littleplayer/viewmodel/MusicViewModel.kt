@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.Artist
@@ -239,14 +240,14 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     fun deleteSong(song: MusicFiles) {
         viewModelScope.launch {
-            val success = repository.deleteMusicFile(song)
-            if (success) {
+            song.id?.let {
+                repository.deleteFromDatabase(it)
                 _event.emit(MusicEvent.SongDeleted(song))
-            } else {
-                _event.emit(MusicEvent.Error("Could not delete song"))
             }
         }
     }
+
+    fun getSongUri(songId: String): Uri = repository.getSongUri(songId)
 }
 
 sealed class MusicEvent {

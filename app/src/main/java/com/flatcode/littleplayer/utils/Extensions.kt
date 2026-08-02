@@ -1,16 +1,24 @@
 package com.flatcode.littleplayer.utils
 
 import android.app.Activity
+import android.app.RecoverableSecurityException
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.widget.ImageView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.media3.common.Player
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -211,6 +219,33 @@ fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -
         onStart()
     }
 }
+
+fun Fragment.requestDeletion(
+    uri: Uri,
+    launcher: ActivityLauncher,
+    onSuccess: () -> Unit
+) {
+    val resolver: ContentResolver = requireContext().contentResolver
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val pendingIntent = MediaStore.createDeleteRequest(resolver, listOf(uri))
+            val request = IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+            launcher.launch(request)
+        } else {
+            resolver.delete(uri, null, null)
+            onSuccess()
+        }
+    } catch (e: Exception) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && e is RecoverableSecurityException) {
+            val request = IntentSenderRequest.Builder(e.userAction.actionIntent.intentSender).build()
+            launcher.launch(request)
+        } else {
+            view?.snackbar("Error: ${e.message}")
+        }
+    }
+}
+
+typealias ActivityLauncher = ActivityResultLauncher<IntentSenderRequest>
 
 fun View.showKeyboard() {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
