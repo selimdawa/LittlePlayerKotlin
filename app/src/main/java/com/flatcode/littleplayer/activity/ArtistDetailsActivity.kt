@@ -28,7 +28,6 @@ class ArtistDetailsActivity : AppCompatActivity() {
         binding = ActivityArtistDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initToolbar()
         observeViewModel()
 
         val artistName = intent.extras?.getString("ARTIST_NAME")

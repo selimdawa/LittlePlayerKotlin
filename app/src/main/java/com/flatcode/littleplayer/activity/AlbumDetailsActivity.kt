@@ -31,7 +31,6 @@ class AlbumDetailsActivity : AppCompatActivity() {
         binding = ActivityAlbumDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initToolbar()
         observeViewModel()
 
         val albumName = intent.extras?.getString("ALBUM_NAME")

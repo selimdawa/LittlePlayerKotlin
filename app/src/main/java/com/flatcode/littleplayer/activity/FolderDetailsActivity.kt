@@ -28,7 +28,6 @@ class FolderDetailsActivity : AppCompatActivity() {
         binding = ActivityFolderDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initToolbar()
         observeViewModel()
 
         val folderPath = intent.extras?.getString("FOLDER_PATH")

@@ -6,16 +6,11 @@
     android:layout_height="match_parent"
     android:background="?colorOnBackground">
 
-    <include
-        android:id="@+id/customToolbar"
-        layout="@layout/toolbar_custom" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/fragBottomPlayer"
-        android:layout_below="@id/customToolbar"
         android:layout_marginHorizontal="5dp"
         android:layout_marginTop="10dp"
         android:scrollbars="vertical"
