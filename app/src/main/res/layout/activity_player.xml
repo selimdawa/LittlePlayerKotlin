@@ -47,25 +47,31 @@
                 android:src="@drawable/ic_down"
                 app:tint="@color/white" />
 
-            <View
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/basicColor"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="24dp"
-                android:background="@drawable/circle_solid"
-                android:backgroundTint="?mc_track" />
+                app:cardBackgroundColor="?mc_track"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/white"
+                app:strokeWidth="1dp" />
 
-            <View
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/paletteColor"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="8dp"
                 android:layout_toStartOf="@+id/basicColor"
-                android:background="@drawable/circle_solid"
-                android:backgroundTint="@color/gray" />
+                app:cardBackgroundColor="@color/gray"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/white"
+                app:strokeWidth="1dp" />
 
         </RelativeLayout>
 
