@@ -68,6 +68,25 @@
             android:name=".activity.SearchActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".activity.FavoritesActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".activity.RecentActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.PlaylistsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".activity.PlaylistDetailsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <service
             android:name=".service.MusicService"
@@ -80,22 +99,6 @@
             </intent-filter>
         </service>
 
-        <activity
-            android:name=".activity.FavoritesActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".activity.RecentActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".activity.PlaylistsActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".activity.PlaylistDetailsActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

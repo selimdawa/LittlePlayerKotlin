@@ -170,7 +170,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     Palette.from(it).generate { palette ->
                         val dominantColor = palette?.getDominantColor(android.graphics.Color.GRAY)
                             ?: android.graphics.Color.GRAY
-                        binding.image2.backgroundTintList = ColorStateList.valueOf(dominantColor)
+                        binding.paletteColor.backgroundTintList =
+                            ColorStateList.valueOf(dominantColor)
                     }
                 }
             }
