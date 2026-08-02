@@ -27,7 +27,6 @@ import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageByPath
@@ -36,9 +35,9 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -88,7 +87,7 @@ class MainActivity : AppCompatActivity() {
                 textSize = 14f
                 maxLines = 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
-                setTextColor(getLibraryColor("colorError"))
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.gray))
             }
         }
 

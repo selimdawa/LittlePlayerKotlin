@@ -104,6 +104,6 @@
         android:focusable="true"
         android:padding="2dp"
         android:src="@drawable/ic_more"
-        app:tint="?colorError" />
+        app:tint="@color/gray" />
 
 </LinearLayout>
