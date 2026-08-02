@@ -6,15 +6,15 @@
     android:layout_height="match_parent"
     android:background="?colorOnBackground">
 
-    <include
-        android:id="@+id/customToolbar"
-        layout="@layout/toolbar_custom" />
-
-    <FrameLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/layout_image_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/customToolbar">
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="10dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -27,27 +27,27 @@
                 android:contentDescription="@null"
                 android:scaleType="centerCrop"
                 android:src="@color/image_profile"
-                app:layout_constraintDimensionRatio="1.8:1"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="1.8:1"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/image"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:contentDescription="@null"
-                android:scaleType="centerCrop"
-                app:layout_constraintDimensionRatio="1.8:1"
-                app:layout_constraintTop_toTopOf="parent"
+                android:scaleType="fitCenter"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="1.8:1"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
