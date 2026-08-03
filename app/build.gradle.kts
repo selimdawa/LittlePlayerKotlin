@@ -48,7 +48,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     //Layout
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
     implementation(libs.multicolors)                       //Theme Colors
     implementation(libs.androidx.core.splashscreen)        //Splash Screen
@@ -81,6 +80,4 @@ dependencies {
     implementation(libs.multiwave)                     //Multi Wave
     //Other's
     implementation(libs.androidx.datastore.preferences)          //New Preference
-    //Memory Leaks
-    //debugImplementation(libs.squareup.leakcanary.android)
 }
