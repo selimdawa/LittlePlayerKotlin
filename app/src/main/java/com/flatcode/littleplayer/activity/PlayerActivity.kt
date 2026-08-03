@@ -32,6 +32,7 @@ import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.togglePlayPause
+import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -51,6 +52,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private lateinit var binding: ActivityPlayerBinding
 
     private val viewModel: PlayerViewModel by viewModels()
+    private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
 
     private var progressJob: Job? = null
     private var waveformJob: Job? = null
@@ -183,6 +185,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                             palette?.getDominantColor(Color.GRAY)
                                 ?: Color.GRAY
                         binding.paletteColor.setCardBackgroundColor(currentDominantColor)
+                        nowPlayerViewModel.updateThemeColor(currentDominantColor)
                     }
                 }
             }

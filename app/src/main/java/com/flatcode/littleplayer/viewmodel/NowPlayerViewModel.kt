@@ -28,6 +28,9 @@ class NowPlayerViewModel @Inject constructor(
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _currentThemeColor = MutableStateFlow<Int?>(null)
+    val currentThemeColor: StateFlow<Int?> = _currentThemeColor.asStateFlow()
+
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
@@ -63,6 +66,10 @@ class NowPlayerViewModel @Inject constructor(
 
     fun updatePlaybackState(playing: Boolean) {
         _isPlaying.value = playing
+    }
+
+    fun updateThemeColor(color: Int) {
+        _currentThemeColor.value = color
     }
 
     suspend fun getCurrentQueue(): List<MusicFiles> {
