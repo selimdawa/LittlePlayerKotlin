@@ -13,10 +13,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.PlaylistAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlaylistsBinding
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
-import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -52,38 +52,34 @@ class PlaylistsActivity : AppCompatActivity() {
         params.setMargins(48, 24, 48, 24)
         val editText = EditText(this)
         editText.layoutParams = params
-        editText.hint = "Playlist Name"
+        editText.hint = getString(R.string.playlist_name)
         container.addView(editText)
 
-        AlertDialog.Builder(this).setTitle("New Playlist").setView(container)
-            .setPositiveButton("Create") { _, _ ->
+        AlertDialog.Builder(this)
+            .setTitle(R.string.new_playlist)
+            .setView(container)
+            .setPositiveButton(R.string.create) { _, _ ->
                 val name = editText.text.toString()
                 if (name.isNotEmpty()) {
                     viewModel.createPlaylist(name)
                 }
-            }.setNegativeButton("Cancel", null).show()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.playlistNames.collect { names ->
-                        binding.emptyState.isVisible = names.isEmpty()
-                        binding.recyclerView.adapter = PlaylistAdapter(names) { playlistName ->
-                            launchActivity<PlaylistDetailsActivity> {
-                                putExtra("PLAYLIST_NAME", playlistName)
-                            }
-                        }
-                    }
-                }
-
-                launch {
-                    nowPlayerViewModel.currentPlayingSong.collect { song ->
-                        binding.fragBottomPlayer.root.isVisible = song != null
-                    }
+        viewModel.playlistNames.collectWithLifecycle(this) { names ->
+            binding.emptyState.isVisible = names.isEmpty()
+            binding.recyclerView.adapter = PlaylistAdapter(names) { playlistName ->
+                launchActivity<PlaylistDetailsActivity> {
+                    putExtra("PLAYLIST_NAME", playlistName)
                 }
             }
+        }
+
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+            binding.fragBottomPlayer.root.isVisible = song != null
         }
     }
 }

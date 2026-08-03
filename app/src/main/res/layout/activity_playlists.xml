@@ -16,22 +16,38 @@
         android:layout_height="match_parent"
         android:layout_above="@id/fragBottomPlayer"
         android:layout_below="@id/customToolbar"
+        android:clipToPadding="false"
+        android:paddingTop="16dp"
         android:scrollbars="vertical"
-        android:fadeScrollbars="false"
-        android:scrollbarThumbVertical="@drawable/fast_scrollbar_thumb"
-        android:scrollbarSize="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_folder" />
+        tools:listitem="@layout/item_playlist" />
 
-    <TextView
+    <LinearLayout
         android:id="@+id/emptyState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="@string/no_items_found"
-        android:textColor="@color/gray"
-        android:textSize="16sp"
-        android:visibility="gone" />
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:alpha="0.5"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_playlist"
+            app:tint="@color/gray" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/no_items_found"
+            android:textColor="@color/gray"
+            android:textSize="16sp" />
+
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addPlaylist"
@@ -41,8 +57,9 @@
         android:layout_alignParentEnd="true"
         android:layout_margin="24dp"
         android:contentDescription="@null"
-        android:src="@drawable/ic_check"
+        android:src="@drawable/ic_add"
         app:backgroundTint="?mc_track"
+        app:elevation="8dp"
         app:tint="@color/white" />
 
     <include

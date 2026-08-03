@@ -59,17 +59,21 @@ class PlaylistSelectionBottomSheet(
         params.setMargins(48, 24, 48, 24)
         val editText = EditText(context)
         editText.layoutParams = params
-        editText.hint = "Playlist Name"
+        editText.hint = getString(R.string.playlist_name)
         container.addView(editText)
 
-        AlertDialog.Builder(context).setTitle("New Playlist").setView(container)
-            .setPositiveButton("Create") { _, _ ->
+        AlertDialog.Builder(context)
+            .setTitle(R.string.new_playlist)
+            .setView(container)
+            .setPositiveButton(R.string.create) { _, _ ->
                 val name = editText.text.toString()
                 if (name.isNotEmpty()) {
                     viewModel.addToPlaylist(name, song)
                     dismiss()
                 }
-            }.setNegativeButton("Cancel", null).show()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     override fun getTheme(): Int = R.style.CustomBottomSheetDialog
