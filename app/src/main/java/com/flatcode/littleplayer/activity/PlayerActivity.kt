@@ -1,8 +1,8 @@
 package com.flatcode.littleplayer.activity
 
-import android.graphics.Color
 import android.content.ComponentName
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
@@ -60,6 +60,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var mediaController: MediaController? = null
     private lateinit var amplituda: Amplituda
     private var currentDominantColor: Int = Color.GRAY
+    private var isPaletteModeActive: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,16 +75,24 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         setupListeners()
         observeViewModel()
 
-        binding.basicColor.setOnClickListener { updateSeekBarColor(getLibraryColor("mc_track")) }
-        binding.paletteColor.setOnClickListener { updateSeekBarColor(currentDominantColor) }
+        binding.basicColor.setOnClickListener {
+            isPaletteModeActive = false
+            updatePlayerUIColors(getLibraryColor("mc_track"))
+        }
+        binding.paletteColor.setOnClickListener {
+            isPaletteModeActive = true
+            updatePlayerUIColors(currentDominantColor)
+        }
     }
 
-    private fun updateSeekBarColor(color: Int) {
+    private fun updatePlayerUIColors(color: Int) {
         val colorStateList = ColorStateList.valueOf(color)
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
         binding.seekBar.secondaryProgressTintList = colorStateList
         binding.seekBar.progressBackgroundTintList = colorStateList
+        binding.buttonPanel.playPauseBtn.backgroundTintList = colorStateList
+        binding.waveformSeekBar.waveProgressColor = color
     }
 
     private fun finishWithAnimation() {
@@ -93,8 +102,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 OVERRIDE_TRANSITION_CLOSE, R.anim.slide_in_down, R.anim.slide_out_down
             )
         } else {
-            @Suppress("DEPRECATION")
-            overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down)
+            @Suppress("DEPRECATION") overridePendingTransition(
+                R.anim.slide_in_down, R.anim.slide_out_down
+            )
         }
     }
 
@@ -174,22 +184,26 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
         // Extract palette color from the image being loaded
-        val request = ImageRequest.Builder(this)
-            .data(song.cachedImagePath ?: song.path)
+        val request = ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path)
             .allowHardware(false) // Required for Palette to work with Coil
             .target { result ->
                 val bitmap = (result as? BitmapDrawable)?.bitmap
                 bitmap?.let {
                     Palette.from(it).generate { palette ->
                         currentDominantColor =
-                            palette?.getDominantColor(Color.GRAY)
-                                ?: Color.GRAY
+                            palette?.getVibrantColor(Color.GRAY) ?: palette?.getLightVibrantColor(
+                                Color.GRAY
+                            ) ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+
                         binding.paletteColor.setCardBackgroundColor(currentDominantColor)
                         nowPlayerViewModel.updateThemeColor(currentDominantColor)
+
+                        if (isPaletteModeActive) {
+                            updatePlayerUIColors(currentDominantColor)
+                        }
                     }
                 }
-            }
-            .build()
+            }.build()
         imageLoader.enqueue(request)
     }
 
