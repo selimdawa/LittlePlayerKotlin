@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.core.app.ActivityOptionsCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -76,12 +78,12 @@ class FoldersFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = FolderAdapter(requireContext(), ArrayList()) { folderName, folderPath ->
-                val bundle = Bundle().apply {
-                    putString("FOLDER_NAME", folderName)
-                    putString("FOLDER_PATH", folderPath)
+            adapter = FolderAdapter(requireContext(), ArrayList()) { folderName, folderPath, _ ->
+                val intent = Intent(requireContext(), com.flatcode.littleplayer.activity.FolderDetailsActivity::class.java).apply {
+                    putExtra("FOLDER_NAME", folderName)
+                    putExtra("FOLDER_PATH", folderPath)
                 }
-                findNavController().navigate(R.id.folderDetailsActivity, bundle)
+                startActivity(intent)
             }
             adapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY

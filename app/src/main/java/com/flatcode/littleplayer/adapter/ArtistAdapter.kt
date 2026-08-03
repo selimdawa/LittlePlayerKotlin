@@ -12,7 +12,7 @@ import com.flatcode.littleplayer.model.Artist
 class ArtistAdapter(
     private val context: Context,
     private var artistList: ArrayList<Artist>,
-    private val onItemClick: (String) -> Unit
+    private val onItemClick: (String, android.view.View) -> Unit
 ) : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>() {
 
     class ArtistViewHolder(val binding: ItemArtistBinding) : RecyclerView.ViewHolder(binding.root)
@@ -37,7 +37,7 @@ class ArtistAdapter(
         holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
-            onItemClick(artist.name)
+            onItemClick(artist.name, holder.itemView) // Or an icon if artists had images
         }
     }
 

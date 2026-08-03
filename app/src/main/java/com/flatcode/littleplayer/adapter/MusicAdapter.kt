@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.recyclerview.widget.DiffUtil
@@ -22,7 +23,7 @@ import com.flatcode.littleplayer.utils.visible
 
 class MusicAdapter(
     private val context: Context,
-    private val onItemClick: (MusicFiles, Int) -> Unit,
+    private val onItemClick: (MusicFiles, Int, View) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit
 ) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable {
 
@@ -83,7 +84,7 @@ class MusicAdapter(
         holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
-            onItemClick(currentFile, holder.bindingAdapterPosition)
+            onItemClick(currentFile, holder.bindingAdapterPosition, holder.binding.image)
         }
 
         holder.binding.more.setOnClickListener {

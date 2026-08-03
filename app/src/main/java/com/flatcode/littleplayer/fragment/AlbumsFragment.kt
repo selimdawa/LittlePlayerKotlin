@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.core.app.ActivityOptionsCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -84,11 +86,14 @@ class AlbumsFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = AlbumAdapter(requireContext(), ArrayList()) { albumName: String ->
-                val bundle = Bundle().apply {
-                    putString("ALBUM_NAME", albumName)
+            adapter = AlbumAdapter(requireContext(), ArrayList()) { albumName, view ->
+                val intent = Intent(requireContext(), com.flatcode.littleplayer.activity.AlbumDetailsActivity::class.java).apply {
+                    putExtra("ALBUM_NAME", albumName)
                 }
-                findNavController().navigate(R.id.albumDetailsActivity, bundle)
+                val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                    requireActivity(), view, "album_image"
+                )
+                startActivity(intent, options.toBundle())
             }
             adapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY

@@ -12,7 +12,7 @@ import com.flatcode.littleplayer.model.Folder
 class FolderAdapter(
     private val context: Context,
     private var folderList: ArrayList<Folder>,
-    private val onItemClick: (String, String) -> Unit
+    private val onItemClick: (String, String, android.view.View) -> Unit
 ) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>() {
 
     class FolderViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
@@ -36,7 +36,7 @@ class FolderAdapter(
         holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
-            onItemClick(folder.name, folder.path)
+            onItemClick(folder.name, folder.path, holder.itemView)
         }
     }
 

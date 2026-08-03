@@ -16,7 +16,7 @@ import com.flatcode.littleplayer.utils.loadSongImageBlur
 class AlbumAdapter(
     private val context: Context,
     private var albumFiles: ArrayList<MusicFiles>,
-    private val onItemClick: (String) -> Unit
+    private val onItemClick: (String, android.view.View) -> Unit
 ) : RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>() {
 
     class AlbumViewHolder(val binding: ItemAlbumBinding) : RecyclerView.ViewHolder(binding.root)
@@ -47,7 +47,7 @@ class AlbumAdapter(
         holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
-            onItemClick(currentFile.album ?: "")
+            onItemClick(currentFile.album ?: "", holder.binding.image)
         }
     }
 

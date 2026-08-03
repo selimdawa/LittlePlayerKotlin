@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.core.app.ActivityOptionsCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -77,11 +79,11 @@ class ArtistsFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = ArtistAdapter(requireContext(), ArrayList()) { artistName ->
-                val bundle = Bundle().apply {
-                    putString("ARTIST_NAME", artistName)
+            adapter = ArtistAdapter(requireContext(), ArrayList()) { artistName, _ ->
+                val intent = Intent(requireContext(), com.flatcode.littleplayer.activity.ArtistDetailsActivity::class.java).apply {
+                    putExtra("ARTIST_NAME", artistName)
                 }
-                findNavController().navigate(R.id.artistDetailsActivity, bundle)
+                startActivity(intent)
             }
             adapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY

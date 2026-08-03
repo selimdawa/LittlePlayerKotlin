@@ -41,9 +41,9 @@ class FavoritesActivity : AppCompatActivity() {
             binding.emptyState.isVisible = songs.isEmpty()
             if (songs.isNotEmpty()) {
                 if (adapter == null) {
-                    adapter = MusicAdapter(this, onItemClick = { _, position ->
+                    adapter = MusicAdapter(this, onItemClick = { _, position, view ->
                         musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                        openPlayer(position)
+                        openPlayer(position, view)
                     }) { song ->
                         musicViewModel.deleteSong(song)
                     }

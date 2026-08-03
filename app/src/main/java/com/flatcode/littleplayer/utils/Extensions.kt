@@ -1,6 +1,8 @@
+@file:Suppress("SpellCheckingInspection")
 package com.flatcode.littleplayer.utils
 
 import android.annotation.SuppressLint
+import androidx.core.app.ActivityOptionsCompat
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentResolver
@@ -45,11 +47,12 @@ import java.io.File
 import kotlin.time.Duration
 
 inline fun <reified T : Activity> Context.launchActivity(
+    options: android.os.Bundle? = null,
     extras: Intent.() -> Unit = {}
 ) {
     val intent = Intent(this, T::class.java)
     intent.extras()
-    startActivity(intent)
+    startActivity(intent, options)
 }
 
 fun Context.getColorFromAttr(attr: Int): Int {
@@ -88,8 +91,15 @@ interface PlaybackAnimatable {
 }
 
 @UnstableApi
-fun Context.openPlayer(position: Int) {
-    launchActivity<PlayerActivity> {
+fun Context.openPlayer(position: Int, transitionView: View? = null) {
+    val options = transitionView?.let {
+        ActivityOptionsCompat.makeSceneTransitionAnimation(
+            this.getAppCompatActivity() ?: return@let null,
+            it,
+            "song_image"
+        ).toBundle()
+    }
+    launchActivity<PlayerActivity>(options) {
         putExtra(DATA.POSITION, position)
     }
 }
@@ -136,7 +146,7 @@ fun View.isVisible(show: Boolean) {
     visibility = if (show) View.VISIBLE else View.GONE
 }
 
-fun View.showSnack(message: String, duration: Int = Snackbar.LENGTH_LONG) {
+fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
     Snackbar.make(this, message, duration).show()
 }
 
@@ -244,7 +254,7 @@ fun Fragment.requestDeletion(
                 IntentSenderRequest.Builder(e.userAction.actionIntent.intentSender).build()
             launcher.launch(request)
         } else {
-            view?.showSnack("Error: ${e.message}")
+            view?.snackbar("Error: ${e.message}")
         }
     }
 }
