@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.viewmodel
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
@@ -31,11 +32,15 @@ class NowPlayerViewModel @Inject constructor(
     private val _currentThemeColor = MutableStateFlow<Int?>(null)
     val currentThemeColor: StateFlow<Int?> = _currentThemeColor.asStateFlow()
 
+    private val _isPaletteMode = MutableStateFlow(false)
+    val isPaletteMode: StateFlow<Boolean> = _isPaletteMode.asStateFlow()
+
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
+    private val paletteModeKey = booleanPreferencesKey(DATA.PALETTE_MODE)
 
     init {
         restoreSession()
@@ -60,6 +65,7 @@ class NowPlayerViewModel @Inject constructor(
                     )
                     _currentPlayingSong.value = song
                 }
+                _isPaletteMode.value = preferences[paletteModeKey] ?: false
             }
         }
     }
@@ -70,6 +76,15 @@ class NowPlayerViewModel @Inject constructor(
 
     fun updateThemeColor(color: Int) {
         _currentThemeColor.value = color
+    }
+
+    fun setPaletteMode(active: Boolean) {
+        _isPaletteMode.value = active
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[paletteModeKey] = active
+            }
+        }
     }
 
     suspend fun getCurrentQueue(): List<MusicFiles> {

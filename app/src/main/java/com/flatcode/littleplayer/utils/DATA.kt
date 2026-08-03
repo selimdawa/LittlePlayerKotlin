@@ -23,4 +23,5 @@ object DATA {
     const val ALBUM_ID = "ALBUM ID"
     const val CACHED_IMAGE_PATH = "CACHED_IMAGE_PATH"
     const val LAST_POSITION = "LAST_POSITION"
+    const val PALETTE_MODE = "PALETTE_MODE"
 }

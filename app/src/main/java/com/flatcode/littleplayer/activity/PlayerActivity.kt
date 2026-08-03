@@ -10,6 +10,7 @@ import android.view.WindowManager
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -65,6 +66,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+        }
 
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -76,12 +81,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         observeViewModel()
 
         binding.basicColor.setOnClickListener {
-            isPaletteModeActive = false
-            updatePlayerUIColors(getLibraryColor("mc_track"))
+            nowPlayerViewModel.setPaletteMode(false)
         }
         binding.paletteColor.setOnClickListener {
-            isPaletteModeActive = true
-            updatePlayerUIColors(currentDominantColor)
+            nowPlayerViewModel.setPaletteMode(true)
         }
     }
 
@@ -163,6 +166,15 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         viewModel.isFavorite.collectWithLifecycle(this) { isFavorite ->
             val icon = if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
             binding.buttonPanel.favorite.setImageResource(icon)
+        }
+
+        nowPlayerViewModel.isPaletteMode.collectWithLifecycle(this) { active ->
+            isPaletteModeActive = active
+            if (active) {
+                updatePlayerUIColors(currentDominantColor)
+            } else {
+                updatePlayerUIColors(getLibraryColor("mc_track"))
+            }
         }
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
