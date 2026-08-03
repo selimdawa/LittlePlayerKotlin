@@ -80,6 +80,9 @@
             android:name=".activity.SettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.EqualizerActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.PlaylistsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
