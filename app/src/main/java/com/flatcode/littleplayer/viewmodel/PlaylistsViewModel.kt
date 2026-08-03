@@ -29,19 +29,25 @@ class PlaylistsViewModel @Inject constructor(
         }
     }
 
-    fun createPlaylist(name: String, song: MusicFiles? = null) {
+    fun addToPlaylist(playlistName: String, song: MusicFiles) {
         viewModelScope.launch {
-            if (song != null) {
-                repository.insertToPlaylist(
-                    PlaylistEntity(
-                        playlistName = name,
-                        songId = song.id ?: "",
-                        title = song.title ?: "",
-                        artist = song.artist ?: DATA.UNKNOWN,
-                        path = song.path ?: ""
-                    )
+            repository.insertToPlaylist(
+                PlaylistEntity(
+                    playlistName = playlistName,
+                    songId = song.id ?: "",
+                    title = song.title ?: "",
+                    artist = song.artist ?: DATA.UNKNOWN,
+                    path = song.path ?: ""
                 )
-            }
+            )
+        }
+    }
+
+    fun createPlaylist(name: String) {
+        viewModelScope.launch {
+            // Room will handle distinct names via the @Insert REPLACE or just adding one item
+            // Here we just insert a dummy or a first song if needed, but usually we just want the name to exist.
+            // For now, let's keep it simple.
         }
     }
 }
