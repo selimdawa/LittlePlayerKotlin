@@ -4,10 +4,10 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.AlbumDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.loadCachedAlbumImage
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
@@ -17,6 +17,7 @@ import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
 @AndroidEntryPoint
 class AlbumDetailsActivity : AppCompatActivity() {
 

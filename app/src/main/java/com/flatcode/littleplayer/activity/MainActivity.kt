@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils.TruncateAt
 import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
 import android.widget.TextView
@@ -21,6 +20,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
 import com.flatcode.littleplayer.databinding.ItemTabBinding
@@ -44,7 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
-@androidx.media3.common.util.UnstableApi
+@UnstableApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 

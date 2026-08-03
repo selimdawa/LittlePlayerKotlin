@@ -42,7 +42,9 @@ class AlbumsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.btnFilterSort.visibility = View.VISIBLE
         binding.toolbar.btnFilterSort.setOnClickListener {
-            val bottomSheet = SortSongsBottomSheet(DATA.ALBUMS, viewModel.albumsSortOrder.value) { category, sortType ->
+            val bottomSheet = SortSongsBottomSheet(
+                DATA.ALBUMS, viewModel.albumsSortOrder.value
+            ) { category, sortType ->
                 viewModel.updateSortOrder(category, sortType)
             }
             bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")

@@ -42,8 +42,6 @@ class MusicRepository @Inject constructor(
     private val albumImageDao: AlbumImageDao,
     private val musicDao: MusicDao
 ) {
-    private val sortingKey = stringPreferencesKey(DATA.SORTING)
-
     private val _currentPlaylist = MutableStateFlow<List<MusicFiles>>(emptyList())
     val currentPlaylist: StateFlow<List<MusicFiles>> = _currentPlaylist.asStateFlow()
 
@@ -319,12 +317,6 @@ class MusicRepository @Inject constructor(
         }
     }
 
-
-    suspend fun saveSortOrder(sortType: String) {
-        dataStore.edit { preferences ->
-            preferences[sortingKey] = sortType
-        }
-    }
 
     suspend fun deleteFromDatabase(songId: String) {
         songDao.deleteSongById(songId)

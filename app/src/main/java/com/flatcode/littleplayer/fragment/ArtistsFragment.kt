@@ -86,7 +86,9 @@ class ArtistsFragment : Fragment() {
             adapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
-            FastScrollerHelper(binding.recyclerView, binding.fastScrollThumb, binding.fastScrollBubble)
+            FastScrollerHelper(
+                binding.recyclerView, binding.fastScrollThumb, binding.fastScrollBubble
+            )
         }
         binding.recyclerView.adapter = adapter
     }

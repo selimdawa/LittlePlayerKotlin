@@ -4,16 +4,17 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.observePlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.ArtistDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
 @AndroidEntryPoint
 class ArtistDetailsActivity : AppCompatActivity() {
 

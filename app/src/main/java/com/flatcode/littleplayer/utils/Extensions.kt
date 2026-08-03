@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.utils
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentResolver
@@ -17,7 +18,6 @@ import android.util.TypedValue
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
@@ -54,12 +54,20 @@ inline fun <reified T : Activity> Context.launchActivity(
 
 fun Context.getColorFromAttr(attr: Int): Int {
     val typedValue = TypedValue()
-    theme.resolveAttribute(attr, typedValue, true)
-    return typedValue.data
+    if (theme.resolveAttribute(attr, typedValue, true)) {
+        return typedValue.data
+    }
+    return Color.WHITE
 }
 
+@SuppressLint("DiscouragedApi")
 fun Context.getLibraryColor(attrName: String): Int {
-    val id = resources.getIdentifier(attrName, "attr", packageName)
+    var id = resources.getIdentifier(attrName, "attr", packageName)
+
+    if (id == 0) {
+        id = resources.getIdentifier(attrName, "attr", "android")
+    }
+
     return if (id != 0) getColorFromAttr(id) else Color.WHITE
 }
 
@@ -79,8 +87,6 @@ interface PlaybackAnimatable {
     fun updatePlaybackState(path: String?, isPlaying: Boolean)
 }
 
-fun <T> List<T>.toArrayList(): ArrayList<T> = ArrayList(this)
-
 @UnstableApi
 fun Context.openPlayer(position: Int) {
     launchActivity<PlayerActivity> {
@@ -98,7 +104,9 @@ fun LifecycleOwner.observePlaybackSync(
         adapterProvider()?.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
     }
     nowPlayerViewModel.isPlaying.collectWithLifecycle(this) { isPlaying ->
-        adapterProvider()?.updatePlaybackState(nowPlayerViewModel.currentPlayingSong.value?.path, isPlaying)
+        adapterProvider()?.updatePlaybackState(
+            nowPlayerViewModel.currentPlayingSong.value?.path, isPlaying
+        )
     }
 }
 
@@ -109,13 +117,6 @@ fun AppCompatActivity.initToolbar(title: String? = null) {
     }
 }
 
-fun Long.formatAsTime(): String {
-    val totalSeconds = this / 1000
-    val seconds = (totalSeconds % 60).toString()
-    val minutes = (totalSeconds / 60).toString()
-    return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
-}
-
 fun Duration.formatAsTime(): String {
     val totalSeconds = this.inWholeSeconds
     val seconds = (totalSeconds % 60).toString()
@@ -123,19 +124,19 @@ fun Duration.formatAsTime(): String {
     return if (seconds.length == 1) "$minutes:0$seconds" else "$minutes:$seconds"
 }
 
-fun View.visible() { visibility = View.VISIBLE }
-fun View.gone() { visibility = View.GONE }
-fun View.invisible() { visibility = View.INVISIBLE }
+fun View.visible() {
+    visibility = View.VISIBLE
+}
+
+fun View.gone() {
+    visibility = View.GONE
+}
 
 fun View.isVisible(show: Boolean) {
     visibility = if (show) View.VISIBLE else View.GONE
 }
 
-fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, message, duration).show()
-}
-
-fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
+fun View.showSnack(message: String, duration: Int = Snackbar.LENGTH_LONG) {
     Snackbar.make(this, message, duration).show()
 }
 
@@ -225,9 +226,7 @@ fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -
 }
 
 fun Fragment.requestDeletion(
-    uri: Uri,
-    launcher: ActivityLauncher,
-    onSuccess: () -> Unit
+    uri: Uri, launcher: ActivityLauncher, onSuccess: () -> Unit
 ) {
     val resolver: ContentResolver = requireContext().contentResolver
     try {
@@ -241,10 +240,11 @@ fun Fragment.requestDeletion(
         }
     } catch (e: Exception) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && e is RecoverableSecurityException) {
-            val request = IntentSenderRequest.Builder(e.userAction.actionIntent.intentSender).build()
+            val request =
+                IntentSenderRequest.Builder(e.userAction.actionIntent.intentSender).build()
             launcher.launch(request)
         } else {
-            view?.snackbar("Error: ${e.message}")
+            view?.showSnack("Error: ${e.message}")
         }
     }
 }

@@ -14,7 +14,7 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.observePlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
-import com.flatcode.littleplayer.utils.snackbar
+import com.flatcode.littleplayer.utils.showSnack
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -78,10 +78,10 @@ class SongsFragment : Fragment() {
         viewModel.event.collectWithLifecycle(viewLifecycleOwner) { event ->
             when (event) {
                 is MusicEvent.SongDeleted -> {
-                    binding.root.snackbar("File Deleted: ${event.song.title}")
+                    binding.root.showSnack("File Deleted: ${event.song.title}")
                 }
                 is MusicEvent.Error -> {
-                    binding.root.snackbar(event.message)
+                    binding.root.showSnack(event.message)
                 }
                 else -> {}
             }

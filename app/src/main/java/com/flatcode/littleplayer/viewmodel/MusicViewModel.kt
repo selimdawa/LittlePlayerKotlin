@@ -18,10 +18,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -49,12 +47,6 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     private val _albumsSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
     val albumsSortOrder: StateFlow<String> = _albumsSortOrder.asStateFlow()
 
-    private val _artistSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
-    val artistSortOrder: StateFlow<String> = _artistSortOrder.asStateFlow()
-
-    private val _folderSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
-    val folderSortOrder: StateFlow<String> = _folderSortOrder.asStateFlow()
-
     private val _event = MutableSharedFlow<MusicEvent>()
     val event: SharedFlow<MusicEvent> = _event.asSharedFlow()
 
@@ -65,17 +57,11 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         viewModelScope.launch {
             repository.getSortOrder(DATA.ALBUMS).collect { _albumsSortOrder.value = it }
         }
-        viewModelScope.launch {
-            repository.getSortOrder(DATA.ARTISTS).collect { _artistSortOrder.value = it }
-        }
-        viewModelScope.launch {
-            repository.getSortOrder(DATA.FOLDERS).collect { _folderSortOrder.value = it }
-        }
 
         viewModelScope.launch {
             combine(
                 repository.getSongsFlow(DATA.SORT_BY_DATE), _searchQuery
-            ) { songs, query -> songs }.collect { songs ->
+            ) { songs, _ -> songs }.collect { songs ->
                 processAuxiliaryLists(songs)
             }
         }
@@ -94,9 +80,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     private fun processAuxiliaryLists(allAudio: List<MusicFiles>) {
         viewModelScope.launch {
-            combine(_albumsSortOrder, _artistSortOrder, _folderSortOrder) { alSort, arSort, foSort ->
-                Triple(alSort, arSort, foSort)
-            }.collect { (alSort, arSort, foSort) ->
+            _albumsSortOrder.collect { alSort ->
                 val uniqueAlbums = ArrayList<MusicFiles>()
                 val duplicates = HashSet<String>()
 
@@ -114,8 +98,8 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
                     else -> uniqueAlbums
                 }
 
-                generateFolderList(allAudio, foSort)
-                generateArtistList(allAudio, arSort)
+                generateFolderList(allAudio)
+                generateArtistList(allAudio)
             }
         }
 
@@ -130,7 +114,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }
 
-    private fun generateFolderList(songsList: List<MusicFiles>, sortOrder: String) {
+    private fun generateFolderList(songsList: List<MusicFiles>) {
         val foldersMap = HashMap<String, Triple<String, Int, MusicFiles?>>()
 
         for (song in songsList) {
@@ -162,13 +146,10 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             )
         }
 
-        _folderFiles.value = when (sortOrder) {
-            DATA.SORT_BY_NAME -> foldersList.sortedBy { it.name.lowercase() }
-            else -> foldersList.sortedBy { it.name.lowercase() }
-        }
+        _folderFiles.value = foldersList.sortedBy { it.name.lowercase() }
     }
 
-    private fun generateArtistList(songsList: List<MusicFiles>, sortOrder: String) {
+    private fun generateArtistList(songsList: List<MusicFiles>) {
         val artistsMap = HashMap<String, Pair<Int, MusicFiles?>>()
 
         for (song in songsList) {
@@ -190,10 +171,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             )
         }
 
-        _artistFiles.value = when (sortOrder) {
-            DATA.SORT_BY_NAME -> artistsList.sortedBy { it.name.lowercase() }
-            else -> artistsList.sortedBy { it.name.lowercase() }
-        }
+        _artistFiles.value = artistsList.sortedBy { it.name.lowercase() }
     }
 
     fun filterSongs(query: String) {
@@ -208,7 +186,6 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     fun smartShuffle(category: String) {
         viewModelScope.launch {
-            // Use the full list for category-based shuffling to avoid being restricted by search
             val fullList = repository.getAllAudio(DATA.SORT_BY_DATE)
             val songs = when (category) {
                 DATA.SONGS -> fullList.shuffled()
@@ -216,14 +193,17 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
                     val album = _albumFiles.value.randomOrNull()?.album
                     fullList.filter { it.album == album }
                 }
+
                 DATA.ARTISTS -> {
                     val artist = _artistFiles.value.randomOrNull()?.name
                     fullList.filter { it.artist == artist }
                 }
+
                 DATA.FOLDERS -> {
                     val folder = _folderFiles.value.randomOrNull()?.path
                     fullList.filter { it.path?.startsWith(folder ?: "") == true }
                 }
+
                 else -> emptyList()
             }
 
