@@ -46,7 +46,8 @@ class SongOptionsBottomSheet(
         binding.dialogTitle.text = song.title
 
         binding.optionAddToPlaylist.setOnClickListener {
-            // TODO: Logic for adding to playlist
+            val playlistSheet = PlaylistSelectionBottomSheet(song)
+            playlistSheet.show(parentFragmentManager, "PlaylistSelectionBottomSheet")
             dismiss()
         }
 

@@ -14,7 +14,7 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.observePlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
-import com.flatcode.littleplayer.utils.showSnack
+import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -45,7 +45,9 @@ class SongsFragment : Fragment() {
         binding.toolbar.btnFilterSort.visible()
 
         binding.toolbar.btnFilterSort.setOnClickListener {
-            val bottomSheet = SortSongsBottomSheet(DATA.SONGS, viewModel.songsSortOrder.value) { category, sortType ->
+            val bottomSheet = SortSongsBottomSheet(
+                DATA.SONGS, viewModel.songsSortOrder.value
+            ) { category, sortType ->
                 viewModel.updateSortOrder(category, sortType)
             }
             bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
@@ -78,11 +80,13 @@ class SongsFragment : Fragment() {
         viewModel.event.collectWithLifecycle(viewLifecycleOwner) { event ->
             when (event) {
                 is MusicEvent.SongDeleted -> {
-                    binding.root.showSnack("File Deleted: ${event.song.title}")
+                    binding.root.snackbar("File Deleted: ${event.song.title}")
                 }
+
                 is MusicEvent.Error -> {
-                    binding.root.showSnack(event.message)
+                    binding.root.snackbar(event.message)
                 }
+
                 else -> {}
             }
         }
@@ -91,10 +95,10 @@ class SongsFragment : Fragment() {
     private fun setupAdapter() {
         if (musicAdapter == null) {
             musicAdapter = MusicAdapter(
-                requireContext(), onItemClick = { _, position ->
+                requireContext(), onItemClick = { _, position, view ->
                     val currentFiles = musicAdapter?.currentList ?: return@MusicAdapter
                     viewModel.updateCurrentPlaylist(ArrayList(currentFiles))
-                    requireContext().openPlayer(position)
+                    requireContext().openPlayer(position, view)
                 }) { song ->
                 viewModel.deleteSong(song)
             }

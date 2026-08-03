@@ -6,16 +6,17 @@ import android.text.TextWatcher
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivitySearchBinding
-import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
 @AndroidEntryPoint
 class SearchActivity : AppCompatActivity() {
 
@@ -57,11 +58,9 @@ class SearchActivity : AppCompatActivity() {
             binding.emptyState.isVisible = songs.isEmpty()
             if (adapter == null) {
                 adapter = MusicAdapter(
-                    this, onItemClick = { _, position ->
+                    this, onItemClick = { _, position, view ->
                         viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                        launchActivity<PlayerActivity> {
-                            putExtra(DATA.POSITION, position)
-                        }
+                        openPlayer(position, view)
                     }) { song ->
                     viewModel.deleteSong(song)
                 }

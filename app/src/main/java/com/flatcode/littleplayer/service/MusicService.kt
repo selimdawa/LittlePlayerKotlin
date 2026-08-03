@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.service
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -48,10 +49,11 @@ class MusicService : MediaSessionService(), Player.Listener {
     var exoPlayer: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
 
-    var musicFiles = ArrayList<MusicFiles>()
     var position = -1
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var sleepTimer: CountDownTimer? = null
+    private var equalizer: android.media.audiofx.Equalizer? = null
 
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
@@ -73,6 +75,13 @@ class MusicService : MediaSessionService(), Player.Listener {
         exoPlayer?.let { player ->
             mediaSession =
                 MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
+            
+            // Initialize Equalizer
+            try {
+                equalizer = android.media.audiofx.Equalizer(0, player.audioSessionId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -100,7 +109,6 @@ class MusicService : MediaSessionService(), Player.Listener {
         val currentIndex = player.currentMediaItemIndex
 
         serviceScope.launch(Dispatchers.IO) {
-            // Add to Recent
             repository.insertRecent(
                 RecentEntity(
                     songId = songId,
@@ -113,7 +121,6 @@ class MusicService : MediaSessionService(), Player.Listener {
                 )
             )
 
-            // Save to DataStore
             dataStore.edit { preferences ->
                 preferences[musicFileKey] = path
                 preferences[artistNameKey] = artist
@@ -162,7 +169,6 @@ class MusicService : MediaSessionService(), Player.Listener {
                 loadArtForCurrentItem(it)
             }
 
-            // Increment play count
             val currentId = it.currentMediaItem?.mediaId
             if (currentId != null) {
                 serviceScope.launch {
@@ -249,7 +255,6 @@ class MusicService : MediaSessionService(), Player.Listener {
                         val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: ""
                         val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
                         val path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
-                        val duration = musicFiles.find { it.id == songId }?.duration
 
                         serviceScope.launch {
                             val isFav = repository.isFavorite(songId)
@@ -260,7 +265,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                                         title = title,
                                         artist = artist,
                                         album = album,
-                                        duration = duration,
+                                        duration = null,
                                         path = path
                                     )
                                 )
@@ -271,7 +276,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                                         title = title,
                                         artist = artist,
                                         album = album,
-                                        duration = duration,
+                                        duration = null,
                                         path = path
                                     )
                                 )
@@ -301,9 +306,37 @@ class MusicService : MediaSessionService(), Player.Listener {
                     }
                     updateNotificationLayout()
                 }
+
+                COMMAND_SET_SLEEP_TIMER -> {
+                    val minutes = args.getInt("MINUTES", 0)
+                    startSleepTimer(minutes)
+                }
+
+                COMMAND_SET_EQ_BAND -> {
+                    val band = args.getShort("BAND", 0)
+                    val level = args.getShort("LEVEL", 0)
+                    equalizer?.setBandLevel(band, level)
+                }
+
+                COMMAND_TOGGLE_EQ -> {
+                    val enabled = args.getBoolean("ENABLED", false)
+                    equalizer?.enabled = enabled
+                }
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
+    }
+
+    private fun startSleepTimer(minutes: Int) {
+        sleepTimer?.cancel()
+        if (minutes <= 0) return
+
+        sleepTimer = object : CountDownTimer(minutes * 60 * 1000L, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+            override fun onFinish() {
+                exoPlayer?.pause()
+            }
+        }.start()
     }
 
     override fun onDestroy() {
@@ -320,5 +353,8 @@ class MusicService : MediaSessionService(), Player.Listener {
     companion object {
         const val COMMAND_FAVORITE = "COMMAND_FAVORITE"
         const val COMMAND_PLAYBACK_CYCLE = "COMMAND_PLAYBACK_CYCLE"
+        const val COMMAND_SET_SLEEP_TIMER = "COMMAND_SET_SLEEP_TIMER"
+        const val COMMAND_SET_EQ_BAND = "COMMAND_SET_EQ_BAND"
+        const val COMMAND_TOGGLE_EQ = "COMMAND_TOGGLE_EQ"
     }
 }
