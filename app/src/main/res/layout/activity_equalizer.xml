@@ -30,28 +30,20 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.card.MaterialCardView
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchEq"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1.5dp"
-            app:contentPadding="2dp">
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switchEq"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:scaleX="0.75"
-                android:scaleY="0.75"
-                app:thumbTint="?attr/mc_track"
-                app:trackTint="@android:color/transparent" />
-
-        </com.google.android.material.card.MaterialCardView>
+            android:checked="false"
+            android:splitTrack="false"
+            android:thumb="@drawable/switch_thumb_custom"
+            app:showText="false"
+            app:switchMinWidth="48dp"
+            app:thumbTint="?attr/mc_track"
+            app:track="@drawable/switch_track_custom"
+            app:trackTint="@null" />
 
     </RelativeLayout>
 

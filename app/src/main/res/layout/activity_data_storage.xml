@@ -53,10 +53,19 @@
                         android:textSize="14sp" />
                 </LinearLayout>
 
-                <com.google.android.material.materialswitch.MaterialSwitch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switchBottomPlayerTheme"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:splitTrack="false"
+                    android:thumb="@drawable/switch_thumb_custom"
+                    app:showText="false"
+                    app:switchMinWidth="48dp"
+                    app:thumbTint="?attr/mc_track"
+                    app:track="@drawable/switch_track_custom"
+                    app:trackTint="@null" />
+
             </LinearLayout>
 
             <View
