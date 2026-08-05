@@ -4,6 +4,7 @@ import com.flatcode.littleplayer.data.dao.AlbumImageDao
 import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
+import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
@@ -83,7 +84,19 @@ class MusicRoomRepository @Inject constructor(
         songDao.updateWaveform(songId, waveform)
     }
 
+    suspend fun updateLyrics(songId: String, lyrics: String) = withContext(Dispatchers.IO) {
+        songDao.updateLyrics(songId, lyrics)
+    }
+
     suspend fun getSongById(songId: String): SongEntity? = withContext(Dispatchers.IO) {
         songDao.getSongById(songId)
+    }
+
+    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) = withContext(Dispatchers.IO) {
+        musicDao.saveEqualizerSettings(equalizerEntity)
+    }
+
+    suspend fun getEqualizerSettings(): EqualizerEntity? = withContext(Dispatchers.IO) {
+        musicDao.getEqualizerSettings()
     }
 }

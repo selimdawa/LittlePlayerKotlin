@@ -14,5 +14,6 @@ data class CurrentQueueEntity(
     val duration: String?,
     val path: String?,
     val cachedImagePath: String?,
+    val lyrics: String? = null,
     val orderIndex: Int
 )

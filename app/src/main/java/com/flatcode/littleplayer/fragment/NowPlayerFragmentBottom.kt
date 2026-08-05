@@ -72,14 +72,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
     private fun setupListeners() {
         binding.cardBottomPlayer.setOnClickListener {
-            mediaController?.let { controller ->
-                val index = controller.currentMediaItemIndex
-                if (index != -1) {
-                    requireContext().openPlayer(index, binding.albumArt)
-                }
-            } ?: run {
-                requireContext().openPlayer(-1, binding.albumArt)
-            }
+            requireContext().openPlayer(-1, binding.albumArt)
         }
 
         binding.nextBtn.setOnClickListener {

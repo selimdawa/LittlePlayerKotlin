@@ -14,6 +14,7 @@ data class SongEntity(
     val albumId: String? = null,
     val isFavorite: Boolean = false,
     val waveform: String? = null,
+    val lyrics: String? = null,
     val playCount: Int = 0,
     val dateAdded: Long = 0,
     val size: Long = 0,

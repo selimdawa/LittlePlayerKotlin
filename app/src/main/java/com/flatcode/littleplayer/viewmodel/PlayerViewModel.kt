@@ -40,8 +40,15 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             musicRepository.currentPlaylist.collect {
                 listSongs = it
-                if (_currentSong.value == null && it.isNotEmpty() && position != -1) {
-                    updatePositionAndSong(position)
+                if (it.isNotEmpty()) {
+                    if (position != -1) {
+                        updatePositionAndSong(position)
+                    } else if (_currentSong.value != null) {
+                        val index = it.indexOfFirst { s -> s.path == _currentSong.value?.path }
+                        if (index != -1) {
+                            updatePositionAndSong(index)
+                        }
+                    }
                 }
             }
         }
@@ -52,6 +59,13 @@ class PlayerViewModel @Inject constructor(
     private fun loadSession() {
         viewModelScope.launch {
             dataStore.data.collect { preferences ->
+                if (position == -1) {
+                    val savedPos = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
+                    if (savedPos != -1) {
+                        position = savedPos
+                    }
+                }
+
                 if (_currentSong.value == null) {
                     val path = preferences[stringPreferencesKey(DATA.MUSIC_FILE)]
                     if (!path.isNullOrEmpty()) {
@@ -60,13 +74,13 @@ class PlayerViewModel @Inject constructor(
                             artist = preferences[stringPreferencesKey(DATA.ARTIST_NAME)],
                             title = preferences[stringPreferencesKey(DATA.SONG_NAME)],
                             albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
-                            cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)]
+                            cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)],
+                            lyrics = preferences[stringPreferencesKey(DATA.LYRICS)]
                         )
-                        _currentSong.value = song
+                        if (_currentSong.value == null) {
+                            _currentSong.value = song
+                        }
                     }
-                }
-                if (position == -1) {
-                    position = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
                 }
             }
         }
@@ -86,6 +100,7 @@ class PlayerViewModel @Inject constructor(
                         album = song.album,
                         albumId = song.albumId,
                         duration = song.duration,
+                        lyrics = song.lyrics,
                         path = song.path ?: ""
                     )
                 )
@@ -99,6 +114,7 @@ class PlayerViewModel @Inject constructor(
                         album = song.album,
                         albumId = song.albumId,
                         duration = song.duration,
+                        lyrics = song.lyrics,
                         path = song.path ?: ""
                     )
                 )
@@ -113,14 +129,16 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun updatePositionAndSong(newPosition: Int) {
-        if (listSongs.isNotEmpty() && (newPosition in listSongs.indices)) {
+    fun updatePositionAndSong(newPosition: Int, forceUpdate: Boolean = false) {
+        if (position != newPosition || forceUpdate || _currentSong.value == null) {
             position = newPosition
-            val song = listSongs[position]
-            uri = Uri.parse(song.path)
-            _currentSong.value = song
-            song.id?.let { songId ->
-                checkFavorite(songId)
+            if (listSongs.isNotEmpty() && (newPosition in listSongs.indices)) {
+                val song = listSongs[position]
+                uri = Uri.parse(song.path)
+                _currentSong.value = song
+                song.id?.let { songId ->
+                    checkFavorite(songId)
+                }
             }
         }
     }
@@ -130,6 +148,15 @@ class PlayerViewModel @Inject constructor(
     fun updateWaveform(songId: String, waveform: String) {
         viewModelScope.launch {
             repository.updateWaveform(songId, waveform)
+        }
+    }
+
+    fun updateLyrics(songId: String, lyrics: String) {
+        viewModelScope.launch {
+            repository.updateLyrics(songId, lyrics)
+            if (_currentSong.value?.id == songId) {
+                _currentSong.value = _currentSong.value?.copy(lyrics = lyrics)
+            }
         }
     }
 }

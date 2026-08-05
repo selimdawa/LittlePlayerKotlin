@@ -15,6 +15,7 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.requestDeletion
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.R as MaterialR
 
 class SongOptionsBottomSheet(
     private val song: MusicFiles,
@@ -79,6 +80,15 @@ class SongOptionsBottomSheet(
     }
 
     override fun getTheme(): Int = R.style.CustomBottomSheetDialog
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.apply {
+            findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
+                android.R.color.transparent
+            )
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

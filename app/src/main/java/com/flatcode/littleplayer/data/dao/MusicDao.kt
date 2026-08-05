@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
+import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
@@ -55,4 +56,10 @@ interface MusicDao {
 
     @Query("SELECT * FROM current_queue_table ORDER BY orderIndex ASC")
     suspend fun getQueue(): List<CurrentQueueEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity)
+
+    @Query("SELECT * FROM equalizer_table WHERE id = 1")
+    suspend fun getEqualizerSettings(): EqualizerEntity?
 }

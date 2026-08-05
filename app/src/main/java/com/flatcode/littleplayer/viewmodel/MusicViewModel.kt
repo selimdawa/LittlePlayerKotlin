@@ -19,7 +19,10 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -28,18 +31,6 @@ import javax.inject.Inject
 class MusicViewModel @Inject constructor(private val repository: MusicRepository) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
-
-    private val _albumFiles = MutableStateFlow<List<MusicFiles>>(emptyList())
-    val albumFiles: StateFlow<List<MusicFiles>> = _albumFiles.asStateFlow()
-
-    private val _folderFiles = MutableStateFlow<List<Folder>>(emptyList())
-    val folderFiles: StateFlow<List<Folder>> = _folderFiles.asStateFlow()
-
-    private val _artistFiles = MutableStateFlow<List<Artist>>(emptyList())
-    val artistFiles: StateFlow<List<Artist>> = _artistFiles.asStateFlow()
-
-    private val _filteredMusicFiles = MutableStateFlow<List<MusicFiles>>(emptyList())
-    val filteredMusicFiles: StateFlow<List<MusicFiles>> = _filteredMusicFiles.asStateFlow()
 
     private val _songsSortOrder = MutableStateFlow(DATA.SORT_BY_DATE)
     val songsSortOrder: StateFlow<String> = _songsSortOrder.asStateFlow()
@@ -50,74 +41,54 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     private val _event = MutableSharedFlow<MusicEvent>()
     val event: SharedFlow<MusicEvent> = _event.asSharedFlow()
 
-    init {
-        viewModelScope.launch {
-            repository.getSortOrder(DATA.SONGS).collect { _songsSortOrder.value = it }
-        }
-        viewModelScope.launch {
-            repository.getSortOrder(DATA.ALBUMS).collect { _albumsSortOrder.value = it }
-        }
+    // Base flow for all songs, responding to sort order
+    private val allSongs = _songsSortOrder.flatMapLatest { order ->
+        repository.getSongsFlow(order)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-        viewModelScope.launch {
-            combine(
-                repository.getSongsFlow(DATA.SORT_BY_DATE), _searchQuery
-            ) { songs, _ -> songs }.collect { songs ->
-                processAuxiliaryLists(songs)
+    // Filtered songs for the Songs tab
+    val filteredMusicFiles: StateFlow<List<MusicFiles>> = combine(
+        allSongs, _searchQuery
+    ) { songs: List<MusicFiles>, query: String ->
+        if (query.isEmpty()) songs else {
+            songs.filter { it.title?.lowercase()?.contains(query.lowercase()) == true }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Grouped and filtered albums
+    val albumFiles: StateFlow<List<MusicFiles>> = combine(
+        allSongs, _albumsSortOrder, _searchQuery
+    ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
+        val uniqueAlbums = mutableListOf<MusicFiles>()
+        val duplicates = mutableSetOf<String>()
+
+        for (song in songs) {
+            val albumName = song.album ?: DATA.UNKNOWN
+
+            if (!duplicates.contains(albumName)) {
+                uniqueAlbums.add(song)
+                duplicates.add(albumName)
             }
         }
 
-        viewModelScope.launch {
-            _songsSortOrder.flatMapLatest { order ->
-                repository.getSongsFlow(order)
-            }.collect { songs ->
-                val query = _searchQuery.value
-                _filteredMusicFiles.value = if (query.isEmpty()) songs else {
-                    songs.filter { it.title?.lowercase()?.contains(query.lowercase()) == true }
-                }
-            }
-        }
-    }
-
-    private fun processAuxiliaryLists(allAudio: List<MusicFiles>) {
-        viewModelScope.launch {
-            _albumsSortOrder.collect { alSort ->
-                val uniqueAlbums = ArrayList<MusicFiles>()
-                val duplicates = HashSet<String>()
-
-                for (song in allAudio) {
-                    val albumName = song.album ?: DATA.UNKNOWN
-                    if (!duplicates.contains(albumName)) {
-                        uniqueAlbums.add(song)
-                        duplicates.add(albumName)
-                    }
-                }
-
-                _albumFiles.value = when (alSort) {
-                    DATA.SORT_BY_NAME -> uniqueAlbums.sortedBy { it.album?.lowercase() }
-                    DATA.SORT_BY_DATE -> uniqueAlbums.sortedByDescending { it.dateAdded }
-                    else -> uniqueAlbums
-                }
-
-                generateFolderList(allAudio)
-                generateArtistList(allAudio)
-            }
+        val filtered = if (query.isEmpty()) uniqueAlbums else {
+            uniqueAlbums.filter { it.album?.lowercase()?.contains(query.lowercase()) == true }
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.startBackgroundArtCaching(allAudio)
+        when (sortOrder) {
+            DATA.SORT_BY_NAME -> filtered.sortedBy { it.album?.lowercase() }
+            DATA.SORT_BY_DATE -> filtered.sortedByDescending { it.dateAdded }
+            else -> filtered
         }
-    }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun loadAudioData() {
-        viewModelScope.launch {
-            repository.getAllAudio(DATA.SORT_BY_DATE)
-        }
-    }
-
-    private fun generateFolderList(songsList: List<MusicFiles>) {
+    // Grouped and filtered folders
+    val folderFiles: StateFlow<List<Folder>> = combine(
+        allSongs, _searchQuery
+    ) { songs: List<MusicFiles>, query: String ->
         val foldersMap = HashMap<String, Triple<String, Int, MusicFiles?>>()
 
-        for (song in songsList) {
+        for (song in songs) {
             val pathString = song.path ?: continue
             val file = File(pathString)
             val parentFile = file.parentFile
@@ -146,13 +117,19 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             )
         }
 
-        _folderFiles.value = foldersList.sortedBy { it.name.lowercase() }
-    }
+        val sorted = foldersList.sortedBy { it.name.lowercase() }
+        if (query.isEmpty()) sorted else {
+            sorted.filter { it.name.lowercase().contains(query.lowercase()) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private fun generateArtistList(songsList: List<MusicFiles>) {
+    // Grouped and filtered artists
+    val artistFiles: StateFlow<List<Artist>> = combine(
+        allSongs, _searchQuery
+    ) { songs: List<MusicFiles>, query: String ->
         val artistsMap = HashMap<String, Pair<Int, MusicFiles?>>()
 
-        for (song in songsList) {
+        for (song in songs) {
             val artistName = song.artist ?: DATA.UNKNOWN
             val currentData = artistsMap[artistName]
             if (currentData == null) {
@@ -171,7 +148,36 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             )
         }
 
-        _artistFiles.value = artistsList.sortedBy { it.name.lowercase() }
+        val sorted = artistsList.sortedBy { it.name.lowercase() }
+        if (query.isEmpty()) sorted else {
+            sorted.filter { it.name.lowercase().contains(query.lowercase()) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        viewModelScope.launch {
+            repository.getSortOrder(DATA.SONGS).collect { _songsSortOrder.value = it }
+        }
+        viewModelScope.launch {
+            repository.getSortOrder(DATA.ALBUMS).collect { _albumsSortOrder.value = it }
+        }
+
+        // Start background art caching when songs are loaded
+        viewModelScope.launch {
+            allSongs.collect { songs ->
+                if (songs.isNotEmpty()) {
+                    withContext(Dispatchers.IO) {
+                        repository.startBackgroundArtCaching(songs)
+                    }
+                }
+            }
+        }
+    }
+
+    fun loadAudioData() {
+        viewModelScope.launch {
+            repository.getAllAudio(DATA.SORT_BY_DATE)
+        }
     }
 
     fun filterSongs(query: String) {
@@ -190,17 +196,17 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             val songs = when (category) {
                 DATA.SONGS -> fullList.shuffled()
                 DATA.ALBUMS -> {
-                    val album = _albumFiles.value.randomOrNull()?.album
+                    val album = albumFiles.value.randomOrNull()?.album
                     fullList.filter { it.album == album }
                 }
 
                 DATA.ARTISTS -> {
-                    val artist = _artistFiles.value.randomOrNull()?.name
+                    val artist = artistFiles.value.randomOrNull()?.name
                     fullList.filter { it.artist == artist }
                 }
 
                 DATA.FOLDERS -> {
-                    val folder = _folderFiles.value.randomOrNull()?.path
+                    val folder = folderFiles.value.randomOrNull()?.path
                     fullList.filter { it.path?.startsWith(folder ?: "") == true }
                 }
 

@@ -22,6 +22,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.repository.MusicRoomRepository
@@ -59,6 +60,11 @@ class MusicService : MediaSessionService(), Player.Listener {
     private var equalizer: Equalizer? = null
     private var bassBoost: BassBoost? = null
     private var virtualizer: Virtualizer? = null
+    private var eqEnabled = false
+    private var currentBandLevels = shortArrayOf(0, 0, 0, 0, 0)
+    private var bassStrength: Short = 0
+    private var virtualizerStrength: Short = 0
+    private var currentPreset = "Custom"
 
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
@@ -68,6 +74,7 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     private val customCommandFavorite = SessionCommand(COMMAND_FAVORITE, Bundle.EMPTY)
     private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
+    private val customCommandStop = SessionCommand(COMMAND_STOP_SERVICE, Bundle.EMPTY)
 
     override fun onCreate() {
         super.onCreate()
@@ -81,7 +88,55 @@ class MusicService : MediaSessionService(), Player.Listener {
             mediaSession =
                 MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
 
+            loadEqualizerSettings()
             initAudioEffects(player.audioSessionId)
+        }
+    }
+
+    private fun loadEqualizerSettings() {
+        serviceScope.launch {
+            repository.getEqualizerSettings()?.let { settings ->
+                eqEnabled = settings.enabled
+                bassStrength = settings.bassStrength
+                virtualizerStrength = settings.virtualizerStrength
+                currentPreset = settings.presetName
+                currentBandLevels = settings.bandLevels.split(",").map { it.toShort() }.toShortArray()
+                
+                // If effects are already initialized, apply them
+                applyEqualizerSettings()
+            }
+        }
+    }
+
+    private fun saveEqualizerSettings() {
+        serviceScope.launch {
+            repository.saveEqualizerSettings(
+                EqualizerEntity(
+                    enabled = eqEnabled,
+                    bassStrength = bassStrength,
+                    virtualizerStrength = virtualizerStrength,
+                    bandLevels = currentBandLevels.joinToString(","),
+                    presetName = currentPreset
+                )
+            )
+        }
+    }
+
+    private fun applyEqualizerSettings() {
+        equalizer?.enabled = eqEnabled
+        bassBoost?.enabled = eqEnabled
+        virtualizer?.enabled = eqEnabled
+
+        if (eqEnabled) {
+            try {
+                bassBoost?.setStrength(bassStrength)
+                virtualizer?.setStrength(virtualizerStrength)
+                for (i in currentBandLevels.indices) {
+                    equalizer?.setBandLevel(i.toShort(), currentBandLevels[i])
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -92,16 +147,19 @@ class MusicService : MediaSessionService(), Player.Listener {
                 bassBoost?.release()
                 virtualizer?.release()
 
-                // Priority 100 to ensure our app's effects are applied
                 equalizer = Equalizer(100, sessionId)
                 bassBoost = BassBoost(100, sessionId)
                 virtualizer = Virtualizer(100, sessionId)
-                
-                // Initially disabled, controlled by the activity
+
+                applyEqualizerSettings()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+
+    override fun onAudioSessionIdChanged(audioSessionId: Int) {
+        initAudioEffects(audioSessionId)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
@@ -174,7 +232,11 @@ class MusicService : MediaSessionService(), Player.Listener {
                 .setSessionCommand(customCommandPlaybackCycle)
                 .setDisplayName(getString(R.string.cycle)).setCustomIconResId(cycleIcon).build()
 
-            mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton))
+            val stopButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
+                .setSessionCommand(customCommandStop)
+                .setDisplayName(getString(R.string.stop)).setCustomIconResId(R.drawable.ic_close).build()
+
+            mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton, stopButton))
         }
     }
 
@@ -247,7 +309,16 @@ class MusicService : MediaSessionService(), Player.Listener {
             session: MediaSession, controller: MediaSession.ControllerInfo
         ): MediaSession.ConnectionResult {
             val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
-                .add(customCommandFavorite).add(customCommandPlaybackCycle).build()
+                .add(customCommandFavorite)
+                .add(customCommandPlaybackCycle)
+                .add(customCommandStop)
+                .add(SessionCommand(COMMAND_TOGGLE_EQ, Bundle.EMPTY))
+                .add(SessionCommand(COMMAND_SET_EQ_BAND, Bundle.EMPTY))
+                .add(SessionCommand(COMMAND_SET_BASS, Bundle.EMPTY))
+                .add(SessionCommand(COMMAND_SET_VIRTUALIZER, Bundle.EMPTY))
+                .add(SessionCommand(COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY))
+                .add(SessionCommand(COMMAND_SET_PRESET, Bundle.EMPTY))
+                .build()
 
             val playerCommands = MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
                 .add(Player.COMMAND_SEEK_TO_NEXT).add(Player.COMMAND_SEEK_TO_PREVIOUS)
@@ -334,28 +405,61 @@ class MusicService : MediaSessionService(), Player.Listener {
                 COMMAND_SET_EQ_BAND -> {
                     val band = args.getShort("BAND", 0)
                     val level = args.getShort("LEVEL", 0)
-                    equalizer?.setBandLevel(band, level)
+                    try {
+                        if (band.toInt() in currentBandLevels.indices) {
+                            currentBandLevels[band.toInt()] = level
+                        }
+                        equalizer?.setBandLevel(band, level)
+                        saveEqualizerSettings()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
 
                 COMMAND_TOGGLE_EQ -> {
                     val enabled = args.getBoolean("ENABLED", false)
+                    eqEnabled = enabled
                     equalizer?.enabled = enabled
                     bassBoost?.enabled = enabled
                     virtualizer?.enabled = enabled
+                    saveEqualizerSettings()
                 }
 
                 COMMAND_SET_BASS -> {
                     val strength = args.getShort("STRENGTH", 0)
+                    bassStrength = strength
                     bassBoost?.setStrength(strength)
+                    saveEqualizerSettings()
                 }
 
                 COMMAND_SET_VIRTUALIZER -> {
                     val strength = args.getShort("STRENGTH", 0)
+                    virtualizerStrength = strength
                     virtualizer?.setStrength(strength)
+                    saveEqualizerSettings()
+                }
+
+                COMMAND_SET_PRESET -> {
+                    currentPreset = args.getString("PRESET") ?: "Custom"
+                    saveEqualizerSettings()
+                }
+
+                COMMAND_STOP_SERVICE -> {
+                    stopPlaybackAndService()
                 }
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
+    }
+
+    private fun stopPlaybackAndService() {
+        sleepTimer?.cancel()
+        exoPlayer?.let {
+            it.stop()
+            it.clearMediaItems()
+        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     private fun startSleepTimer(minutes: Int) {
@@ -392,5 +496,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         const val COMMAND_TOGGLE_EQ = "COMMAND_TOGGLE_EQ"
         const val COMMAND_SET_BASS = "COMMAND_SET_BASS"
         const val COMMAND_SET_VIRTUALIZER = "COMMAND_SET_VIRTUALIZER"
+        const val COMMAND_STOP_SERVICE = "COMMAND_STOP_SERVICE"
+        const val COMMAND_SET_PRESET = "COMMAND_SET_PRESET"
     }
 }

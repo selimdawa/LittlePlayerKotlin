@@ -18,6 +18,7 @@ data class MusicFiles(
     val waveform: String? = null,
     val playCount: Int = 0,
     val cachedImagePath: String? = null,
+    val lyrics: String? = null,
     val dateAdded: Long = 0,
     val size: Long = 0,
     val year: Int = 0

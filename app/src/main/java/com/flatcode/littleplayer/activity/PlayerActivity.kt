@@ -6,7 +6,11 @@ import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.WindowManager
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -30,9 +34,13 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
+import com.flatcode.littleplayer.utils.getLyrics
+import com.flatcode.littleplayer.utils.gone
+import com.flatcode.littleplayer.utils.isVisible
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.togglePlayPause
+import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
@@ -62,9 +70,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private lateinit var amplituda: Amplituda
     private var currentDominantColor: Int = Color.GRAY
     private var currentMode: Int = DATA.MODE_BASIC
+    private var lyricsJob: Job? = null
+    private var isIntentProcessed = false
+    private var isAnimating = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isIntentProcessed = savedInstanceState?.getBoolean("intent_processed") ?: false
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
         WindowCompat.getInsetsController(window, window.decorView).apply {
@@ -166,7 +178,30 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.buttonPanel.next.setOnClickListener { nextBtn() }
         binding.buttonPanel.playPauseBtn.setOnClickListener { playPauseBtn() }
         binding.buttonPanel.favorite.setOnClickListener { viewModel.toggleFavorite() }
+
+        binding.lyricsBtn.setOnClickListener { toggleLyrics() }
+
+        val gestureDetector = GestureDetector(this, SwipeGestureListener())
+        binding.card.setOnTouchListener { v, event ->
+            if (gestureDetector.onTouchEvent(event)) {
+                true
+            } else {
+                if (event.action == MotionEvent.ACTION_UP) {
+                    v.performClick()
+                }
+                true
+            }
+        }
     }
+
+    private fun toggleLyrics() {
+        if (binding.lyricsContainer.visibility == android.view.View.VISIBLE) {
+            binding.lyricsContainer.gone()
+        } else {
+            binding.lyricsContainer.visible()
+        }
+    }
+
 
     private fun observeViewModel() {
         viewModel.isFavorite.collectWithLifecycle(this) { isFavorite ->
@@ -184,6 +219,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 binding.songName.text = it.title
                 binding.songArtist.text = it.artist
                 updateSongUI(it)
+                loadLyrics(it)
                 lifecycleScope.launch {
                     delay(300.milliseconds)
                     it.path?.let { path -> it.id?.let { id -> loadWaveform(id, path) } }
@@ -191,6 +227,31 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             }
         }
     }
+
+    private fun loadLyrics(song: MusicFiles) {
+        lyricsJob?.cancel()
+        if (song.lyrics != null) {
+            binding.lyricsText.text = song.lyrics
+            return
+        }
+
+        binding.lyricsText.setText(R.string.no_lyrics)
+
+        lyricsJob = lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val lyrics = getLyrics(song.path)
+                if (isActive && lyrics != null) {
+                    runOnUiThread {
+                        binding.lyricsText.text = lyrics
+                    }
+                    song.id?.let { viewModel.updateLyrics(it, lyrics) }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     private fun applyCurrentModeColors() {
         when (currentMode) {
@@ -266,7 +327,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun getIntentMethod() {
         val position = intent.getIntExtra(DATA.POSITION, -1)
 
-        if (position != -1) {
+        if (position != -1 && !isIntentProcessed) {
             binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
             viewModel.updatePositionAndSong(position)
         }
@@ -277,7 +338,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             binding.buttonPanel.playPause, { stopProgressUpdater() }) { startProgressUpdater() }
     }
 
-    private fun prevBtn() {
+    private fun prevBtn(animate: Boolean = true) {
+        if (animate) {
+            animateSkip(false)
+            return
+        }
         mediaController?.let { controller ->
             controller.seekToPreviousMediaItem()
             if (!controller.playWhenReady) {
@@ -286,7 +351,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
-    private fun nextBtn() {
+    private fun nextBtn(animate: Boolean = true) {
+        if (animate) {
+            animateSkip(true)
+            return
+        }
         mediaController?.let { controller ->
             controller.seekToNextMediaItem()
             if (!controller.playWhenReady) {
@@ -295,36 +364,57 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
-    private fun playCurrentSong() {
-        mediaController?.let { controller ->
-            val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
-                val uri = song.path?.toUri() ?: "".toUri()
-                val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
-                    .setExtras(Bundle().apply {
-                        putString("ALBUM_ID", song.albumId)
-                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                    }).build()
-                MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
-                    .build()
+    private fun animateSkip(toNext: Boolean) {
+        if (isAnimating) return
+        isAnimating = true
+        val width = binding.card.width.toFloat()
+        val outX = if (toNext) -width else width
+        val inX = if (toNext) width else -width
+
+        binding.card.animate()
+            .translationX(outX)
+            .alpha(0f)
+            .setDuration(150)
+            .setInterpolator(AccelerateInterpolator())
+            .withEndAction {
+                if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
+                binding.card.translationX = inX
+                binding.card.animate()
+                    .translationX(0f)
+                    .alpha(1f)
+                    .setDuration(150)
+                    .setInterpolator(DecelerateInterpolator())
+                    .withEndAction { isAnimating = false }
+                    .start()
             }
+            .start()
+    }
 
-            controller.setMediaItems(mediaItems, viewModel.position, 0L)
-            controller.prepare()
-            controller.play()
+    private inner class SwipeGestureListener : GestureDetector.SimpleOnGestureListener() {
+        private val SWIPE_THRESHOLD = 100
+        private val SWIPE_VELOCITY_THRESHOLD = 100
 
-            val song = viewModel.listSongs[viewModel.position]
-            binding.songName.text = song.title
-            binding.songArtist.text = song.artist
-            updateSongUI(song)
-            lifecycleScope.launch {
-                delay(300.milliseconds)
-                song.path?.let { path -> song.id?.let { id -> loadWaveform(id, path) } }
+        override fun onFling(
+            e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float
+        ): Boolean {
+            if (e1 == null) return false
+            val diffX = e2.x - e1.x
+            val diffY = e2.y - e1.y
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                    if (diffX > 0) {
+                        prevBtn()
+                    } else {
+                        nextBtn()
+                    }
+                    return true
+                }
             }
-
-            resetProgressLoop()
-            binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
+            return false
         }
     }
+
+
 
     private fun resetProgressLoop() {
         stopProgressUpdater()
@@ -380,33 +470,36 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         mediaController?.let { controller ->
             val intentPosition = intent.getIntExtra(DATA.POSITION, -1)
 
-            if (intentPosition == -1 && controller.currentMediaItem != null) {
-                val index = controller.currentMediaItemIndex
-                if (index in viewModel.listSongs.indices) {
-                    viewModel.updatePositionAndSong(index)
+            if (intentPosition != -1 && !isIntentProcessed) {
+                isIntentProcessed = true
+                intent.removeExtra(DATA.POSITION)
+                if (viewModel.listSongs.isNotEmpty()) {
+                    forcePlaySong(controller, intentPosition)
+                } else {
+                    lifecycleScope.launch {
+                        while (viewModel.listSongs.isEmpty()) {
+                            delay(30.milliseconds)
+                        }
+                        forcePlaySong(controller, intentPosition)
+                    }
                 }
-            } else if (intentPosition == -1 && controller.currentMediaItem == null && viewModel.position != -1) {
-                val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
-                    val uri = song.path?.toUri() ?: "".toUri()
-                    val metadata =
-                        MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
-                            .setExtras(Bundle().apply {
-                                putString("ALBUM_ID", song.albumId)
-                                putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                            }).build()
-                    MediaItem.Builder().setUri(uri).setMediaMetadata(metadata)
-                        .setMediaId(song.id ?: "").build()
-                }
-                controller.setMediaItems(mediaItems, viewModel.position, 0L)
-                controller.prepare()
-            } else if (intentPosition != -1) {
-                val isQueueMatch =
-                    controller.mediaItemCount == viewModel.listSongs.size && intentPosition < controller.mediaItemCount && controller.getMediaItemAt(
-                        intentPosition
-                    ).mediaId == viewModel.listSongs[intentPosition].id
-
-                if (!isQueueMatch || controller.currentMediaItemIndex != intentPosition) {
-                    playCurrentSong()
+            } else {
+                if (controller.currentMediaItem != null) {
+                    val index = controller.currentMediaItemIndex
+                    if (index in viewModel.listSongs.indices) {
+                        viewModel.updatePositionAndSong(index)
+                    }
+                } else {
+                    lifecycleScope.launch {
+                        var count = 0
+                        while (viewModel.listSongs.isEmpty() || (viewModel.position == -1 && count < 50)) {
+                            delay(30.milliseconds)
+                            count++
+                        }
+                        if (viewModel.position != -1 && viewModel.listSongs.isNotEmpty()) {
+                            setupMediaItems(controller)
+                        }
+                    }
                 }
             }
 
@@ -421,12 +514,60 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
+    private fun forcePlaySong(controller: MediaController, pos: Int) {
+        viewModel.updatePositionAndSong(pos, forceUpdate = true)
+        
+        val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
+            val uri = song.path?.toUri() ?: "".toUri()
+            val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
+                .setExtras(Bundle().apply {
+                    putString("ALBUM_ID", song.albumId)
+                    putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                }).build()
+            MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
+                .build()
+        }
+        
+        controller.setMediaItems(mediaItems, pos, 0L)
+        controller.prepare()
+        controller.play()
+        
+        val song = viewModel.listSongs[pos]
+        binding.songName.text = song.title
+        binding.songArtist.text = song.artist
+        updateSongUI(song)
+        lifecycleScope.launch {
+            delay(300.milliseconds)
+            song.path?.let { path -> song.id?.let { id -> loadWaveform(id, path) } }
+        }
+    }
+
+    private fun setupMediaItems(controller: MediaController) {
+        val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
+            val uri = song.path?.toUri() ?: "".toUri()
+            val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
+                .setExtras(Bundle().apply {
+                    putString("ALBUM_ID", song.albumId)
+                    putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                }).build()
+            MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
+                .build()
+        }
+        controller.setMediaItems(mediaItems, viewModel.position, 0L)
+        controller.prepare()
+    }
+
     override fun onStop() {
         super.onStop()
         mediaController?.removeListener(this)
         MediaController.releaseFuture(controllerFuture!!)
         mediaController = null
         stopProgressUpdater()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("intent_processed", isIntentProcessed)
     }
 
     private fun updatePlayPauseButton(isPlaying: Boolean) {

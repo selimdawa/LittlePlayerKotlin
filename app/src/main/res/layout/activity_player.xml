@@ -86,6 +86,20 @@
                 app:strokeColor="@color/white"
                 app:strokeWidth="1dp" />
 
+            <ImageView
+                android:id="@+id/lyricsBtn"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@+id/whiteColor"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@null"
+                android:focusable="true"
+                android:src="@drawable/ic_lyrics"
+                app:tint="@color/white" />
+
         </RelativeLayout>
 
         <com.google.android.material.card.MaterialCardView
@@ -115,6 +129,30 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/lyricsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:background="#99000000"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/lyricsText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="20dp"
+                        android:text="@string/no_lyrics"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        android:textStyle="italic" />
+
+                </androidx.core.widget.NestedScrollView>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

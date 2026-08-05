@@ -14,6 +14,7 @@ import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
+import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
@@ -71,17 +72,25 @@ class MusicRepository @Inject constructor(
 
             val imageMap = cachedImages.associateBy { it.albumName }
             sortedDbSongs.map { dbSong ->
+                val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
+                    val folderName = File(dbSong.path).parentFile?.name
+                    if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
+                } else {
+                    dbSong.album ?: DATA.UNKNOWN
+                }
+
                 MusicFiles(
                     path = dbSong.path,
                     title = dbSong.title,
                     artist = dbSong.artist,
-                    album = dbSong.album,
+                    album = cleanedAlbum,
                     duration = dbSong.duration.toString(),
                     id = dbSong.id,
                     albumId = dbSong.albumId,
                     waveform = dbSong.waveform,
                     playCount = dbSong.playCount,
-                    cachedImagePath = imageMap[dbSong.album ?: DATA.UNKNOWN]?.imagePath,
+                    cachedImagePath = imageMap[cleanedAlbum]?.imagePath,
+                    lyrics = dbSong.lyrics,
                     dateAdded = dbSong.dateAdded,
                     size = dbSong.size,
                     year = dbSong.year
@@ -104,19 +113,26 @@ class MusicRepository @Inject constructor(
                     }
 
                     dbSongs.forEach { dbSong ->
+                        val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
+                            val folderName = File(dbSong.path).parentFile?.name
+                            if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
+                        } else {
+                            dbSong.album ?: DATA.UNKNOWN
+                        }
+
                         tempAudioList.add(
                             MusicFiles(
                                 path = dbSong.path,
                                 title = dbSong.title,
                                 artist = dbSong.artist,
-                                album = dbSong.album,
+                                album = cleanedAlbum,
                                 duration = dbSong.duration.toString(),
                                 id = dbSong.id,
                                 albumId = dbSong.albumId,
                                 waveform = dbSong.waveform,
                                 playCount = dbSong.playCount,
-                                cachedImagePath = cachedImages[dbSong.album
-                                    ?: DATA.UNKNOWN]?.imagePath,
+                                cachedImagePath = cachedImages[cleanedAlbum]?.imagePath,
+                                lyrics = dbSong.lyrics,
                                 dateAdded = dbSong.dateAdded,
                                 size = dbSong.size,
                                 year = dbSong.year
@@ -190,12 +206,16 @@ class MusicRepository @Inject constructor(
                             val path = cursor.getString(pathColumn) ?: ""
                             if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
 
+                            val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
+                            val folderName = File(path).parentFile?.name
+                            val cleanedAlbum = if (rawAlbum.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else rawAlbum
+
                             tempAudioList.add(
                                 MusicFiles(
                                     path = path,
                                     title = cursor.getString(titleColumn) ?: DATA.UNKNOWN,
                                     artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN,
-                                    album = cursor.getString(albumColumn) ?: DATA.UNKNOWN,
+                                    album = cleanedAlbum,
                                     duration = cursor.getLong(durationColumn).toString(),
                                     id = cursor.getString(idColumn) ?: "",
                                     albumId = cursor.getString(albumIdColumn) ?: "",
@@ -347,6 +367,7 @@ class MusicRepository @Inject constructor(
                     duration = song.duration,
                     path = song.path,
                     cachedImagePath = song.cachedImagePath,
+                    lyrics = song.lyrics,
                     orderIndex = index
                 )
             }
@@ -364,8 +385,17 @@ class MusicRepository @Inject constructor(
                 albumId = it.albumId,
                 duration = it.duration,
                 path = it.path,
-                cachedImagePath = it.cachedImagePath
+                cachedImagePath = it.cachedImagePath,
+                lyrics = it.lyrics
             )
         }
+    }
+
+    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) = withContext(Dispatchers.IO) {
+        musicDao.saveEqualizerSettings(equalizerEntity)
+    }
+
+    suspend fun getEqualizerSettings(): EqualizerEntity? = withContext(Dispatchers.IO) {
+        musicDao.getEqualizerSettings()
     }
 }
