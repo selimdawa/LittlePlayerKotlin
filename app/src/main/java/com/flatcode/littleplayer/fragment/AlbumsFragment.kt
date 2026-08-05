@@ -32,6 +32,7 @@ class AlbumsFragment : Fragment() {
 
     private val viewModel: MusicViewModel by activityViewModels()
     private var adapter: AlbumAdapter? = null
+    private var lastSortOrder: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -61,13 +62,21 @@ class AlbumsFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.albumFiles.collect { albumList ->
+                    val currentSortOrder = viewModel.albumsSortOrder.value
+                    val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
+                    lastSortOrder = currentSortOrder
+
                     binding.emptyState.isVisible = albumList.isEmpty()
                     if (albumList.isNotEmpty()) {
                         val arrayListAlbums = ArrayList(albumList)
                         if (adapter == null) {
                             setupAdapter()
                         }
-                        adapter?.updateList(arrayListAlbums)
+                        adapter?.updateList(arrayListAlbums) {
+                            if (shouldScrollToTop) {
+                                binding.recyclerView.scrollToPosition(0)
+                            }
+                        }
                     } else {
                         adapter?.updateList(ArrayList())
                     }

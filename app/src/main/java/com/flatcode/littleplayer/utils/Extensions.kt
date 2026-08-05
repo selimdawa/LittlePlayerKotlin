@@ -140,8 +140,8 @@ fun View.gone() {
     visibility = View.GONE
 }
 
-fun View.isVisible(show: Boolean) {
-    visibility = if (show) View.VISIBLE else View.GONE
+fun View?.isVisible(show: Boolean) {
+    this?.visibility = if (show) View.VISIBLE else View.GONE
 }
 
 fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {

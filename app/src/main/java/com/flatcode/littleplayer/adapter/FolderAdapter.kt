@@ -48,7 +48,7 @@ class FolderAdapter(
         return if (name.isNotEmpty()) name.substring(0, 1).uppercase() else ""
     }
 
-    fun updateList(newList: ArrayList<Folder>) {
+    fun updateList(newList: ArrayList<Folder>, onComplete: (() -> Unit)? = null) {
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize(): Int = folderList.size
             override fun getNewListSize(): Int = newList.size
@@ -63,5 +63,6 @@ class FolderAdapter(
         })
         folderList = newList
         diffResult.dispatchUpdatesTo(this)
+        onComplete?.invoke()
     }
 }

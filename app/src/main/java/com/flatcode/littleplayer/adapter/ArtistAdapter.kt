@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.recyclerview.widget.DiffUtil
@@ -14,7 +15,7 @@ import com.flatcode.littleplayer.utils.FastScrollableAdapter
 class ArtistAdapter(
     private val context: Context,
     private var artistList: ArrayList<Artist>,
-    private val onItemClick: (String, android.view.View) -> Unit
+    private val onItemClick: (String, View) -> Unit,
 ) : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>(), FastScrollableAdapter {
 
     class ArtistViewHolder(val binding: ItemArtistBinding) : RecyclerView.ViewHolder(binding.root)
@@ -31,7 +32,7 @@ class ArtistAdapter(
             if (artist.songsCount == 1) "1 song" else "${artist.songsCount} songs"
 
         val params = holder.itemView.layoutParams as MarginLayoutParams
-        params.bottomMargin = if (position == itemCount - 1) {
+        params.bottomMargin = if (position == (itemCount - 1)) {
             (95 * context.resources.displayMetrics.density).toInt()
         } else {
             (10 * context.resources.displayMetrics.density).toInt()
@@ -39,7 +40,7 @@ class ArtistAdapter(
         holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
-            onItemClick(artist.name, holder.itemView) // Or an icon if artists had images
+            onItemClick(artist.name, holder.itemView)
         }
     }
 
@@ -50,20 +51,25 @@ class ArtistAdapter(
         return if (artistName.isNotEmpty()) artistName.substring(0, 1).uppercase() else ""
     }
 
-    fun updateList(newList: ArrayList<Artist>) {
-        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-            override fun getOldListSize(): Int = artistList.size
-            override fun getNewListSize(): Int = newList.size
+    fun updateList(newList: ArrayList<Artist>, onComplete: (() -> Unit)? = null) {
+        val diffResult = DiffUtil.calculateDiff(
+            object : DiffUtil.Callback() {
+                override fun getOldListSize(): Int = artistList.size
+                override fun getNewListSize(): Int = newList.size
 
-            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return artistList[oldItemPosition].name == newList[newItemPosition].name
-            }
+                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                    return artistList[oldItemPosition].name == newList[newItemPosition].name
+                }
 
-            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return artistList[oldItemPosition] == newList[newItemPosition]
-            }
-        })
+                override fun areContentsTheSame(
+                    oldItemPosition: Int, newItemPosition: Int,
+                ): Boolean {
+                    return artistList[oldItemPosition] == newList[newItemPosition]
+                }
+            },
+        )
         artistList = newList
         diffResult.dispatchUpdatesTo(this)
+        onComplete?.invoke()
     }
 }

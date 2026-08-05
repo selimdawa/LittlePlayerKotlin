@@ -21,4 +21,7 @@ interface AlbumImageDao {
 
     @Query("SELECT * FROM album_images_table")
     suspend fun getAllAlbumImagesSync(): List<AlbumImageEntity>
+
+    @Query("DELETE FROM album_images_table")
+    suspend fun clearAllAlbumImages()
 }
