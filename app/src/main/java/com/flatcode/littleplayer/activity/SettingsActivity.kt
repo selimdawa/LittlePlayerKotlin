@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
 import android.os.Bundle
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +21,7 @@ import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.SettingsViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -78,12 +80,40 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.settingAccount.setOnClickListener { binding.root.snackbar("Account settings coming soon") }
-        binding.settingNotifications.setOnClickListener { binding.root.snackbar("Notification settings coming soon") }
+        binding.settingNotifications.setOnClickListener {
+            binding.root.snackbar("Notifications are managed by the system")
+        }
         binding.settingDataStorage.setOnClickListener {
             launchActivity<DataStorageActivity>()
         }
-        binding.settingPrivacy.setOnClickListener { binding.root.snackbar("Privacy settings coming soon") }
-        binding.settingAbout.setOnClickListener { binding.root.snackbar("Little Player v1.01") }
+        binding.settingPrivacy.setOnClickListener { showPrivacyDialog() }
+        binding.settingAbout.setOnClickListener { showAboutDialog() }
+    }
+
+    private fun showPrivacyDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.privacy_policy_title)
+            .setMessage(R.string.privacy_policy_content)
+            .setPositiveButton(R.string.ok, null)
+            .show()
+    }
+
+    private fun showAboutDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_about, null)
+        val tvVersion = dialogView.findViewById<TextView>(R.id.tvVersion)
+
+        try {
+            val pInfo = packageManager.getPackageInfo(packageName, 0)
+            val version = pInfo.versionName
+            tvVersion.text = getString(R.string.version_format, version)
+        } catch (_: Exception) {
+            tvVersion.text = getString(R.string.version_format, "1.0.0")
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setPositiveButton(R.string.ok, null)
+            .show()
     }
 
     private fun showSleepTimerDialog() {
@@ -98,11 +128,16 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setSleepTimer(minutes: Int) {
+        if (mediaController == null) {
+            binding.root.snackbar("Music Service not connected yet")
+            return
+        }
         mediaController?.let { controller ->
             val bundle = Bundle().apply { putInt("MINUTES", minutes) }
             controller.sendCustomCommand(
                 SessionCommand(MusicService.COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY), bundle
             )
+            binding.root.snackbar("Timer set for $minutes minutes")
         }
     }
 

@@ -78,4 +78,17 @@
     <string name="basic">Basic</string>
     <string name="palette">Palette</string>
     <string name="white">White</string>
+
+    <!-- Privacy & About Content -->
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_content">Your privacy is important to us. Little Player does not collect any personal data. We only access your device storage to find and play your music files. No data is shared with third parties.</string>
+
+    <string name="about_app_title">About Little Player</string>
+    <string name="about_app_content">Little Player is a modern, lightweight music player designed for the best audio experience.\n\nVersion: 1.0.1\nOrigin: Syria\nDeveloper: Selim Dawa\nGitHub: https://github.com/selimdawa\n\nCrafted with passion for music lovers.</string>
+
+    <string name="version_format">Version %1$s</string>
+
+    <string name="ok">OK</string>
+    <string name="stop">Stop</string>
+    <string name="no_lyrics">No lyrics found for this song.</string>
 </resources>
