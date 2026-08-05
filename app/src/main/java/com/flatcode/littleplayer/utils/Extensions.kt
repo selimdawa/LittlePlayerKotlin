@@ -278,6 +278,20 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
     }
 }
 
+fun getLyrics(path: String?): String? {
+    if (path.isNullOrEmpty()) return null
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(path)
+        val lyrics = retriever.extractMetadata(1000) // METADATA_KEY_LYRICS
+        retriever.release()
+        lyrics
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
 fun Context.getAppCompatActivity(): AppCompatActivity? {
     var currentContext = this
     while (currentContext is ContextWrapper) {

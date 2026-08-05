@@ -21,6 +21,7 @@ import com.flatcode.littleplayer.databinding.ActivityEqualizerBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.getLibraryColor
+import com.flatcode.littleplayer.viewmodel.EqualizerViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.common.util.concurrent.ListenableFuture
@@ -33,8 +34,10 @@ class EqualizerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEqualizerBinding
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
+    private val equalizerViewModel: EqualizerViewModel by viewModels()
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
+    private var selectedPresetName: String = "Custom"
 
     private val bands = arrayOf("60Hz", "230Hz", "910Hz", "3.6kHz", "14kHz")
     private val bandSeekBars = mutableListOf<SeekBar>()
@@ -54,7 +57,6 @@ class EqualizerActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.back.setOnClickListener { finish() }
-        setupBands()
         setupListeners()
         observeViewModel()
     }
@@ -62,6 +64,19 @@ class EqualizerActivity : AppCompatActivity() {
     private fun observeViewModel() {
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
+        }
+
+        equalizerViewModel.equalizerSettings.collectWithLifecycle(this) { settings ->
+            settings?.let {
+                binding.switchEq.isChecked = it.enabled
+                binding.bassKnob.progress = it.bassStrength.toInt() / 10
+                binding.virtualizerKnob.progress = it.virtualizerStrength.toInt() / 10
+                
+                selectedPresetName = it.presetName
+                val levels = it.bandLevels.split(",").map { level -> level.toShort() }.toShortArray()
+                setupBands(levels)
+                updatePresetSelectionUI(selectedPresetName, nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY)
+            }
         }
 
         nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
@@ -75,7 +90,7 @@ class EqualizerActivity : AppCompatActivity() {
                     sb.progressTintList = csl
                     sb.thumbTintList = csl
                 }
-                updatePresetSelectionUI(null, it)
+                updatePresetSelectionUI(selectedPresetName, it)
             }
         }
     }
@@ -159,7 +174,13 @@ class EqualizerActivity : AppCompatActivity() {
 
     private fun selectPreset(name: String) {
         val themeColor = nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY
+        selectedPresetName = name
         updatePresetSelectionUI(name, themeColor)
+
+        val bundlePreset = Bundle().apply { putString("PRESET", name) }
+        mediaController?.sendCustomCommand(
+            SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY), bundlePreset
+        )
 
         val levels = presets[name] ?: return
         for (i in levels.indices) {
@@ -240,7 +261,7 @@ class EqualizerActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupBands() {
+    private fun setupBands(initialLevels: ShortArray? = null) {
         binding.eqContainer.removeAllViews()
         bandSeekBars.clear()
 
@@ -253,7 +274,13 @@ class EqualizerActivity : AppCompatActivity() {
 
             tvLabel.text = bands[i]
             seekBar.max = 3000
-            seekBar.progress = 1500
+            
+            val initialLevel = initialLevels?.getOrNull(i)?.toInt() ?: 0
+            seekBar.progress = initialLevel + 1500
+            
+            val dbLevel = initialLevel / 100
+            tvLevel.text = getString(R.string.db_format, if (dbLevel > 0) "+" else "", dbLevel)
+            
             bandSeekBars.add(seekBar)
 
             seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -263,8 +290,13 @@ class EqualizerActivity : AppCompatActivity() {
                         getString(R.string.db_format, if (dbLevel > 0) "+" else "", dbLevel)
 
                     if (fromUser) {
+                        selectedPresetName = "Custom"
                         updatePresetSelectionUI(
                             "Custom", nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY
+                        )
+                        val bundlePreset = Bundle().apply { putString("PRESET", "Custom") }
+                        mediaController?.sendCustomCommand(
+                            SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY), bundlePreset
                         )
                         val level = (progress - 1500).toShort()
                         val bundle = Bundle().apply {
