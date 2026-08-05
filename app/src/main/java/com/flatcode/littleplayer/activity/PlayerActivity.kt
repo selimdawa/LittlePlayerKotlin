@@ -4,10 +4,11 @@ import android.content.ComponentName
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
-import android.os.Build
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.SeekBar
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -61,12 +62,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var mediaController: MediaController? = null
     private lateinit var amplituda: Amplituda
     private var currentDominantColor: Int = Color.GRAY
-    private var isPaletteModeActive: Boolean = false
+    private var currentMode: Int = DATA.MODE_BASIC
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-        
+
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = false
         }
@@ -79,40 +80,40 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         getIntentMethod()
         setupListeners()
         observeViewModel()
-
-        binding.basicColor.setOnClickListener {
-            nowPlayerViewModel.setPaletteMode(false)
-        }
-        binding.paletteColor.setOnClickListener {
-            nowPlayerViewModel.setPaletteMode(true)
-        }
     }
 
     private fun updatePlayerUIColors(color: Int) {
         val colorStateList = ColorStateList.valueOf(color)
+
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
         binding.seekBar.secondaryProgressTintList = colorStateList
         binding.seekBar.progressBackgroundTintList = colorStateList
-        binding.buttonPanel.playPauseBtn.backgroundTintList = colorStateList
+
+        val background = binding.buttonPanel.playPauseBtn.background
+        if (background is GradientDrawable) {
+            if (currentMode == DATA.MODE_BASIC) {
+                background.colors = intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
+            } else {
+                background.colors = intArrayOf(color, color)
+            }
+        }
+        
         binding.waveformSeekBar.waveProgressColor = color
     }
 
-    private fun finishWithAnimation() {
-        finish()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            overrideActivityTransition(
-                OVERRIDE_TRANSITION_CLOSE, R.anim.slide_in_down, R.anim.slide_out_down
-            )
-        } else {
-            @Suppress("DEPRECATION") overridePendingTransition(
-                R.anim.slide_in_down, R.anim.slide_out_down
-            )
-        }
-    }
-
     private fun setupListeners() {
-        binding.back.setOnClickListener { finishWithAnimation() }
+        binding.back.setOnClickListener { supportFinishAfterTransition() }
+
+        binding.basicColor.setOnClickListener {
+            nowPlayerViewModel.setThemeColorMode(DATA.MODE_BASIC)
+        }
+        binding.paletteColor.setOnClickListener {
+            nowPlayerViewModel.setThemeColorMode(DATA.MODE_PALETTE)
+        }
+        binding.whiteColor.setOnClickListener {
+            nowPlayerViewModel.setThemeColorMode(DATA.MODE_WHITE)
+        }
 
         binding.seekBar.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
@@ -168,13 +169,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             binding.buttonPanel.favorite.setImageResource(icon)
         }
 
-        nowPlayerViewModel.isPaletteMode.collectWithLifecycle(this) { active ->
-            isPaletteModeActive = active
-            if (active) {
-                updatePlayerUIColors(currentDominantColor)
-            } else {
-                updatePlayerUIColors(getLibraryColor("mc_track"))
-            }
+        nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { mode ->
+            currentMode = mode
+            applyCurrentModeColors()
         }
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
@@ -190,32 +187,39 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
+    private fun applyCurrentModeColors() {
+        when (currentMode) {
+            DATA.MODE_BASIC -> updatePlayerUIColors(getLibraryColor("mc_track"))
+            DATA.MODE_PALETTE -> updatePlayerUIColors(currentDominantColor)
+            DATA.MODE_WHITE -> updatePlayerUIColors(Color.WHITE)
+        }
+    }
+
     private fun updateSongUI(song: MusicFiles) {
         binding.durationTotal.text = song.durationDuration.formatAsTime()
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
-        // Extract palette color from the image being loaded
-        val request = ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path)
-            .allowHardware(false) // Required for Palette to work with Coil
-            .target { result ->
-                val bitmap = (result as? BitmapDrawable)?.bitmap
-                bitmap?.let {
-                    Palette.from(it).generate { palette ->
-                        currentDominantColor =
-                            palette?.getVibrantColor(Color.GRAY) ?: palette?.getLightVibrantColor(
-                                Color.GRAY
-                            ) ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+        val request =
+            ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path).allowHardware(false)
+                .target { result ->
+                    val bitmap = (result as? BitmapDrawable)?.bitmap
+                    bitmap?.let {
+                        Palette.from(it).generate { palette ->
+                            currentDominantColor = palette?.getVibrantColor(Color.GRAY)
+                                ?: palette?.getLightVibrantColor(
+                                    Color.GRAY
+                                ) ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
 
-                        binding.paletteColor.setCardBackgroundColor(currentDominantColor)
-                        nowPlayerViewModel.updateThemeColor(currentDominantColor)
+                            binding.paletteColor.setCardBackgroundColor(currentDominantColor)
+                            nowPlayerViewModel.updateThemeColor(currentDominantColor)
 
-                        if (isPaletteModeActive) {
-                            updatePlayerUIColors(currentDominantColor)
+                            if (currentMode == DATA.MODE_PALETTE) {
+                                applyCurrentModeColors()
+                            }
                         }
                     }
-                }
-            }.build()
+                }.build()
         imageLoader.enqueue(request)
     }
 
@@ -223,7 +227,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         waveformJob?.cancel()
         waveformJob = lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Check Room first
                 val cachedSong = viewModel.getSongById(songId)
                 if (cachedSong?.waveform != null) {
                     val amplitudes =
@@ -236,11 +239,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     }
                 }
 
-                // Analyze if not cached
                 val result = amplituda.processAudio(path).get()
                 val amplitudesArray = result.amplitudesAsList().toIntArray()
 
-                // Cache to Room
                 if (amplitudesArray.isNotEmpty()) {
                     val waveformString = amplitudesArray.joinToString(",")
                     viewModel.updateWaveform(songId, waveformString)
@@ -380,7 +381,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     viewModel.updatePositionAndSong(index)
                 }
             } else if (intentPosition == -1 && controller.currentMediaItem == null && viewModel.position != -1) {
-                // Restore session to controller
                 val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
                     val uri = song.path?.toUri() ?: "".toUri()
                     val metadata =

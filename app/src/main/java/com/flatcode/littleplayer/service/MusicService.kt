@@ -1,6 +1,9 @@
 package com.flatcode.littleplayer.service
 
 import android.content.Intent
+import android.media.audiofx.BassBoost
+import android.media.audiofx.Equalizer
+import android.media.audiofx.Virtualizer
 import android.os.Bundle
 import android.os.CountDownTimer
 import androidx.datastore.core.DataStore
@@ -21,7 +24,6 @@ import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
-import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
@@ -53,7 +55,10 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var sleepTimer: CountDownTimer? = null
-    private var equalizer: android.media.audiofx.Equalizer? = null
+
+    private var equalizer: Equalizer? = null
+    private var bassBoost: BassBoost? = null
+    private var virtualizer: Virtualizer? = null
 
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
@@ -75,10 +80,24 @@ class MusicService : MediaSessionService(), Player.Listener {
         exoPlayer?.let { player ->
             mediaSession =
                 MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
-            
-            // Initialize Equalizer
+
+            initAudioEffects(player.audioSessionId)
+        }
+    }
+
+    private fun initAudioEffects(sessionId: Int) {
+        if (sessionId != -1) {
             try {
-                equalizer = android.media.audiofx.Equalizer(0, player.audioSessionId)
+                equalizer?.release()
+                bassBoost?.release()
+                virtualizer?.release()
+
+                // Priority 100 to ensure our app's effects are applied
+                equalizer = Equalizer(100, sessionId)
+                bassBoost = BassBoost(100, sessionId)
+                virtualizer = Virtualizer(100, sessionId)
+                
+                // Initially disabled, controlled by the activity
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -321,6 +340,18 @@ class MusicService : MediaSessionService(), Player.Listener {
                 COMMAND_TOGGLE_EQ -> {
                     val enabled = args.getBoolean("ENABLED", false)
                     equalizer?.enabled = enabled
+                    bassBoost?.enabled = enabled
+                    virtualizer?.enabled = enabled
+                }
+
+                COMMAND_SET_BASS -> {
+                    val strength = args.getShort("STRENGTH", 0)
+                    bassBoost?.setStrength(strength)
+                }
+
+                COMMAND_SET_VIRTUALIZER -> {
+                    val strength = args.getShort("STRENGTH", 0)
+                    virtualizer?.setStrength(strength)
                 }
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
@@ -341,6 +372,9 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     override fun onDestroy() {
         super.onDestroy()
+        equalizer?.release()
+        bassBoost?.release()
+        virtualizer?.release()
         mediaSession?.run {
             player.release()
             release()
@@ -356,5 +390,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         const val COMMAND_SET_SLEEP_TIMER = "COMMAND_SET_SLEEP_TIMER"
         const val COMMAND_SET_EQ_BAND = "COMMAND_SET_EQ_BAND"
         const val COMMAND_TOGGLE_EQ = "COMMAND_TOGGLE_EQ"
+        const val COMMAND_SET_BASS = "COMMAND_SET_BASS"
+        const val COMMAND_SET_VIRTUALIZER = "COMMAND_SET_VIRTUALIZER"
     }
 }

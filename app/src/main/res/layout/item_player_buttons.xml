@@ -31,11 +31,9 @@
 
     <FrameLayout
         android:id="@+id/play_pause_btn"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:alpha="0.8"
-        android:background="@drawable/play_pause"
-        android:backgroundTint="?mc_track"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:background="@drawable/ic_gradient_border"
         android:clickable="true"
         android:focusable="true">
 

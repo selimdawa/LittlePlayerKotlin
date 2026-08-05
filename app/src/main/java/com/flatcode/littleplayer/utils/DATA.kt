@@ -23,5 +23,9 @@ object DATA {
     const val ALBUM_ID = "ALBUM ID"
     const val CACHED_IMAGE_PATH = "CACHED_IMAGE_PATH"
     const val LAST_POSITION = "LAST_POSITION"
-    const val PALETTE_MODE = "PALETTE_MODE"
+    const val THEME_COLOR_MODE = "THEME_COLOR_MODE"
+    
+    const val MODE_BASIC = 0
+    const val MODE_PALETTE = 1
+    const val MODE_WHITE = 2
 }

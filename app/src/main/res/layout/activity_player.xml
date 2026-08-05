@@ -73,6 +73,19 @@
                 app:strokeColor="@color/white"
                 app:strokeWidth="1dp" />
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/whiteColor"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@+id/paletteColor"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/white"
+                app:strokeWidth="1dp" />
+
         </RelativeLayout>
 
         <com.google.android.material.card.MaterialCardView
@@ -148,9 +161,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="20dp"
+                    android:progressBackgroundTint="?mc_track"
                     android:progressTint="?mc_track"
                     android:secondaryProgressTint="?mc_track"
-                    android:progressBackgroundTint="?mc_track"
                     android:thumbTint="?mc_track" />
 
                 <RelativeLayout

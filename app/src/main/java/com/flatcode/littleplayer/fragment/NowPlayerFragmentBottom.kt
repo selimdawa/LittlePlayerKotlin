@@ -16,14 +16,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.loadSongImage
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,7 +64,14 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
     private fun setupListeners() {
         binding.cardBottomPlayer.setOnClickListener {
-            requireContext().launchActivity<PlayerActivity>()
+            mediaController?.let { controller ->
+                val index = controller.currentMediaItemIndex
+                if (index != -1) {
+                    requireContext().openPlayer(index, binding.albumArt)
+                }
+            } ?: run {
+                requireContext().openPlayer(-1, binding.albumArt)
+            }
         }
 
         binding.nextBtn.setOnClickListener {
