@@ -69,9 +69,9 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.playlistNames.collectWithLifecycle(this) { names ->
-            binding.emptyState.isVisible = names.isEmpty()
-            binding.recyclerView.adapter = PlaylistAdapter(names) { playlistName ->
+        viewModel.playlists.collectWithLifecycle(this) { playlists ->
+            binding.emptyState.isVisible = playlists.isEmpty()
+            binding.recyclerView.adapter = PlaylistAdapter(playlists) { playlistName ->
                 launchActivity<PlaylistDetailsActivity> {
                     putExtra("PLAYLIST_NAME", playlistName)
                 }

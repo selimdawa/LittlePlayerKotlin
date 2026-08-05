@@ -4,18 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.FrameLayout
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.databinding.DialogCustomInputBinding
 import com.flatcode.littleplayer.databinding.DialogPlaylistSelectionBinding
 import com.flatcode.littleplayer.databinding.ItemPlaylistSmallBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.R as MaterialR
 
 class PlaylistSelectionBottomSheet(
     private val song: MusicFiles
@@ -52,31 +52,41 @@ class PlaylistSelectionBottomSheet(
 
     private fun showCreatePlaylistDialog() {
         val context = requireContext()
-        val container = FrameLayout(context)
-        val params = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.setMargins(48, 24, 48, 24)
-        val editText = EditText(context)
-        editText.layoutParams = params
-        editText.hint = getString(R.string.playlist_name)
-        container.addView(editText)
+        val dialogBinding = DialogCustomInputBinding.inflate(LayoutInflater.from(context))
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setView(dialogBinding.root)
+            .setCancelable(false)
+            .create()
 
-        AlertDialog.Builder(context)
-            .setTitle(R.string.new_playlist)
-            .setView(container)
-            .setPositiveButton(R.string.create) { _, _ ->
-                val name = editText.text.toString()
-                if (name.isNotEmpty()) {
-                    viewModel.addToPlaylist(name, song)
-                    dismiss()
-                }
+        dialogBinding.btnCreate.setOnClickListener {
+            val name = dialogBinding.editText.text.toString().trim()
+            if (name.isNotEmpty()) {
+                viewModel.addToPlaylist(name, song)
+                dialog.dismiss()
+                dismiss()
+            } else {
+                dialogBinding.inputLayout.error = getString(R.string.playlist_name)
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        }
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        dialog.setCanceledOnTouchOutside(false)
     }
 
     override fun getTheme(): Int = R.style.CustomBottomSheetDialog
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.apply {
+            findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
+                android.R.color.transparent
+            )
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -4,9 +4,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemPlaylistBinding
+import com.flatcode.littleplayer.model.Playlist
+import com.flatcode.littleplayer.utils.loadSongImageByPath
 
 class PlaylistAdapter(
-    private val playlistNames: List<String>, private val onItemClick: (String) -> Unit
+    private val playlists: List<Playlist>, private val onItemClick: (String) -> Unit
 ) : RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder>() {
 
     class PlaylistViewHolder(val binding: ItemPlaylistBinding) : RecyclerView.ViewHolder(binding.root)
@@ -17,15 +19,17 @@ class PlaylistAdapter(
     }
 
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
-        val name = playlistNames[position]
-        holder.binding.playlistName.text = name
-        // details are static for now, or could count songs if we pass a map
-        holder.binding.playlistDetails.text = "Playlist"
+        val playlist = playlists[position]
+        holder.binding.playlistName.text = playlist.name
+        holder.binding.playlistDetails.text =
+            "Playlist / ${playlist.songCount} ${if (playlist.songCount == 1) "Song" else "Songs"}"
+
+        holder.binding.playlistImage.loadSongImageByPath(playlist.firstSongPath)
 
         holder.binding.root.setOnClickListener {
-            onItemClick(name)
+            onItemClick(playlist.name)
         }
     }
 
-    override fun getItemCount(): Int = playlistNames.size
+    override fun getItemCount(): Int = playlists.size
 }
