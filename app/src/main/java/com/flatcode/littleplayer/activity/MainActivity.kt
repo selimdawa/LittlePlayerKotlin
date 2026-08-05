@@ -137,15 +137,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
-            color?.let {
-                // Apply dynamic tint to key UI elements
-                val colorStateList = android.content.res.ColorStateList.valueOf(it)
-                binding.toolbar.settings.imageTintList = colorStateList
-                // You could also update MultiColorManager here if you want global changes
-            }
-        }
-
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
             song?.let {

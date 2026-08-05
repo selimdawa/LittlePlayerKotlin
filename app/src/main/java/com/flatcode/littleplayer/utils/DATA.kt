@@ -24,6 +24,7 @@ object DATA {
     const val CACHED_IMAGE_PATH = "CACHED_IMAGE_PATH"
     const val LAST_POSITION = "LAST_POSITION"
     const val THEME_COLOR_MODE = "THEME_COLOR_MODE"
+    const val BOTTOM_PLAYER_THEME = "BOTTOM_PLAYER_THEME"
     
     const val MODE_BASIC = 0
     const val MODE_PALETTE = 1

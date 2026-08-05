@@ -35,12 +35,16 @@ class NowPlayerViewModel @Inject constructor(
     private val _themeColorMode = MutableStateFlow(DATA.MODE_BASIC)
     val themeColorMode: StateFlow<Int> = _themeColorMode.asStateFlow()
 
+    private val _bottomPlayerThemeEnabled = MutableStateFlow(false)
+    val bottomPlayerThemeEnabled: StateFlow<Boolean> = _bottomPlayerThemeEnabled.asStateFlow()
+
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
+    private val bottomPlayerThemeKey = androidx.datastore.preferences.core.booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
 
     init {
         restoreSession()
@@ -66,6 +70,7 @@ class NowPlayerViewModel @Inject constructor(
                     _currentPlayingSong.value = song
                 }
                 _themeColorMode.value = preferences[themeColorModeKey] ?: DATA.MODE_BASIC
+                _bottomPlayerThemeEnabled.value = preferences[bottomPlayerThemeKey] ?: false
             }
         }
     }
@@ -83,6 +88,15 @@ class NowPlayerViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[themeColorModeKey] = mode
+            }
+        }
+    }
+
+    fun setBottomPlayerThemeEnabled(enabled: Boolean) {
+        _bottomPlayerThemeEnabled.value = enabled
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[bottomPlayerThemeKey] = enabled
             }
         }
     }

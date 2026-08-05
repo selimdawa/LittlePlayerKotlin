@@ -88,7 +88,9 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.settingAccount.setOnClickListener { binding.root.snackbar("Account settings coming soon") }
         binding.settingNotifications.setOnClickListener { binding.root.snackbar("Notification settings coming soon") }
-        binding.settingDataStorage.setOnClickListener { binding.root.snackbar("Data & Storage settings coming soon") }
+        binding.settingDataStorage.setOnClickListener {
+            launchActivity<DataStorageActivity>()
+        }
         binding.settingPrivacy.setOnClickListener { binding.root.snackbar("Privacy settings coming soon") }
         binding.settingAbout.setOnClickListener { binding.root.snackbar("Little Player v1.01") }
     }

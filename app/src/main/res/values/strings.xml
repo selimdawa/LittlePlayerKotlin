@@ -72,4 +72,10 @@
     <string name="manual_adjustment">Manual adjustment</string>
     <string name="enhance_sounds">Enhance sounds</string>
     <string name="db_format">%1$s%2$ddB</string>
+    <string name="bottom_player_theme_title">Bottom Player Theme</string>
+    <string name="bottom_player_theme_desc">Enable theme coloring for the bottom player controls.</string>
+    <string name="live_preview">Live Preview</string>
+    <string name="basic">Basic</string>
+    <string name="palette">Palette</string>
+    <string name="white">White</string>
 </resources>

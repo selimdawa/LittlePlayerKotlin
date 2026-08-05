@@ -27,6 +27,14 @@ import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
+import androidx.palette.graphics.Palette
+import coil.imageLoader
+import coil.request.ImageRequest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -144,6 +152,52 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         viewModel.isPlaying.collectWithLifecycle(viewLifecycleOwner) { isPlaying ->
             updatePlayPauseAnimation(isPlaying)
         }
+
+        combine(
+            viewModel.bottomPlayerThemeEnabled,
+            viewModel.themeColorMode,
+            viewModel.currentThemeColor
+        ) { enabled, mode, color ->
+            Triple(enabled, mode, color)
+        }.collectWithLifecycle(viewLifecycleOwner) { (enabled, mode, color) ->
+            updateThemeColors(enabled, mode, color ?: Color.WHITE)
+        }
+    }
+
+    private fun updateThemeColors(enabled: Boolean, mode: Int, color: Int) {
+        val track = requireContext().getLibraryColor("mc_track")
+        val tick = requireContext().getLibraryColor("mc_tick")
+
+        fun applyTo(view: View) {
+            val background = view.background.mutate()
+            val gradient = when (background) {
+                is GradientDrawable -> background
+                is LayerDrawable -> background.getDrawable(0) as? GradientDrawable
+                else -> null
+            }
+
+            gradient?.let {
+                if (enabled) {
+                    val targetColor = when (mode) {
+                        DATA.MODE_PALETTE -> color
+                        DATA.MODE_WHITE -> Color.WHITE
+                        else -> null
+                    }
+                    if (targetColor != null) {
+                        it.colors = intArrayOf(targetColor, targetColor)
+                    } else {
+                        it.colors = intArrayOf(track, tick)
+                    }
+                } else {
+                    it.colors = intArrayOf(track, tick)
+                }
+                view.background = background
+            }
+        }
+
+        applyTo(binding.playPauseBtn)
+        applyTo(binding.albumArtContainer)
+        applyTo(binding.bottomPlayerContainer)
     }
 
     private fun updateUiFromPlayer(player: Player) {
@@ -170,6 +224,24 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 binding.albumArt.loadSongImage(albumId, path, cachedPath)
                 binding.name.text = title
                 binding.artist.text = artist
+
+                // Extract Palette Color
+                val request = ImageRequest.Builder(requireContext())
+                    .data(cachedPath ?: path)
+                    .allowHardware(false)
+                    .target { result ->
+                        val bitmap = (result as? BitmapDrawable)?.bitmap
+                        bitmap?.let { b ->
+                            Palette.from(b).generate { palette ->
+                                val color = palette?.getVibrantColor(Color.GRAY)
+                                    ?: palette?.getLightVibrantColor(Color.GRAY)
+                                    ?: palette?.getDominantColor(Color.GRAY)
+                                    ?: Color.GRAY
+                                viewModel.updateThemeColor(color)
+                            }
+                        }
+                    }.build()
+                requireContext().imageLoader.enqueue(request)
             }
         } else {
             val song = viewModel.currentPlayingSong.value
@@ -177,6 +249,26 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
                 binding.name.text = it.safeTitle
                 binding.artist.text = it.safeArtist
+
+                // Extract Palette Color if missing
+                if (viewModel.currentThemeColor.value == null) {
+                    val request = ImageRequest.Builder(requireContext())
+                        .data(it.cachedImagePath ?: it.path)
+                        .allowHardware(false)
+                        .target { result ->
+                            val bitmap = (result as? BitmapDrawable)?.bitmap
+                            bitmap?.let { b ->
+                                Palette.from(b).generate { palette ->
+                                    val color = palette?.getVibrantColor(Color.GRAY)
+                                        ?: palette?.getLightVibrantColor(Color.GRAY)
+                                        ?: palette?.getDominantColor(Color.GRAY)
+                                        ?: Color.GRAY
+                                    viewModel.updateThemeColor(color)
+                                }
+                            }
+                        }.build()
+                    requireContext().imageLoader.enqueue(request)
+                }
             }
         }
         updatePlayPauseAnimation(player.isPlaying)
