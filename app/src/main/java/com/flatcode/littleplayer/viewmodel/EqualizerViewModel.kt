@@ -25,7 +25,9 @@ class EqualizerViewModel @Inject constructor(
 
     private fun loadSettings() {
         viewModelScope.launch {
-            _equalizerSettings.value = repository.getEqualizerSettings() ?: EqualizerEntity()
+            repository.getEqualizerSettings().collect { settings ->
+                _equalizerSettings.value = settings ?: EqualizerEntity()
+            }
         }
     }
 }

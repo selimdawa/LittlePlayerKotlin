@@ -48,7 +48,7 @@ class EqualizerActivity : AppCompatActivity() {
         "Rock" to shortArrayOf(400, 300, -100, 300, 500),
         "Jazz" to shortArrayOf(400, 200, -200, 200, 500),
         "Classical" to shortArrayOf(500, 300, -200, 400, 400),
-        "Dance" to shortArrayOf(600, 0, 200, 400, 100)
+        "Dance" to shortArrayOf(600, 0, 200, 400, 100),
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,11 +71,14 @@ class EqualizerActivity : AppCompatActivity() {
                 binding.switchEq.isChecked = it.enabled
                 binding.bassKnob.progress = it.bassStrength.toInt() / 10
                 binding.virtualizerKnob.progress = it.virtualizerStrength.toInt() / 10
-                
+
                 selectedPresetName = it.presetName
-                val levels = it.bandLevels.split(",").map { level -> level.toShort() }.toShortArray()
+                val levels =
+                    it.bandLevels.split(",").map { level -> level.toShort() }.toShortArray()
                 setupBands(levels)
-                updatePresetSelectionUI(selectedPresetName, nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY)
+                updatePresetSelectionUI(
+                    selectedPresetName, nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY
+                )
             }
         }
 
@@ -99,9 +102,12 @@ class EqualizerActivity : AppCompatActivity() {
         super.onStart()
         val sessionToken = SessionToken(this, ComponentName(this, MusicService::class.java))
         controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
-        controllerFuture?.addListener({
-            mediaController = controllerFuture?.get()
-        }, ContextCompat.getMainExecutor(this))
+        controllerFuture?.addListener(
+            {
+                mediaController = controllerFuture?.get()
+            },
+            ContextCompat.getMainExecutor(this),
+        )
     }
 
     override fun onStop() {
@@ -145,8 +151,8 @@ class EqualizerActivity : AppCompatActivity() {
     private fun handleKnobTouch(
         knob: CircularProgressIndicator, event: MotionEvent, onProgressChanged: (Int) -> Unit
     ) {
-        val x = event.x - knob.width / 2
-        val y = knob.height / 2 - event.y
+        val x = event.x - (knob.width / 2)
+        val y = (knob.height / 2) - event.y
         val angle = Math.toDegrees(atan2(x.toDouble(), y.toDouble())).toFloat()
 
         val normalizedAngle = if (angle < 0) angle + 360 else angle
@@ -182,18 +188,19 @@ class EqualizerActivity : AppCompatActivity() {
             SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY), bundlePreset
         )
 
-        val levels = presets[name] ?: return
-        for (i in levels.indices) {
-            val progress = levels[i] + 1500
-            bandSeekBars[i].progress = progress.toInt()
+        presets[name]?.let { levels ->
+            for (i in levels.indices) {
+                val progress = levels[i] + 1500
+                bandSeekBars[i].progress = progress
 
-            val bundle = Bundle().apply {
-                putShort("BAND", i.toShort())
-                putShort("LEVEL", levels[i])
+                val bundle = Bundle().apply {
+                    putShort("BAND", i.toShort())
+                    putShort("LEVEL", levels[i])
+                }
+                mediaController?.sendCustomCommand(
+                    SessionCommand(MusicService.COMMAND_SET_EQ_BAND, Bundle.EMPTY), bundle
+                )
             }
-            mediaController?.sendCustomCommand(
-                SessionCommand(MusicService.COMMAND_SET_EQ_BAND, Bundle.EMPTY), bundle
-            )
         }
     }
 
@@ -274,13 +281,13 @@ class EqualizerActivity : AppCompatActivity() {
 
             tvLabel.text = bands[i]
             seekBar.max = 3000
-            
+
             val initialLevel = initialLevels?.getOrNull(i)?.toInt() ?: 0
             seekBar.progress = initialLevel + 1500
-            
+
             val dbLevel = initialLevel / 100
             tvLevel.text = getString(R.string.db_format, if (dbLevel > 0) "+" else "", dbLevel)
-            
+
             bandSeekBars.add(seekBar)
 
             seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -296,7 +303,8 @@ class EqualizerActivity : AppCompatActivity() {
                         )
                         val bundlePreset = Bundle().apply { putString("PRESET", "Custom") }
                         mediaController?.sendCustomCommand(
-                            SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY), bundlePreset
+                            SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY),
+                            bundlePreset
                         )
                         val level = (progress - 1500).toShort()
                         val bundle = Bundle().apply {

@@ -10,5 +10,6 @@ data class EqualizerEntity(
     val bassStrength: Short = 0,
     val virtualizerStrength: Short = 0,
     val bandLevels: String = "0,0,0,0,0", // Stored as comma-separated shorts
+    val customBandLevels: String = "0,0,0,0,0",
     val presetName: String = "Custom"
 )
