@@ -8,12 +8,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemFolderBinding
 import com.flatcode.littleplayer.model.Folder
+import com.flatcode.littleplayer.utils.FastScrollableAdapter
 
 class FolderAdapter(
     private val context: Context,
     private var folderList: ArrayList<Folder>,
     private val onItemClick: (String, String, android.view.View) -> Unit
-) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>() {
+) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>(), FastScrollableAdapter {
 
     class FolderViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -41,6 +42,11 @@ class FolderAdapter(
     }
 
     override fun getItemCount(): Int = folderList.size
+
+    override fun getPopupText(position: Int): String {
+        val name = folderList.getOrNull(position)?.name ?: ""
+        return if (name.isNotEmpty()) name.substring(0, 1).uppercase() else ""
+    }
 
     fun updateList(newList: ArrayList<Folder>) {
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {

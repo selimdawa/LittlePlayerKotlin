@@ -13,6 +13,7 @@ import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.fragment.SongOptionsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.FastScrollableAdapter
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
 import com.flatcode.littleplayer.utils.getAppCompatActivity
 import com.flatcode.littleplayer.utils.getLibraryColor
@@ -25,7 +26,8 @@ class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int, View) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit
-) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable {
+) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable,
+    FastScrollableAdapter {
 
     private var playingPath: String? = null
     private var isPlaying: Boolean = false
@@ -96,6 +98,11 @@ class MusicAdapter(
     }
 
     override fun getItemCount(): Int = currentList.size
+
+    override fun getPopupText(position: Int): String {
+        val title = currentList.getOrNull(position)?.title ?: ""
+        return if (title.isNotEmpty()) title.substring(0, 1).uppercase() else ""
+    }
 
     class MusicViewHolder(val binding: ItemMusicBinding) : RecyclerView.ViewHolder(binding.root)
 

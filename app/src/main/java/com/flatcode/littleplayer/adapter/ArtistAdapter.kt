@@ -9,11 +9,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemArtistBinding
 import com.flatcode.littleplayer.model.Artist
 
+import com.flatcode.littleplayer.utils.FastScrollableAdapter
+
 class ArtistAdapter(
     private val context: Context,
     private var artistList: ArrayList<Artist>,
     private val onItemClick: (String, android.view.View) -> Unit
-) : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>() {
+) : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>(), FastScrollableAdapter {
 
     class ArtistViewHolder(val binding: ItemArtistBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -43,7 +45,7 @@ class ArtistAdapter(
 
     override fun getItemCount(): Int = artistList.size
 
-    fun getPopupText(position: Int): String {
+    override fun getPopupText(position: Int): String {
         val artistName = artistList.getOrNull(position)?.name ?: ""
         return if (artistName.isNotEmpty()) artistName.substring(0, 1).uppercase() else ""
     }

@@ -8,7 +8,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.adapter.ArtistAdapter
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 
 class FastScrollerHelper(
     private val recyclerView: RecyclerView, private val thumb: View, private val bubble: TextView
@@ -113,7 +113,7 @@ class FastScrollerHelper(
 
     private fun hideThumbDelayed() {
         hideHandler.removeCallbacks(hideRunnable)
-        hideHandler.postDelayed(hideRunnable, 2000)
+        hideHandler.postDelayed(hideRunnable, 500)
     }
 
     private fun scrollTo(y: Float) {
@@ -121,17 +121,27 @@ class FastScrollerHelper(
         val itemCount = recyclerView.adapter?.itemCount ?: 0
         if (itemCount > 0) {
             val targetPos = (percentage * itemCount).toInt().coerceIn(0, itemCount - 1)
-            (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(
-                targetPos, 0
-            )
+            when (val lm = recyclerView.layoutManager) {
+                is LinearLayoutManager -> lm.scrollToPositionWithOffset(targetPos, 0)
+                is StaggeredGridLayoutManager -> lm.scrollToPositionWithOffset(targetPos, 0)
+            }
         }
     }
 
     private fun updateBubbleText() {
-        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
-        val firstPos = layoutManager.findFirstVisibleItemPosition()
+        val firstPos = when (val lm = recyclerView.layoutManager) {
+            is LinearLayoutManager -> lm.findFirstVisibleItemPosition()
+            is StaggeredGridLayoutManager -> {
+                val into = IntArray(lm.spanCount)
+                lm.findFirstVisibleItemPositions(into)
+                into.minOrNull() ?: RecyclerView.NO_POSITION
+            }
+
+            else -> RecyclerView.NO_POSITION
+        }
+
         if (firstPos != RecyclerView.NO_POSITION) {
-            val adapter = recyclerView.adapter as? ArtistAdapter
+            val adapter = recyclerView.adapter as? FastScrollableAdapter
             val text = adapter?.getPopupText(firstPos) ?: ""
             bubble.text = text
         }

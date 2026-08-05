@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemAlbumBinding
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.FastScrollableAdapter
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 
@@ -17,7 +18,7 @@ class AlbumAdapter(
     private val context: Context,
     private var albumFiles: ArrayList<MusicFiles>,
     private val onItemClick: (String, android.view.View) -> Unit
-) : RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>() {
+) : RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder>(), FastScrollableAdapter {
 
     class AlbumViewHolder(val binding: ItemAlbumBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -52,6 +53,11 @@ class AlbumAdapter(
     }
 
     override fun getItemCount(): Int = albumFiles.size
+
+    override fun getPopupText(position: Int): String {
+        val albumName = albumFiles.getOrNull(position)?.album ?: ""
+        return if (albumName.isNotEmpty()) albumName.substring(0, 1).uppercase() else ""
+    }
 
     fun updateList(newList: ArrayList<MusicFiles>) {
         val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {

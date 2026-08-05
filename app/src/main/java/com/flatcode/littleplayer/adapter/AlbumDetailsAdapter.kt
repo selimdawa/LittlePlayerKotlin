@@ -10,6 +10,7 @@ import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.FastScrollableAdapter
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -19,7 +20,8 @@ import com.flatcode.littleplayer.utils.visible
 class AlbumDetailsAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int) -> Unit
-) : ListAdapter<MusicFiles, AlbumDetailsAdapter.AlbumDetailsViewHolder>(AlbumDetailsDiffCallback()), PlaybackAnimatable {
+) : ListAdapter<MusicFiles, AlbumDetailsAdapter.AlbumDetailsViewHolder>(AlbumDetailsDiffCallback()),
+    PlaybackAnimatable, FastScrollableAdapter {
 
     private var playingPath: String? = null
     private var isPlaying: Boolean = false
@@ -72,6 +74,11 @@ class AlbumDetailsAdapter(
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition)
         }
+    }
+
+    override fun getPopupText(position: Int): String {
+        val title = getItem(position).title ?: ""
+        return if (title.isNotEmpty()) title.substring(0, 1).uppercase() else ""
     }
 
     class AlbumDetailsViewHolder(val binding: ItemMusicBinding) :

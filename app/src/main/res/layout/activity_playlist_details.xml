@@ -18,6 +18,11 @@
         android:layout_below="@id/customToolbar"
         android:clipToPadding="false"
         android:paddingTop="10dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="true"
+        android:scrollbarDefaultDelayBeforeFade="500"
+        android:scrollbarThumbVertical="@drawable/fast_scrollbar_thumb"
+        android:scrollbarSize="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_music" />
 
