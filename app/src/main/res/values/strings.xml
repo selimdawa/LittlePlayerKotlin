@@ -60,9 +60,14 @@
     <string name="sleep_timer">Sleep Timer</string>
     <string name="off">Off</string>
     <string name="set_sleep_timer">Set Sleep Timer</string>
+    <string name="_1_minute">1 minute</string>
+    <string name="_5_minutes">5 minutes</string>
     <string name="_15_minutes">15 minutes</string>
     <string name="_30_minutes">30 minutes</string>
-    <string name="_60_minutes">60 minutes</string>
+    <string name="_1_hour">1 hour</string>
+    <string name="_2_hours">2 hours</string>
+    <string name="_4_hours">4 hours</string>
+    <string name="_8_hours">8 hours</string>
     <string name="timer_set_format">Timer set for %1$d minutes</string>
     <string name="music_service_not_connected">Music Service not connected yet</string>
     <string name="disabled">Disabled</string>
@@ -101,4 +106,10 @@
     <string name="ok">OK</string>
     <string name="stop">Stop</string>
     <string name="no_lyrics">No lyrics found for this song.</string>
+    <string name="cache_and_history">Cache &amp; History</string>
+    <string name="clear_art_cache">Clear Art Cache</string>
+    <string name="clear_recent_history">Clear Recent History</string>
+    <string name="clear_recent_history_desc">Deletes the list of your most recently played songs.</string>
+    <string name="art_cache_cleared">Album art cache cleared</string>
+    <string name="history_cleared">Recent history cleared</string>
 </resources>

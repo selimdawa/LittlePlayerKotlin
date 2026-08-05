@@ -116,11 +116,16 @@ class SettingsActivity : AppCompatActivity() {
     private fun showSleepTimerDialog() {
         val options = arrayOf(
             getString(R.string.off),
+            getString(R.string._1_minute),
+            getString(R.string._5_minutes),
             getString(R.string._15_minutes),
             getString(R.string._30_minutes),
-            getString(R.string._60_minutes)
+            getString(R.string._1_hour),
+            getString(R.string._2_hours),
+            getString(R.string._4_hours),
+            getString(R.string._8_hours)
         )
-        val values = intArrayOf(0, 15, 30, 60)
+        val values = intArrayOf(0, 1, 5, 15, 30, 60, 120, 240, 480)
 
         AlertDialog.Builder(this).setTitle(R.string.set_sleep_timer).setItems(options) { _, which ->
             val minutes = values[which]
