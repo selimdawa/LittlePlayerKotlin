@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.activity
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -16,6 +17,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -34,9 +36,7 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
-import com.flatcode.littleplayer.utils.getLyrics
 import com.flatcode.littleplayer.utils.gone
-import com.flatcode.littleplayer.utils.isVisible
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.togglePlayPause
@@ -52,6 +52,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
@@ -70,7 +71,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private lateinit var amplituda: Amplituda
     private var currentDominantColor: Int = Color.GRAY
     private var currentMode: Int = DATA.MODE_BASIC
-    private var lyricsJob: Job? = null
     private var isIntentProcessed = false
     private var isAnimating = false
 
@@ -101,7 +101,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.seekBar.secondaryProgressTintList = colorStateList
         binding.seekBar.progressBackgroundTintList = colorStateList
 
-        val background = binding.buttonPanel.playPauseBtn.background.mutate()
+        val background = binding.playPauseBtn.background.mutate()
         if (background is GradientDrawable) {
             if (currentMode == DATA.MODE_BASIC) {
                 background.colors =
@@ -109,7 +109,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             } else {
                 background.colors = intArrayOf(color, color)
             }
-            binding.buttonPanel.playPauseBtn.background = background
+            binding.playPauseBtn.background = background
         }
 
         binding.waveformSeekBar.waveProgressColor = color
@@ -119,6 +119,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE) 4 else 1
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupListeners() {
         binding.back.setOnClickListener { supportFinishAfterTransition() }
 
@@ -135,14 +136,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.seekBar.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
-                    seekBar: SeekBar?, progress: Int, fromUser: Boolean
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean,
                 ) {
                     if ((mediaController != null) && fromUser) {
                         mediaController?.seekTo(progress.toLong() * 1000)
                         val duration = mediaController?.duration ?: 0L
                         if (duration > 0) {
                             val progressPercentage =
-                                (progress.toFloat() * 1000f / duration.toFloat()) * 100f
+                                ((progress.toFloat() * 1000f) / duration.toFloat()) * 100f
                             binding.waveformSeekBar.progress = progressPercentage
                         }
                     }
@@ -153,7 +156,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             },
         )
 
-        binding.buttonPanel.repeat.setOnClickListener {
+        binding.repeat.setOnClickListener {
             mediaController?.let { controller ->
                 when {
                     !controller.shuffleModeEnabled && controller.repeatMode != Player.REPEAT_MODE_ONE -> {
@@ -174,12 +177,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             }
         }
 
-        binding.buttonPanel.prev.setOnClickListener { prevBtn() }
-        binding.buttonPanel.next.setOnClickListener { nextBtn() }
-        binding.buttonPanel.playPauseBtn.setOnClickListener { playPauseBtn() }
-        binding.buttonPanel.favorite.setOnClickListener { viewModel.toggleFavorite() }
-
-        binding.lyricsBtn.setOnClickListener { toggleLyrics() }
+        binding.prev.setOnClickListener { prevBtn() }
+        binding.next.setOnClickListener { nextBtn() }
+        binding.playPauseBtn.setOnClickListener { playPauseBtn() }
+        binding.favorite.setOnClickListener { viewModel.toggleFavorite() }
 
         val gestureDetector = GestureDetector(this, SwipeGestureListener())
         binding.card.setOnTouchListener { v, event ->
@@ -189,24 +190,15 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 if (event.action == MotionEvent.ACTION_UP) {
                     v.performClick()
                 }
-                true
+                v.onTouchEvent(event)
             }
         }
     }
 
-    private fun toggleLyrics() {
-        if (binding.lyricsContainer.visibility == android.view.View.VISIBLE) {
-            binding.lyricsContainer.gone()
-        } else {
-            binding.lyricsContainer.visible()
-        }
-    }
-
-
     private fun observeViewModel() {
         viewModel.isFavorite.collectWithLifecycle(this) { isFavorite ->
             val icon = if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
-            binding.buttonPanel.favorite.setImageResource(icon)
+            binding.favorite.setImageResource(icon)
         }
 
         nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { mode ->
@@ -219,35 +211,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 binding.songName.text = it.title
                 binding.songArtist.text = it.artist
                 updateSongUI(it)
-                loadLyrics(it)
                 lifecycleScope.launch {
                     delay(300.milliseconds)
                     it.path?.let { path -> it.id?.let { id -> loadWaveform(id, path) } }
                 }
-            }
-        }
-    }
-
-    private fun loadLyrics(song: MusicFiles) {
-        lyricsJob?.cancel()
-        if (song.lyrics != null) {
-            binding.lyricsText.text = song.lyrics
-            return
-        }
-
-        binding.lyricsText.setText(R.string.no_lyrics)
-
-        lyricsJob = lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val lyrics = getLyrics(song.path)
-                if (isActive && lyrics != null) {
-                    runOnUiThread {
-                        binding.lyricsText.text = lyrics
-                    }
-                    song.id?.let { viewModel.updateLyrics(it, lyrics) }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -267,7 +234,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
         val request =
-            ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path).allowHardware(false)
+            ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path)
+                .allowHardware(enable = false)
                 .target { result ->
                     val bitmap = (result as? BitmapDrawable)?.bitmap
                     bitmap?.let {
@@ -328,19 +296,21 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val position = intent.getIntExtra(DATA.POSITION, -1)
 
         if (position != -1 && !isIntentProcessed) {
-            binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
+            binding.playPause.setImageResource(R.drawable.ic_pause)
             viewModel.updatePositionAndSong(position)
         }
     }
 
     private fun playPauseBtn() {
         mediaController?.togglePlayPause(
-            binding.buttonPanel.playPause, { stopProgressUpdater() }) { startProgressUpdater() }
+            binding.playPause,
+            { stopProgressUpdater() },
+        ) { startProgressUpdater() }
     }
 
     private fun prevBtn(animate: Boolean = true) {
         if (animate) {
-            animateSkip(false)
+            animateSkip(toNext = false)
             return
         }
         mediaController?.let { controller ->
@@ -391,17 +361,20 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private inner class SwipeGestureListener : GestureDetector.SimpleOnGestureListener() {
-        private val SWIPE_THRESHOLD = 100
-        private val SWIPE_VELOCITY_THRESHOLD = 100
+        private val swipeThreshold = 100
+        private val swipeVelocityThreshold = 100
 
         override fun onFling(
-            e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float
+            e1: MotionEvent?,
+            e2: MotionEvent,
+            velocityX: Float,
+            velocityY: Float,
         ): Boolean {
             if (e1 == null) return false
             val diffX = e2.x - e1.x
             val diffY = e2.y - e1.y
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+            if (abs(diffX) > abs(diffY)) {
+                if (abs(diffX) > swipeThreshold && abs(velocityX) > swipeVelocityThreshold) {
                     if (diffX > 0) {
                         prevBtn()
                     } else {
@@ -488,6 +461,15 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     val index = controller.currentMediaItemIndex
                     if (index in viewModel.listSongs.indices) {
                         viewModel.updatePositionAndSong(index)
+                    } else {
+                        lifecycleScope.launch {
+                            while (viewModel.listSongs.isEmpty()) {
+                                delay(30.milliseconds)
+                            }
+                            if (index in viewModel.listSongs.indices) {
+                                viewModel.updatePositionAndSong(index)
+                            }
+                        }
                     }
                 } else {
                     lifecycleScope.launch {
@@ -520,10 +502,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
             val uri = song.path?.toUri() ?: "".toUri()
             val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
-                .setExtras(Bundle().apply {
-                    putString("ALBUM_ID", song.albumId)
-                    putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                }).build()
+                .setExtras(
+                    Bundle().apply {
+                        putString("ALBUM_ID", song.albumId)
+                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                    },
+                ).build()
             MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                 .build()
         }
@@ -546,10 +530,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
             val uri = song.path?.toUri() ?: "".toUri()
             val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
-                .setExtras(Bundle().apply {
-                    putString("ALBUM_ID", song.albumId)
-                    putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                }).build()
+                .setExtras(
+                    Bundle().apply {
+                        putString("ALBUM_ID", song.albumId)
+                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                    },
+                ).build()
             MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                 .build()
         }
@@ -572,9 +558,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun updatePlayPauseButton(isPlaying: Boolean) {
         if (isPlaying) {
-            binding.buttonPanel.playPause.setImageResource(R.drawable.ic_pause)
+            binding.playPause.setImageResource(R.drawable.ic_pause)
         } else {
-            binding.buttonPanel.playPause.setImageResource(R.drawable.ic_play)
+            binding.playPause.setImageResource(R.drawable.ic_play)
         }
     }
 
@@ -619,6 +605,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
             else -> R.drawable.ic_repeat_on
         }
-        binding.buttonPanel.repeat.setImageResource(cycleIcon)
+        binding.repeat.setImageResource(cycleIcon)
     }
 }
