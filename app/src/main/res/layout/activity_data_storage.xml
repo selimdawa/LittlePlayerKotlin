@@ -86,20 +86,13 @@
                     android:orientation="vertical"
                     android:padding="32dp">
 
-                    <FrameLayout
-                        android:id="@+id/previewBtn"
+                    <com.flatcode.littleplayer.utils.PlayPauseView
+                        android:id="@+id/previewPlayPause"
                         android:layout_width="64dp"
                         android:layout_height="64dp"
-                        android:background="@drawable/ic_gradient_border">
-
-                        <ImageView
-                            android:layout_width="35dp"
-                            android:layout_height="35dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_play"
-                            app:tint="?attr/colorOnSurface" />
-                    </FrameLayout>
+                        android:background="@drawable/ic_gradient_border"
+                        android:padding="20dp"
+                        android:foregroundTint="?attr/colorOnSurface" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

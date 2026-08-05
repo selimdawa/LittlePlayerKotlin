@@ -19,8 +19,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.media3.common.util.UnstableApi
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityMainBinding
 import com.flatcode.littleplayer.databinding.ItemTabBinding
@@ -82,7 +82,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startSearchActivity() {
         val intent = Intent(this, SearchActivity::class.java)
-        val options = ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_up, R.anim.slide_out_up)
+        val options =
+            ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_up, R.anim.slide_out_up)
         startActivity(intent, options.toBundle())
     }
 

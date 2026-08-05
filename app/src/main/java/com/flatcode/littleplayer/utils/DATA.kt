@@ -4,7 +4,6 @@ object DATA {
 
     const val UNKNOWN = "Unknown"
 
-    const val SORTING = "sorting"
     const val SORT_BY_NAME = "sortByName"
     const val SORT_BY_DATE = "sortByDate"
     const val SORT_BY_SIZE = "sortBySize"
@@ -25,7 +24,7 @@ object DATA {
     const val LAST_POSITION = "LAST_POSITION"
     const val THEME_COLOR_MODE = "THEME_COLOR_MODE"
     const val BOTTOM_PLAYER_THEME = "BOTTOM_PLAYER_THEME"
-    
+
     const val MODE_BASIC = 0
     const val MODE_PALETTE = 1
     const val MODE_WHITE = 2

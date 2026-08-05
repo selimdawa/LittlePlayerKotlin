@@ -1,8 +1,8 @@
 @file:Suppress("SpellCheckingInspection")
+
 package com.flatcode.littleplayer.utils
 
 import android.annotation.SuppressLint
-import androidx.core.app.ActivityOptionsCompat
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentResolver
@@ -23,6 +23,7 @@ import android.widget.ImageView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityOptionsCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
@@ -47,8 +48,7 @@ import java.io.File
 import kotlin.time.Duration
 
 inline fun <reified T : Activity> Context.launchActivity(
-    options: android.os.Bundle? = null,
-    extras: Intent.() -> Unit = {}
+    options: android.os.Bundle? = null, extras: Intent.() -> Unit = {}
 ) {
     val intent = Intent(this, T::class.java)
     intent.extras()
@@ -94,9 +94,7 @@ interface PlaybackAnimatable {
 fun Context.openPlayer(position: Int, transitionView: View? = null) {
     val options = transitionView?.let {
         ActivityOptionsCompat.makeSceneTransitionAnimation(
-            this.getAppCompatActivity() ?: return@let null,
-            it,
-            "song_image"
+            this.getAppCompatActivity() ?: return@let null, it, "song_image"
         ).toBundle()
     }
     launchActivity<PlayerActivity>(options) {

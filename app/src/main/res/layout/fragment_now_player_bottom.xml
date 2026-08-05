@@ -30,8 +30,8 @@
                 android:layout_height="2dp"
                 android:max="100"
                 android:progress="0"
-                android:progressBackgroundTint="?attr/colorSurfaceVariant"
-                android:progressTint="?attr/colorPrimary" />
+                android:progressBackgroundTint="?attr/colorError"
+                android:progressTint="?attr/colorError" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -76,7 +76,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text="@string/song_title"
-                        android:textColor="?attr/colorOnSurface"
+                        android:textColor="?attr/colorError"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -102,15 +102,13 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <com.airbnb.lottie.LottieAnimationView
-                        android:id="@+id/playPauseAnimView"
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
+                    <com.flatcode.littleplayer.utils.PlayPauseView
+                        android:id="@+id/playPauseView"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:layout_gravity="center"
-                        app:lottie_autoPlay="false"
-                        app:lottie_loop="false"
-                        app:lottie_rawRes="@raw/play_pause_morph"
-                        app:tint="?attr/colorOnSurface" />
+                        android:padding="12dp"
+                        android:foregroundTint="?attr/colorError" />
 
                 </FrameLayout>
 
@@ -125,7 +123,7 @@
                     android:focusable="true"
                     android:padding="6dp"
                     android:src="@drawable/ic_skip_next"
-                    app:tint="?attr/colorOnSurface" />
+                    app:tint="?attr/colorError" />
 
             </LinearLayout>
 

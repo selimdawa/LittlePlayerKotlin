@@ -1,12 +1,10 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
-import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
@@ -44,7 +42,6 @@ class SettingsActivity : AppCompatActivity() {
         initToolbar(getString(R.string.settings))
         setupListeners()
         observeViewModel()
-        updateNightModeButton()
     }
 
     override fun onStart() {
@@ -64,13 +61,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.btnNightMode.setOnClickListener {
-            val isNightMode =
-                (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            val mode =
-                if (isNightMode) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES
-            viewModel.setDarkMode(mode)
-            AppCompatDelegate.setDefaultNightMode(mode)
-            updateNightModeButton()
+            binding.root.snackbar("Disabled")
         }
 
         binding.settingScanMedia.setOnClickListener {
@@ -93,13 +84,6 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.settingPrivacy.setOnClickListener { binding.root.snackbar("Privacy settings coming soon") }
         binding.settingAbout.setOnClickListener { binding.root.snackbar("Little Player v1.01") }
-    }
-
-    private fun updateNightModeButton() {
-        val isNightMode =
-            (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        binding.tvNightMode.text =
-            if (isNightMode) getString(R.string.light_mode) else getString(R.string.dark_mode)
     }
 
     private fun showSleepTimerDialog() {

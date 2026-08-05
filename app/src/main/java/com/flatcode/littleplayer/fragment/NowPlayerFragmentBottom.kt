@@ -275,13 +275,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     }
 
     private fun updatePlayPauseAnimation(isPlaying: Boolean) {
-        if (isPlaying) {
-            binding.playPauseAnimView.speed = 1f
-            binding.playPauseAnimView.playAnimation()
-        } else {
-            binding.playPauseAnimView.speed = -1f
-            binding.playPauseAnimView.playAnimation()
-        }
+        binding.playPauseView.setPlaying(isPlaying)
     }
 
     override fun onStart() {

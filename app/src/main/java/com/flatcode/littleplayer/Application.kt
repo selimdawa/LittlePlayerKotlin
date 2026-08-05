@@ -10,8 +10,6 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import dagger.hilt.android.HiltAndroidApp
 import io.selimdawa.multicolors.MultiColorManager
-import io.selimdawa.multicolors.MultiColorTheme
-import io.selimdawa.multicolors.ThemeRegistry
 
 @HiltAndroidApp
 class Application : Application(), ImageLoaderFactory {

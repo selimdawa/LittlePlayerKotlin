@@ -21,8 +21,9 @@
     </style>
 
     <!-- Main Application Theme -->
-    <style name="Theme.LittlePlayer" parent="Theme.MC.One">
+    <style name="Theme.LittlePlayer" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+        <!-- Re-add essential library attributes if they fail, but let's test this first -->
     </style>
 
     <!-- Custom Alert Dialog -->

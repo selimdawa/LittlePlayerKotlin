@@ -17,8 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
-    private val repository: MusicRepository
+    private val dataStore: DataStore<Preferences>, private val repository: MusicRepository
 ) : ViewModel() {
 
     private val darkModeKey = intPreferencesKey("dark_mode_preference")

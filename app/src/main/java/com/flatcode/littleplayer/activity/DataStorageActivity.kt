@@ -58,7 +58,7 @@ class DataStorageActivity : AppCompatActivity() {
     }
 
     private fun updatePreview(mode: Int) {
-        val background = binding.previewBtn.background.mutate()
+        val background = binding.previewPlayPause.background.mutate()
         if (background is GradientDrawable) {
             when (mode) {
                 DATA.MODE_BASIC -> {
@@ -71,7 +71,7 @@ class DataStorageActivity : AppCompatActivity() {
                     background.colors = intArrayOf(Color.WHITE, Color.WHITE)
                 }
             }
-            binding.previewBtn.background = background
+            binding.previewPlayPause.background = background
         }
 
         // Highlight selected dot

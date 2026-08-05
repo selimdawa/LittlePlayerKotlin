@@ -11,14 +11,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 
 class FastScrollerHelper(
-    private val recyclerView: RecyclerView,
-    private val thumb: View,
-    private val bubble: TextView
+    private val recyclerView: RecyclerView, private val thumb: View, private val bubble: TextView
 ) {
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideRunnable = Runnable {
-        thumb.animate().alpha(0f).setDuration(300).withEndAction { 
-            thumb.visibility = View.INVISIBLE 
+        thumb.animate().alpha(0f).setDuration(300).withEndAction {
+            thumb.visibility = View.INVISIBLE
         }.start()
         bubble.visibility = View.GONE
     }
@@ -60,19 +58,21 @@ class FastScrollerHelper(
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                     val relativeY = event.rawY - getRecyclerViewTopOnScreen()
                     scrollTo(relativeY)
-                    
+
                     showThumb()
                     updateThumbPosition()
-                    
+
                     bubble.visibility = View.VISIBLE
                     updateBubbleText()
                     true
                 }
+
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     bubble.visibility = View.GONE
                     hideThumbDelayed()
                     true
                 }
+
                 else -> false
             }
         }
@@ -94,11 +94,11 @@ class FastScrollerHelper(
             val availableHeight = recyclerView.height - thumb.height
             val newY = (percentage * availableHeight).coerceIn(0f, availableHeight.toFloat())
             thumb.translationY = newY
-            
-            // Sync bubble position to follow thumb center
+
             val thumbCenter = newY + (thumb.height / 2)
             val bubbleY = thumbCenter - (bubble.height / 2)
-            bubble.translationY = bubbleY.coerceIn(0f, (recyclerView.height - bubble.height).toFloat())
+            bubble.translationY =
+                bubbleY.coerceIn(0f, (recyclerView.height - bubble.height).toFloat())
         }
     }
 
@@ -121,7 +121,9 @@ class FastScrollerHelper(
         val itemCount = recyclerView.adapter?.itemCount ?: 0
         if (itemCount > 0) {
             val targetPos = (percentage * itemCount).toInt().coerceIn(0, itemCount - 1)
-            (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(targetPos, 0)
+            (recyclerView.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(
+                targetPos, 0
+            )
         }
     }
 

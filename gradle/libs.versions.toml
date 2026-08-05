@@ -25,7 +25,7 @@ media3-exoplayer = "1.10.1"
 amplituda = "2.3.1"
 waveformseekbar = "5.0.2"
 multiwave = "1.0.1"
-multicolors = "1.0.3"
+multicolors = "1.0.4"
 kotlin = "2.4.0"
 
 [libraries]
