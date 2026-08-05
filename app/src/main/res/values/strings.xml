@@ -59,6 +59,7 @@
     <string name="about">About</string>
     <string name="sleep_timer">Sleep Timer</string>
     <string name="off">Off</string>
+    <string name="light_mode">Light Mode</string>
     <string name="custom">Custom</string>
     <string name="pop">Pop</string>
     <string name="rock">Rock</string>

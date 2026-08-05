@@ -1,25 +1,28 @@
 package com.flatcode.littleplayer.activity
 
-import android.os.Bundle
 import android.content.ComponentName
-import androidx.core.content.ContextCompat
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.session.MediaController
-import androidx.media3.session.SessionToken
-import com.flatcode.littleplayer.service.MusicService
-import com.flatcode.littleplayer.utils.DATA
-import com.google.common.util.concurrent.ListenableFuture
+import android.content.res.Configuration
+import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivitySettingsBinding
+import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.snackbar
+import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.SettingsViewModel
+import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
@@ -28,6 +31,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val viewModel: SettingsViewModel by viewModels()
+    private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
@@ -40,6 +44,7 @@ class SettingsActivity : AppCompatActivity() {
         initToolbar(getString(R.string.settings))
         setupListeners()
         observeViewModel()
+        updateNightModeButton()
     }
 
     override fun onStart() {
@@ -58,10 +63,14 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        binding.switchDarkMode.setOnCheckedChangeListener { _, isChecked ->
-            val mode = if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+        binding.btnNightMode.setOnClickListener {
+            val isNightMode =
+                (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val mode =
+                if (isNightMode) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES
             viewModel.setDarkMode(mode)
             AppCompatDelegate.setDefaultNightMode(mode)
+            updateNightModeButton()
         }
 
         binding.settingScanMedia.setOnClickListener {
@@ -76,35 +85,44 @@ class SettingsActivity : AppCompatActivity() {
         binding.settingEqualizer.setOnClickListener {
             launchActivity<EqualizerActivity>()
         }
+
+        binding.settingAccount.setOnClickListener { binding.root.snackbar("Account settings coming soon") }
+        binding.settingNotifications.setOnClickListener { binding.root.snackbar("Notification settings coming soon") }
+        binding.settingDataStorage.setOnClickListener { binding.root.snackbar("Data & Storage settings coming soon") }
+        binding.settingPrivacy.setOnClickListener { binding.root.snackbar("Privacy settings coming soon") }
+        binding.settingAbout.setOnClickListener { binding.root.snackbar("Little Player v1.01") }
+    }
+
+    private fun updateNightModeButton() {
+        val isNightMode =
+            (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        binding.tvNightMode.text =
+            if (isNightMode) getString(R.string.light_mode) else getString(R.string.dark_mode)
     }
 
     private fun showSleepTimerDialog() {
         val options = arrayOf("Off", "15 minutes", "30 minutes", "60 minutes")
         val values = intArrayOf(0, 15, 30, 60)
 
-        AlertDialog.Builder(this)
-            .setTitle("Set Sleep Timer")
-            .setItems(options) { _, which ->
-                val minutes = values[which]
-                setSleepTimer(minutes)
-                binding.tvSleepTimerStatus.text = options[which]
-            }
-            .show()
+        AlertDialog.Builder(this).setTitle("Set Sleep Timer").setItems(options) { _, which ->
+            val minutes = values[which]
+            setSleepTimer(minutes)
+            binding.tvSleepTimerStatus.text = options[which]
+        }.show()
     }
 
     private fun setSleepTimer(minutes: Int) {
         mediaController?.let { controller ->
             val bundle = Bundle().apply { putInt("MINUTES", minutes) }
             controller.sendCustomCommand(
-                androidx.media3.session.SessionCommand(MusicService.COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY),
-                bundle
+                SessionCommand(MusicService.COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY), bundle
             )
         }
     }
 
     private fun observeViewModel() {
-        viewModel.darkModeFlow.collectWithLifecycle(this) { mode ->
-            binding.switchDarkMode.isChecked = (mode == AppCompatDelegate.MODE_NIGHT_YES)
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+            binding.fragBottomPlayer.root.isVisible = song != null
         }
     }
 }

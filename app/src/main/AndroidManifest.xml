@@ -22,6 +22,9 @@
     <!-- Required for media playback execution on API 34+ -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
+    <!-- AUDIO EFFECTS PERMISSIONS -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <application
         android:name=".Application"
         android:allowBackup="true"
