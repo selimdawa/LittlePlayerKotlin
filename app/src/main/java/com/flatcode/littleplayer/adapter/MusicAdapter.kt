@@ -25,7 +25,7 @@ import com.flatcode.littleplayer.utils.visible
 class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int, View) -> Unit,
-    private val onDeleteClick: (MusicFiles) -> Unit
+    private val onDeleteClick: (MusicFiles) -> Unit,
 ) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable,
     FastScrollableAdapter {
 
@@ -78,7 +78,7 @@ class MusicAdapter(
         }
 
         val params = holder.itemView.layoutParams as MarginLayoutParams
-        params.bottomMargin = if (position == itemCount - 1) {
+        params.bottomMargin = if (position == (itemCount - 1)) {
             (95 * context.resources.displayMetrics.density).toInt()
         } else {
             (10 * context.resources.displayMetrics.density).toInt()

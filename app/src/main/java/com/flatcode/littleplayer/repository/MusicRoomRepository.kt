@@ -96,7 +96,5 @@ class MusicRoomRepository @Inject constructor(
         musicDao.saveEqualizerSettings(equalizerEntity)
     }
 
-    suspend fun getEqualizerSettings(): EqualizerEntity? = withContext(Dispatchers.IO) {
-        musicDao.getEqualizerSettings()
-    }
+    fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
 }

@@ -395,7 +395,24 @@ class MusicRepository @Inject constructor(
         musicDao.saveEqualizerSettings(equalizerEntity)
     }
 
-    suspend fun getEqualizerSettings(): EqualizerEntity? = withContext(Dispatchers.IO) {
-        musicDao.getEqualizerSettings()
+    fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
+
+    suspend fun clearArtCache() = withContext(Dispatchers.IO) {
+        albumImageDao.clearAllAlbumImages()
+        val folder = File(context.filesDir, "album_art")
+        if (folder.exists()) {
+            folder.listFiles()?.forEach { it.delete() }
+        }
+    }
+
+    suspend fun clearHistory() = withContext(Dispatchers.IO) {
+        musicDao.clearRecent()
+    }
+
+    fun getCacheSize(): Long {
+        val folder = File(context.filesDir, "album_art")
+        return if (folder.exists()) {
+            folder.walkTopDown().filter { it.isFile }.map { it.length() }.sum()
+        } else 0L
     }
 }

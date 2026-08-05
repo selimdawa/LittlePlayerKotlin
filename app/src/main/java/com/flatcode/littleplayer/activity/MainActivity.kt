@@ -1,7 +1,6 @@
 package com.flatcode.littleplayer.activity
 
 import android.Manifest
-import android.app.ActivityOptions
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -41,6 +40,7 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
@@ -82,9 +82,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startSearchActivity() {
         val intent = Intent(this, SearchActivity::class.java)
-        val options =
-            ActivityOptions.makeCustomAnimation(this, R.anim.slide_in_up, R.anim.slide_out_up)
-        startActivity(intent, options.toBundle())
+        startActivity(intent)
     }
 
     private fun setupSearchSwitcher() {
@@ -105,12 +103,12 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar.searchTextSwitcher.setText(getString(R.string.search))
 
         lifecycleScope.launch {
-            delay(5.seconds)
-            viewModel.filteredMusicFiles.collect { songs ->
+            viewModel.filteredMusicFiles.collectLatest { songs ->
                 if (songs.isNotEmpty()) {
                     var index = 0
                     while (true) {
-                        binding.toolbar.searchTextSwitcher.setText(songs[index].title)
+                        val title = songs[index].title ?: getString(R.string.search)
+                        binding.toolbar.searchTextSwitcher.setText(title)
                         index = (index + 1) % songs.size
                         delay(5.seconds)
                     }
@@ -176,10 +174,10 @@ class MainActivity : AppCompatActivity() {
     private fun setupUI() {
         viewModel.loadAudioData()
         val adapter = ViewPagerAdapter(this).apply {
-            addFragment(SongsFragment(), DATA.SONGS)
-            addFragment(AlbumsFragment(), DATA.ALBUMS)
-            addFragment(ArtistsFragment(), DATA.ARTISTS)
-            addFragment(FoldersFragment(), DATA.FOLDERS)
+            addFragment(DATA.SONGS) { SongsFragment() }
+            addFragment(DATA.ALBUMS) { AlbumsFragment() }
+            addFragment(DATA.ARTISTS) { ArtistsFragment() }
+            addFragment(DATA.FOLDERS) { FoldersFragment() }
         }
         binding.viewPager.adapter = adapter
 
@@ -199,14 +197,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     class ViewPagerAdapter(act: AppCompatActivity) : FragmentStateAdapter(act) {
-        private val frags = ArrayList<Fragment>()
         private val titles = ArrayList<String>()
-        fun addFragment(f: Fragment, t: String) {
-            frags.add(f); titles.add(t)
+        private val fragments = ArrayList<() -> Fragment>()
+
+        fun addFragment(title: String, fragmentCreator: () -> Fragment) {
+            titles.add(title)
+            fragments.add(fragmentCreator)
         }
 
-        override fun getItemCount() = frags.size
-        override fun createFragment(pos: Int) = frags[pos]
+        override fun getItemCount() = fragments.size
+        override fun createFragment(pos: Int) = fragments[pos]()
         fun getPageTitle(pos: Int) = titles[pos]
     }
 }

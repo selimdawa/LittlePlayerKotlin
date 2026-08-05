@@ -14,12 +14,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,12 +41,10 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     private val _event = MutableSharedFlow<MusicEvent>()
     val event: SharedFlow<MusicEvent> = _event.asSharedFlow()
 
-    // Base flow for all songs, responding to sort order
     private val allSongs = _songsSortOrder.flatMapLatest { order ->
         repository.getSongsFlow(order)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Filtered songs for the Songs tab
     val filteredMusicFiles: StateFlow<List<MusicFiles>> = combine(
         allSongs, _searchQuery
     ) { songs: List<MusicFiles>, query: String ->
@@ -55,7 +53,6 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Grouped and filtered albums
     val albumFiles: StateFlow<List<MusicFiles>> = combine(
         allSongs, _albumsSortOrder, _searchQuery
     ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
@@ -82,7 +79,6 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Grouped and filtered folders
     val folderFiles: StateFlow<List<Folder>> = combine(
         allSongs, _searchQuery
     ) { songs: List<MusicFiles>, query: String ->
@@ -123,7 +119,6 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Grouped and filtered artists
     val artistFiles: StateFlow<List<Artist>> = combine(
         allSongs, _searchQuery
     ) { songs: List<MusicFiles>, query: String ->
