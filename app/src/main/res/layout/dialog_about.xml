@@ -4,12 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="@dimen/spacing_large">
 
     <ImageView
         android:id="@+id/ivAppLogo"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="@dimen/icon_size_64"
+        android:layout_height="@dimen/icon_size_64"
         android:layout_gravity="center"
         android:src="@drawable/logo_icon" />
 
@@ -17,10 +17,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="@dimen/spacing_12"
         android:text="@string/app_name"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="20sp"
+        android:textSize="@dimen/text_size_title"
         android:textStyle="bold" />
 
     <TextView
@@ -29,42 +29,42 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textColor="?attr/colorOutline"
-        android:textSize="14sp" />
+        android:textSize="@dimen/text_size_small" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginVertical="16dp"
+        android:layout_marginVertical="@dimen/spacing_medium"
         android:background="?attr/colorOutlineVariant" />
 
     <TextView
         android:id="@+id/tvAboutContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:lineSpacingExtra="4dp"
-        android:text="Little Player is a modern, lightweight music player designed for the best audio experience."
+        android:lineSpacingExtra="@dimen/spacing_tiny"
+        android:text="@string/about_app_content"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="15sp" />
+        android:textSize="@dimen/text_size_content" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/spacing_medium"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Origin: Syria"
+            android:text="@string/origin_syria"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold" />
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivFlag"
-            android:layout_width="30dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="@dimen/flag_width"
+            android:layout_height="@dimen/flag_height"
+            android:layout_marginStart="@dimen/spacing_8"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_flag_syria_revolution"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
@@ -77,20 +77,21 @@
         android:id="@+id/tvDeveloper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="Developer: Selim Dawa"
+        android:layout_marginTop="@dimen/spacing_6"
+        android:text="@string/developer_selim_dawa"
         android:textColor="?attr/colorOnSurface" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="@dimen/spacing_6"
         android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="GitHub: "
+            android:paddingEnd="@dimen/spacing_tiny"
+            android:text="@string/github_label"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <TextView
@@ -98,19 +99,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:autoLink="web"
-            android:text="https://github.com/selimdawa"
-            android:textColor="?attr/colorPrimary" />
+            android:text="@string/github_url"
+            android:textColor="@color/link"
+            android:textColorLink="@color/link" />
 
     </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/spacing_20"
         android:gravity="center"
-        android:text="Crafted with passion for music lovers."
+        android:text="@string/crafted_with_passion"
         android:textColor="?attr/colorOutline"
-        android:textSize="13sp"
+        android:textSize="@dimen/text_size_tiny"
         android:textStyle="italic" />
 
 </LinearLayout>

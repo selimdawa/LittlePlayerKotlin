@@ -59,6 +59,16 @@
     <string name="about">About</string>
     <string name="sleep_timer">Sleep Timer</string>
     <string name="off">Off</string>
+    <string name="set_sleep_timer">Set Sleep Timer</string>
+    <string name="_15_minutes">15 minutes</string>
+    <string name="_30_minutes">30 minutes</string>
+    <string name="_60_minutes">60 minutes</string>
+    <string name="timer_set_format">Timer set for %1$d minutes</string>
+    <string name="music_service_not_connected">Music Service not connected yet</string>
+    <string name="disabled">Disabled</string>
+    <string name="library_rescan_started">Library Rescan Started</string>
+    <string name="account_settings_coming_soon">Account settings coming soon</string>
+    <string name="notifications_managed_by_system">Notifications are managed by the system</string>
     <string name="light_mode">Light Mode</string>
     <string name="custom">Custom</string>
     <string name="pop">Pop</string>
@@ -78,16 +88,16 @@
     <string name="basic">Basic</string>
     <string name="palette">Palette</string>
     <string name="white">White</string>
-
-    <!-- Privacy & About Content -->
     <string name="privacy_policy_title">Privacy Policy</string>
     <string name="privacy_policy_content">Your privacy is important to us. Little Player does not collect any personal data. We only access your device storage to find and play your music files. No data is shared with third parties.</string>
-
     <string name="about_app_title">About Little Player</string>
-    <string name="about_app_content">Little Player is a modern, lightweight music player designed for the best audio experience.\n\nVersion: 1.0.1\nOrigin: Syria\nDeveloper: Selim Dawa\nGitHub: https://github.com/selimdawa\n\nCrafted with passion for music lovers.</string>
-
+    <string name="about_app_content">Little Player is a modern, lightweight music player designed for the best audio experience.</string>
+    <string name="origin_syria">Origin: Syria</string>
+    <string name="developer_selim_dawa">Developer: Selim Dawa</string>
+    <string name="github_label">GitHub:&#160;</string>
+    <string name="github_url">https://github.com/selimdawa</string>
+    <string name="crafted_with_passion">Crafted with passion for music lovers.</string>
     <string name="version_format">Version %1$s</string>
-
     <string name="ok">OK</string>
     <string name="stop">Stop</string>
     <string name="no_lyrics">No lyrics found for this song.</string>

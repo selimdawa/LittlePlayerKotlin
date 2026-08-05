@@ -2,7 +2,6 @@ package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
 import android.os.Bundle
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +13,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivitySettingsBinding
+import com.flatcode.littleplayer.databinding.DialogAboutBinding
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
@@ -63,12 +63,12 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.btnNightMode.setOnClickListener {
-            binding.root.snackbar("Disabled")
+            binding.root.snackbar(getString(R.string.disabled))
         }
 
         binding.settingScanMedia.setOnClickListener {
             viewModel.rescanMedia()
-            binding.root.snackbar("Library Rescan Started")
+            binding.root.snackbar(getString(R.string.library_rescan_started))
         }
 
         binding.settingSleepTimer.setOnClickListener {
@@ -79,9 +79,9 @@ class SettingsActivity : AppCompatActivity() {
             launchActivity<EqualizerActivity>()
         }
 
-        binding.settingAccount.setOnClickListener { binding.root.snackbar("Account settings coming soon") }
+        binding.settingAccount.setOnClickListener { binding.root.snackbar(getString(R.string.account_settings_coming_soon)) }
         binding.settingNotifications.setOnClickListener {
-            binding.root.snackbar("Notifications are managed by the system")
+            binding.root.snackbar(getString(R.string.notifications_managed_by_system))
         }
         binding.settingDataStorage.setOnClickListener {
             launchActivity<DataStorageActivity>()
@@ -94,33 +94,35 @@ class SettingsActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.privacy_policy_title)
             .setMessage(R.string.privacy_policy_content)
-            .setPositiveButton(R.string.ok, null)
             .show()
     }
 
     private fun showAboutDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_about, null)
-        val tvVersion = dialogView.findViewById<TextView>(R.id.tvVersion)
+        val aboutBinding = DialogAboutBinding.inflate(layoutInflater)
 
         try {
             val pInfo = packageManager.getPackageInfo(packageName, 0)
             val version = pInfo.versionName
-            tvVersion.text = getString(R.string.version_format, version)
+            aboutBinding.tvVersion.text = getString(R.string.version_format, version)
         } catch (_: Exception) {
-            tvVersion.text = getString(R.string.version_format, "1.0.0")
+            aboutBinding.tvVersion.text = getString(R.string.version_format, "1.0.0")
         }
 
         MaterialAlertDialogBuilder(this)
-            .setView(dialogView)
-            .setPositiveButton(R.string.ok, null)
+            .setView(aboutBinding.root)
             .show()
     }
 
     private fun showSleepTimerDialog() {
-        val options = arrayOf("Off", "15 minutes", "30 minutes", "60 minutes")
+        val options = arrayOf(
+            getString(R.string.off),
+            getString(R.string._15_minutes),
+            getString(R.string._30_minutes),
+            getString(R.string._60_minutes)
+        )
         val values = intArrayOf(0, 15, 30, 60)
 
-        AlertDialog.Builder(this).setTitle("Set Sleep Timer").setItems(options) { _, which ->
+        AlertDialog.Builder(this).setTitle(R.string.set_sleep_timer).setItems(options) { _, which ->
             val minutes = values[which]
             setSleepTimer(minutes)
             binding.tvSleepTimerStatus.text = options[which]
@@ -129,7 +131,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setSleepTimer(minutes: Int) {
         if (mediaController == null) {
-            binding.root.snackbar("Music Service not connected yet")
+            binding.root.snackbar(getString(R.string.music_service_not_connected))
             return
         }
         mediaController?.let { controller ->
@@ -137,7 +139,7 @@ class SettingsActivity : AppCompatActivity() {
             controller.sendCustomCommand(
                 SessionCommand(MusicService.COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY), bundle
             )
-            binding.root.snackbar("Timer set for $minutes minutes")
+            binding.root.snackbar(getString(R.string.timer_set_format, minutes))
         }
     }
 

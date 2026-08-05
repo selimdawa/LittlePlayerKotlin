@@ -18,6 +18,7 @@
         android:layout_weight="1"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
+        app:rippleColor="@android:color/transparent"
         app:strokeWidth="0dp">
 
         <FrameLayout
@@ -75,6 +76,7 @@
         android:layout_weight="1"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
+        app:rippleColor="@android:color/transparent"
         app:strokeWidth="0dp">
 
         <FrameLayout
@@ -132,6 +134,7 @@
         android:layout_weight="1"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
+        app:rippleColor="@android:color/transparent"
         app:strokeWidth="0dp">
 
         <FrameLayout
