@@ -8,11 +8,10 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.SeekBar
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
 import androidx.core.net.toUri
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -90,16 +89,22 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.seekBar.secondaryProgressTintList = colorStateList
         binding.seekBar.progressBackgroundTintList = colorStateList
 
-        val background = binding.buttonPanel.playPauseBtn.background
+        val background = binding.buttonPanel.playPauseBtn.background.mutate()
         if (background is GradientDrawable) {
             if (currentMode == DATA.MODE_BASIC) {
-                background.colors = intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
+                background.colors =
+                    intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
             } else {
                 background.colors = intArrayOf(color, color)
             }
+            binding.buttonPanel.playPauseBtn.background = background
         }
-        
+
         binding.waveformSeekBar.waveProgressColor = color
+
+        binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC) 4 else 1
+        binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE) 4 else 1
+        binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE) 4 else 1
     }
 
     private fun setupListeners() {
