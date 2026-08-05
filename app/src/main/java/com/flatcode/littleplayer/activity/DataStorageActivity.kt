@@ -13,8 +13,11 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
+import com.flatcode.littleplayer.utils.snackbar
+import com.flatcode.littleplayer.viewmodel.DataStorageViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 
 @UnstableApi
 @AndroidEntryPoint
@@ -22,6 +25,7 @@ class DataStorageActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDataStorageBinding
     private val viewModel: NowPlayerViewModel by viewModels()
+    private val dataViewModel: DataStorageViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +42,28 @@ class DataStorageActivity : AppCompatActivity() {
             viewModel.setBottomPlayerThemeEnabled(isChecked)
         }
 
-        binding.btnBasic.setOnClickListener { updatePreview(DATA.MODE_BASIC) }
-        binding.btnPalette.setOnClickListener { updatePreview(DATA.MODE_PALETTE) }
-        binding.btnWhite.setOnClickListener { updatePreview(DATA.MODE_WHITE) }
+        binding.btnBasic.setOnClickListener {
+            viewModel.setThemeColorMode(DATA.MODE_BASIC)
+            updatePreview(DATA.MODE_BASIC)
+        }
+        binding.btnPalette.setOnClickListener {
+            viewModel.setThemeColorMode(DATA.MODE_PALETTE)
+            updatePreview(DATA.MODE_PALETTE)
+        }
+        binding.btnWhite.setOnClickListener {
+            viewModel.setThemeColorMode(DATA.MODE_WHITE)
+            updatePreview(DATA.MODE_WHITE)
+        }
+
+        binding.btnClearCache.setOnClickListener {
+            dataViewModel.clearCache()
+            binding.root.snackbar(getString(R.string.art_cache_cleared))
+        }
+
+        binding.btnClearHistory.setOnClickListener {
+            dataViewModel.clearHistory()
+            binding.root.snackbar(getString(R.string.history_cleared))
+        }
     }
 
     private fun observeViewModel() {
@@ -55,6 +78,11 @@ class DataStorageActivity : AppCompatActivity() {
         viewModel.themeColorMode.collectWithLifecycle(this) { mode ->
             updatePreview(mode)
         }
+
+        dataViewModel.cacheSize.collectWithLifecycle(this) { size ->
+            val sizeMb = size.toDouble() / (1024 * 1024)
+            binding.tvCacheSize.text = String.format(Locale.getDefault(), "%.2f MB", sizeMb)
+        }
     }
 
     private fun updatePreview(mode: Int) {
@@ -62,11 +90,15 @@ class DataStorageActivity : AppCompatActivity() {
         if (background is GradientDrawable) {
             when (mode) {
                 DATA.MODE_BASIC -> {
-                    background.colors = intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
+                    background.colors =
+                        intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
                 }
+
                 DATA.MODE_PALETTE -> {
-                    background.colors = intArrayOf(Color.parseColor("#8A47EB"), Color.parseColor("#8A47EB"))
+                    background.colors =
+                        intArrayOf(Color.parseColor("#8A47EB"), Color.parseColor("#8A47EB"))
                 }
+
                 DATA.MODE_WHITE -> {
                     background.colors = intArrayOf(Color.WHITE, Color.WHITE)
                 }
@@ -74,7 +106,6 @@ class DataStorageActivity : AppCompatActivity() {
             binding.previewPlayPause.background = background
         }
 
-        // Highlight selected dot
         binding.dotBasic.strokeWidth = if (mode == DATA.MODE_BASIC) 4 else 1
         binding.dotPalette.strokeWidth = if (mode == DATA.MODE_PALETTE) 4 else 1
         binding.dotWhite.strokeWidth = if (mode == DATA.MODE_WHITE) 4 else 1
