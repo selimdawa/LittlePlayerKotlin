@@ -36,7 +36,7 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@drawable/logo_icon"
         android:supportsRtl="false"
-        android:theme="@style/Theme.LittlePlayer"
+        android:theme="@style/Theme.MC.One"
         android:usesCleartextTraffic="true"
         tools:replace="android:supportsRtl">
         <activity

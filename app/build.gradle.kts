@@ -50,10 +50,8 @@ dependencies {
     //Layout
     implementation(libs.material)
     implementation(libs.multicolors)                       //Theme Colors
-    implementation(libs.androidx.core.splashscreen)        //Splash Screen
     //Image
     implementation(libs.coil)                              //Coil Image
-    implementation(libs.airbnb.lottie)                     //Animation
     implementation(libs.androidx.palette.ktx)              //Background Color
     //Lifecycle
     implementation(libs.lifecycle.viewmodel.ktx)
@@ -61,7 +59,6 @@ dependencies {
     //Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.fragment)
     //Room
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)

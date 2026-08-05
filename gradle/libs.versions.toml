@@ -14,13 +14,10 @@ lifecycle = "2.11.0"
 hilt = "2.60.1"
 room = "2.8.4"
 navigation = "2.9.8"
-navigation-hilt = "1.4.0"
 coroutines = "1.11.0"
 ksp = "2.3.8"
 datastore = "1.2.1"
-lottie = "6.7.1"
 palette = "1.0.0"
-splashscreen = "1.2.0"
 media3-exoplayer = "1.10.1"
 amplituda = "2.3.1"
 waveformseekbar = "5.0.2"
@@ -41,16 +38,13 @@ material = { group = "com.google.android.material", name = "material", version.r
 multicolors = { module = "com.github.selimdawa:MultiColors", version.ref = "multicolors" }
 #Image
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
-airbnb-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette" }
-androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 #Lifecycle
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
 #Hilt
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
-hilt-navigation-fragment = { group = "androidx.hilt", name = "hilt-navigation-fragment", version.ref = "navigation-hilt" }
 #Room
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
