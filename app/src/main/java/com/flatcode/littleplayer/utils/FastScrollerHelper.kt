@@ -41,6 +41,15 @@ class FastScrollerHelper(
                     updateThumbPosition()
                 }
             }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    hideThumbDelayed()
+                } else {
+                    showThumb()
+                }
+            }
         })
     }
 
