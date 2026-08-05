@@ -30,6 +30,7 @@
         app:tabGravity="start"
         app:tabIndicatorHeight="0dp"
         app:tabMode="scrollable"
+        app:tabMinWidth="0dp"
         app:tabPaddingBottom="0dp"
         app:tabPaddingEnd="0dp"
         app:tabPaddingStart="0dp"

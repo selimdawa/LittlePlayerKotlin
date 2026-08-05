@@ -182,16 +182,16 @@ class MainActivity : AppCompatActivity() {
             addFragment(FoldersFragment(), DATA.FOLDERS)
         }
         binding.viewPager.adapter = adapter
+
+        val marginSmall = resources.getDimensionPixelSize(R.dimen.tab_margin_small)
+        binding.tabLayout.setPadding(marginSmall, 0, marginSmall, 0)
+
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
             val tabBinding = ItemTabBinding.inflate(layoutInflater, binding.tabLayout, false)
             tabBinding.tabTitle.text = adapter.getPageTitle(pos)
 
-            val marginLarge = resources.getDimensionPixelSize(R.dimen.tab_margin_large)
-            val marginSmall = resources.getDimensionPixelSize(R.dimen.tab_margin_small)
-
             val params = tabBinding.tabContainer.layoutParams as MarginLayoutParams
-            params.marginStart = if (pos == 0) marginLarge else marginSmall
-            params.marginEnd = if (pos == adapter.itemCount - 1) marginLarge else marginSmall
+            params.setMargins(marginSmall, 0, marginSmall, 0)
             tabBinding.tabContainer.layoutParams = params
 
             tab.customView = tabBinding.root
