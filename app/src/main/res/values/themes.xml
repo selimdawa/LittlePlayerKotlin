@@ -13,11 +13,15 @@
     </style>
 
     <!-- Theme for PlayerActivity with Slide Animations -->
-    <style name="Theme.PlayerActivity" parent="Theme.MC.One">
+    <style name="Theme.PlayerActivity" parent="Theme.LittlePlayer">
         <item name="android:windowAnimationStyle">@style/ActivityAnimation.SlideUpDown</item>
         <!-- Ensure the activity is fullscreen if needed, as seen in PlayerActivity.kt -->
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges
         </item>
+    </style>
+
+    <!-- Main Application Theme -->
+    <style name="Theme.LittlePlayer" parent="Theme.MC.One">
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
