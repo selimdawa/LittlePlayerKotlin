@@ -187,9 +187,12 @@ class MusicRepository @Inject constructor(
                         val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
 
                         while (cursor.moveToNext()) {
+                            val path = cursor.getString(pathColumn) ?: ""
+                            if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+
                             tempAudioList.add(
                                 MusicFiles(
-                                    path = cursor.getString(pathColumn) ?: "",
+                                    path = path,
                                     title = cursor.getString(titleColumn) ?: DATA.UNKNOWN,
                                     artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN,
                                     album = cursor.getString(albumColumn) ?: DATA.UNKNOWN,
@@ -249,10 +252,12 @@ class MusicRepository @Inject constructor(
             val yearColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
 
             while (it.moveToNext()) {
+                val path = it.getString(pathColumn) ?: ""
+                if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+
                 val album = it.getString(albumColumn) ?: DATA.UNKNOWN
                 val title = it.getString(titleColumn) ?: DATA.UNKNOWN
                 val duration = it.getLong(durationColumn)
-                val path = it.getString(pathColumn) ?: ""
                 val artist = it.getString(artistColumn) ?: DATA.UNKNOWN
                 val id = it.getString(idColumn) ?: ""
                 val albumId = it.getString(albumIdColumn) ?: ""
