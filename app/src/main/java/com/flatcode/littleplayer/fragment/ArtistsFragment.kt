@@ -11,11 +11,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.core.app.ActivityOptionsCompat
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.utils.DATA
@@ -43,7 +40,15 @@ class ArtistsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.btnFilterSort.visibility = View.GONE
+        binding.toolbar.btnFilterSort.visibility = View.VISIBLE
+        binding.toolbar.btnFilterSort.setOnClickListener {
+            val bottomSheet = SortSongsBottomSheet(
+                DATA.ARTISTS, DATA.SORT_BY_NAME
+            ) { category, sortType ->
+                viewModel.updateSortOrder(category, sortType)
+            }
+            bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
+        }
 
         binding.toolbar.btnShuffle.setOnClickListener {
             viewModel.smartShuffle(DATA.ARTISTS)
