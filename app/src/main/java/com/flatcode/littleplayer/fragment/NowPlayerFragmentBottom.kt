@@ -90,15 +90,18 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                     val song = viewModel.currentPlayingSong.value
                     lifecycleScope.launch {
                         val currentQueue = viewModel.getCurrentQueue()
-                        if (song != null && currentQueue.isNotEmpty()) {
+                        if ((song != null) && currentQueue.isNotEmpty()) {
                             val mediaItems = currentQueue.map { item ->
                                 MediaItem.Builder().setUri(item.path?.toUri())
                                     .setMediaId(item.id ?: "").setMediaMetadata(
                                         MediaMetadata.Builder().setTitle(item.title)
-                                            .setArtist(item.artist).setExtras(Bundle().apply {
-                                                putString("ALBUM_ID", item.albumId)
-                                                putString("CACHED_IMAGE_PATH", item.cachedImagePath)
-                                            }).build()
+                                            .setArtist(item.artist)
+                                            .setExtras(
+                                                Bundle().apply {
+                                                    putString("ALBUM_ID", item.albumId)
+                                                    putString("CACHED_IMAGE_PATH", item.cachedImagePath)
+                                                },
+                                            ).build(),
                                     ).build()
                             }
                             val startIndex =
@@ -110,10 +113,13 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                             val mediaItem = MediaItem.Builder().setUri(song.path?.toUri())
                                 .setMediaId(song.id ?: "").setMediaMetadata(
                                     MediaMetadata.Builder().setTitle(song.title)
-                                        .setArtist(song.artist).setExtras(Bundle().apply {
-                                            putString("ALBUM_ID", song.albumId)
-                                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                                        }).build()
+                                        .setArtist(song.artist)
+                                        .setExtras(
+                                            Bundle().apply {
+                                                putString("ALBUM_ID", song.albumId)
+                                                putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                                            },
+                                        ).build(),
                                 ).build()
                             controller.setMediaItem(mediaItem)
                             controller.prepare()
@@ -149,7 +155,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         combine(
             viewModel.bottomPlayerThemeEnabled,
             viewModel.themeColorMode,
-            viewModel.currentThemeColor
+            viewModel.currentThemeColor,
         ) { enabled, mode, color ->
             Triple(enabled, mode, color)
         }.collectWithLifecycle(viewLifecycleOwner) { (enabled, mode, color) ->
@@ -198,6 +204,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         if (currentMediaItem != null) {
             val title = currentMediaItem.mediaMetadata.title?.toString() ?: DATA.UNKNOWN
             val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: DATA.UNKNOWN
+            val id = currentMediaItem.mediaId
             val path = currentMediaItem.localConfiguration?.uri?.path
             val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
             val cachedPath = currentMediaItem.mediaMetadata.extras?.getString("CACHED_IMAGE_PATH")
@@ -207,9 +214,10 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                     path = path,
                     title = title,
                     artist = artist,
+                    id = id,
                     albumId = albumId,
-                    cachedImagePath = cachedPath
-                )
+                    cachedImagePath = cachedPath,
+                ),
             )
 
             if (lastLoadedPath != path) {
@@ -221,7 +229,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 // Extract Palette Color
                 val request = ImageRequest.Builder(requireContext())
                     .data(cachedPath ?: path)
-                    .allowHardware(false)
+                    .allowHardware(enable = false)
                     .target { result ->
                         val bitmap = (result as? BitmapDrawable)?.bitmap
                         bitmap?.let { b ->
@@ -247,7 +255,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 if (viewModel.currentThemeColor.value == null) {
                     val request = ImageRequest.Builder(requireContext())
                         .data(it.cachedImagePath ?: it.path)
-                        .allowHardware(false)
+                        .allowHardware(enable = false)
                         .target { result ->
                             val bitmap = (result as? BitmapDrawable)?.bitmap
                             bitmap?.let { b ->
@@ -275,7 +283,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         super.onStart()
         val currentContext = context ?: return
         val sessionToken = SessionToken(
-            currentContext, ComponentName(currentContext, MusicService::class.java)
+            currentContext,
+            ComponentName(currentContext, MusicService::class.java),
         )
         controllerFuture = MediaController.Builder(currentContext, sessionToken).buildAsync()
         controllerFuture?.addListener(

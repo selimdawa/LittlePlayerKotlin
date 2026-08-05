@@ -73,6 +73,7 @@ class PlayerViewModel @Inject constructor(
                             path = path,
                             artist = preferences[stringPreferencesKey(DATA.ARTIST_NAME)],
                             title = preferences[stringPreferencesKey(DATA.SONG_NAME)],
+                            id = preferences[stringPreferencesKey(DATA.SONG_ID)],
                             albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
                             cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)],
                             lyrics = preferences[stringPreferencesKey(DATA.LYRICS)]

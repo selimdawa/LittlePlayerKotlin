@@ -19,6 +19,7 @@ object DATA {
     const val MUSIC_FILE = "STORED_MUSIC"
     const val ARTIST_NAME = "ARTIST NAME"
     const val SONG_NAME = "SONG NAME"
+    const val SONG_ID = "SONG_ID"
     const val ALBUM_ID = "ALBUM ID"
     const val CACHED_IMAGE_PATH = "CACHED_IMAGE_PATH"
     const val LYRICS = "LYRICS"

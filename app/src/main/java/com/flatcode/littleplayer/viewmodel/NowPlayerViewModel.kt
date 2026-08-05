@@ -41,6 +41,7 @@ class NowPlayerViewModel @Inject constructor(
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
+    private val songIdKey = stringPreferencesKey(DATA.SONG_ID)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
@@ -64,6 +65,7 @@ class NowPlayerViewModel @Inject constructor(
                         path = path,
                         artist = preferences[artistNameKey] ?: DATA.UNKNOWN,
                         title = preferences[songNameKey] ?: DATA.UNKNOWN,
+                        id = preferences[songIdKey],
                         albumId = preferences[albumIdKey],
                         cachedImagePath = preferences[cachedImagePathKey]
                     )
@@ -113,6 +115,7 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[musicFileKey] = song.path ?: ""
                 preferences[artistNameKey] = song.artist ?: DATA.UNKNOWN
                 preferences[songNameKey] = song.title ?: DATA.UNKNOWN
+                preferences[songIdKey] = song.id ?: ""
                 preferences[albumIdKey] = song.albumId ?: ""
                 preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
             }

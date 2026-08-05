@@ -62,6 +62,7 @@ class MusicService : MediaSessionService(), Player.Listener {
     private var virtualizer: Virtualizer? = null
     private var eqEnabled = false
     private var currentBandLevels = shortArrayOf(0, 0, 0, 0, 0)
+    private var customBandLevels = shortArrayOf(0, 0, 0, 0, 0)
     private var bassStrength: Short = 0
     private var virtualizerStrength: Short = 0
     private var currentPreset = "Custom"
@@ -69,6 +70,7 @@ class MusicService : MediaSessionService(), Player.Listener {
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
+    private val songIdKey = stringPreferencesKey(DATA.SONG_ID)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
 
@@ -95,15 +97,20 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     private fun loadEqualizerSettings() {
         serviceScope.launch {
-            repository.getEqualizerSettings()?.let { settings ->
-                eqEnabled = settings.enabled
-                bassStrength = settings.bassStrength
-                virtualizerStrength = settings.virtualizerStrength
-                currentPreset = settings.presetName
-                currentBandLevels = settings.bandLevels.split(",").map { it.toShort() }.toShortArray()
-                
-                // If effects are already initialized, apply them
-                applyEqualizerSettings()
+            repository.getEqualizerSettings().collect { settings ->
+                settings?.let {
+                    eqEnabled = it.enabled
+                    bassStrength = it.bassStrength
+                    virtualizerStrength = it.virtualizerStrength
+                    currentPreset = it.presetName
+                    currentBandLevels =
+                        it.bandLevels.split(",").map { b -> b.toShort() }.toShortArray()
+                    customBandLevels =
+                        it.customBandLevels.split(",").map { b -> b.toShort() }.toShortArray()
+
+                    // If effects are already initialized, apply them
+                    applyEqualizerSettings()
+                }
             }
         }
     }
@@ -116,6 +123,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     bassStrength = bassStrength,
                     virtualizerStrength = virtualizerStrength,
                     bandLevels = currentBandLevels.joinToString(","),
+                    customBandLevels = customBandLevels.joinToString(","),
                     presetName = currentPreset
                 )
             )
@@ -202,6 +210,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                 preferences[musicFileKey] = path
                 preferences[artistNameKey] = artist
                 preferences[songNameKey] = title
+                preferences[songIdKey] = songId
                 preferences[albumIdKey] = albumId ?: ""
                 preferences[cachedImagePathKey] = cachedPath ?: ""
                 preferences[intPreferencesKey(DATA.LAST_POSITION)] = currentIndex
@@ -248,6 +257,9 @@ class MusicService : MediaSessionService(), Player.Listener {
             position = it.currentMediaItemIndex
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
                 loadArtForCurrentItem(it)
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && !it.playWhenReady) {
+                    it.play()
+                }
             }
 
             val currentId = it.currentMediaItem?.mediaId
@@ -408,6 +420,9 @@ class MusicService : MediaSessionService(), Player.Listener {
                     try {
                         if (band.toInt() in currentBandLevels.indices) {
                             currentBandLevels[band.toInt()] = level
+                            if (currentPreset == "Custom") {
+                                customBandLevels[band.toInt()] = level
+                            }
                         }
                         equalizer?.setBandLevel(band, level)
                         saveEqualizerSettings()
@@ -441,6 +456,10 @@ class MusicService : MediaSessionService(), Player.Listener {
 
                 COMMAND_SET_PRESET -> {
                     currentPreset = args.getString("PRESET") ?: "Custom"
+                    if (currentPreset == "Custom") {
+                        System.arraycopy(customBandLevels, 0, currentBandLevels, 0, customBandLevels.size)
+                        applyEqualizerSettings()
+                    }
                     saveEqualizerSettings()
                 }
 
