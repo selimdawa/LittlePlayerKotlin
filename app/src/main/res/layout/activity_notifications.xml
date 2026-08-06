@@ -22,7 +22,6 @@
             android:orientation="vertical"
             android:padding="@dimen/spacing_medium">
 
-            <!-- Show Song Toast Toggle -->
             <LinearLayout
                 android:id="@+id/btnShowSongToast"
                 android:layout_width="match_parent"
@@ -58,6 +57,7 @@
                         android:text="@string/show_song_toast_desc"
                         android:textColor="@color/gray"
                         android:textSize="@dimen/text_size_small" />
+
                 </LinearLayout>
 
                 <androidx.appcompat.widget.SwitchCompat
@@ -72,9 +72,9 @@
                     app:thumbTint="?attr/mc_track"
                     app:track="@drawable/switch_track_custom"
                     app:trackTint="@null" />
+
             </LinearLayout>
 
-            <!-- System Notification Settings -->
             <LinearLayout
                 android:id="@+id/btnSystemNotificationSettings"
                 android:layout_width="match_parent"
@@ -110,6 +110,7 @@
                         android:text="@string/system_notification_settings_desc"
                         android:textColor="@color/gray"
                         android:textSize="@dimen/text_size_small" />
+
                 </LinearLayout>
 
                 <ImageView
@@ -117,9 +118,11 @@
                     android:layout_height="@dimen/icon_size_20"
                     android:src="@drawable/ic_navigate_next"
                     app:tint="@color/gray" />
+
             </LinearLayout>
 
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
     <include
