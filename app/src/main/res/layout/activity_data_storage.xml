@@ -83,134 +83,25 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="0dp">
+                android:orientation="vertical">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="32dp">
+                <include
+                    android:id="@+id/itemBasic"
+                    layout="@layout/item_theme_preview" />
 
-                    <com.flatcode.littleplayer.utils.PlayPauseView
-                        android:id="@+id/previewPlayPause"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:background="@drawable/ic_gradient_border"
-                        android:padding="20dp"
-                        android:foregroundTint="?attr/colorOnSurface" />
+                <include
+                    android:id="@+id/itemPalette"
+                    layout="@layout/item_theme_preview" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:gravity="center"
-                        android:orientation="horizontal">
+                <include
+                    android:id="@+id/itemWhite"
+                    layout="@layout/item_theme_preview" />
 
-                        <LinearLayout
-                            android:id="@+id/btnBasic"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="8dp">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/dotBasic"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                app:cardBackgroundColor="?mc_track"
-                                app:cardCornerRadius="12dp"
-                                app:cardElevation="0dp"
-                                app:strokeColor="@color/white"
-                                app:strokeWidth="1dp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="@string/basic"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/btnPalette"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="24dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="8dp">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/dotPalette"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                app:cardBackgroundColor="@color/purple_accent"
-                                app:cardCornerRadius="12dp"
-                                app:cardElevation="0dp"
-                                app:strokeColor="@color/white"
-                                app:strokeWidth="1dp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="@string/palette"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/btnWhite"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="24dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="8dp">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/dotWhite"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                app:cardBackgroundColor="@color/white"
-                                app:cardCornerRadius="12dp"
-                                app:cardElevation="0dp"
-                                app:strokeColor="@color/gray"
-                                app:strokeWidth="1dp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
-                                android:text="@string/white"
-                                android:textColor="?attr/colorOnSurface"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"

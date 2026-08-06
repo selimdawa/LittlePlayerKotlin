@@ -1,14 +1,18 @@
 package com.flatcode.littleplayer.activity
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
+import androidx.core.graphics.toColorInt
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityDataStorageBinding
+import com.flatcode.littleplayer.databinding.ItemThemePreviewBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.getLibraryColor
@@ -42,17 +46,14 @@ class DataStorageActivity : AppCompatActivity() {
             viewModel.setBottomPlayerThemeEnabled(isChecked)
         }
 
-        binding.btnBasic.setOnClickListener {
+        binding.itemBasic.cardPreview.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_BASIC)
-            updatePreview(DATA.MODE_BASIC)
         }
-        binding.btnPalette.setOnClickListener {
+        binding.itemPalette.cardPreview.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_PALETTE)
-            updatePreview(DATA.MODE_PALETTE)
         }
-        binding.btnWhite.setOnClickListener {
+        binding.itemWhite.cardPreview.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_WHITE)
-            updatePreview(DATA.MODE_WHITE)
         }
 
         binding.btnClearCache.setOnClickListener {
@@ -86,28 +87,64 @@ class DataStorageActivity : AppCompatActivity() {
     }
 
     private fun updatePreview(mode: Int) {
-        val background = binding.previewPlayPause.background.mutate()
-        if (background is GradientDrawable) {
-            when (mode) {
-                DATA.MODE_BASIC -> {
-                    background.colors =
-                        intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
-                }
+        // Basic
+        setupThemeItem(
+            binding.itemBasic,
+            getString(R.string.basic),
+            intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick")),
+            mode == DATA.MODE_BASIC,
+        )
 
-                DATA.MODE_PALETTE -> {
-                    background.colors =
-                        intArrayOf(Color.parseColor("#8A47EB"), Color.parseColor("#8A47EB"))
-                }
+        // Palette
+        val paletteColor = "#8A47EB".toColorInt()
+        setupThemeItem(
+            binding.itemPalette,
+            getString(R.string.palette),
+            intArrayOf(paletteColor, paletteColor),
+            mode == DATA.MODE_PALETTE,
+        )
 
-                DATA.MODE_WHITE -> {
-                    background.colors = intArrayOf(Color.WHITE, Color.WHITE)
-                }
+        // White
+        setupThemeItem(
+            binding.itemWhite,
+            getString(R.string.white),
+            intArrayOf(Color.WHITE, Color.WHITE),
+            mode == DATA.MODE_WHITE,
+        )
+    }
+
+    private fun setupThemeItem(
+        itemBinding: ItemThemePreviewBinding,
+        label: String,
+        colors: IntArray,
+        isSelected: Boolean,
+    ) {
+        itemBinding.tvThemeLabel.text = label
+        itemBinding.tvThemeLabel.setTextColor(if (isSelected) getLibraryColor("mc_track") else Color.GRAY)
+        itemBinding.cardPreview.strokeWidth = if (isSelected) 4 else 0
+        itemBinding.cardPreview.strokeColor = getLibraryColor("mc_track")
+
+        val background = itemBinding.previewContainer.background.mutate()
+        when (background) {
+            is LayerDrawable -> {
+                val gradientDrawable = background.getDrawable(0) as GradientDrawable
+                gradientDrawable.colors = colors
             }
-            binding.previewPlayPause.background = background
+
+            is GradientDrawable -> {
+                background.colors = colors
+            }
         }
 
-        binding.dotBasic.strokeWidth = if (mode == DATA.MODE_BASIC) 4 else 1
-        binding.dotPalette.strokeWidth = if (mode == DATA.MODE_PALETTE) 4 else 1
-        binding.dotWhite.strokeWidth = if (mode == DATA.MODE_WHITE) 4 else 1
+        val primaryColor = colors[0]
+        itemBinding.previewProgressBar.progressTintList = ColorStateList.valueOf(primaryColor)
+        itemBinding.previewPlayPauseView.foregroundTintList = ColorStateList.valueOf(primaryColor)
+        itemBinding.previewNextBtn.imageTintList = ColorStateList.valueOf(primaryColor)
+        itemBinding.tvSongName.setTextColor(primaryColor)
+
+        val playPauseBg = itemBinding.previewPlayPauseBtn.background.mutate()
+        if (playPauseBg is GradientDrawable) {
+            playPauseBg.colors = colors
+        }
     }
 }
