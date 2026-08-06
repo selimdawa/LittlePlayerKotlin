@@ -35,7 +35,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.customToolbar.root.setNavigationOnClickListener { finish() }
+        binding.customToolbar.backBtn.setOnClickListener { finish() }
 
         val searchEditText = binding.customToolbar.searchEditText
         searchEditText.requestFocus()
@@ -61,9 +61,11 @@ class SearchActivity : AppCompatActivity() {
                     this, onItemClick = { _, position, view ->
                         viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
                         openPlayer(position, view)
-                    }) { song ->
-                    viewModel.deleteSong(song)
-                }
+                    }, onDeleteClick = { song ->
+                        viewModel.deleteSong(song)
+                    }, onColorGenerated = { id, color ->
+                        viewModel.updateSongColor(id, color)
+                    })
                 binding.recyclerView.adapter = adapter
             }
             adapter?.submitList(songs)

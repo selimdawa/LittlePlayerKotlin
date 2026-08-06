@@ -87,6 +87,10 @@ class SongsFragment : Fragment() {
                     binding.root.snackbar(event.message)
                 }
 
+                is MusicEvent.PlaySong -> {
+                    requireContext().openPlayer(event.position)
+                }
+
                 else -> {}
             }
         }
@@ -95,13 +99,19 @@ class SongsFragment : Fragment() {
     private fun setupAdapter() {
         if (musicAdapter == null) {
             musicAdapter = MusicAdapter(
-                requireContext(), onItemClick = { _, position, view ->
+                requireContext(),
+                onItemClick = { _, position, view ->
                     val currentFiles = musicAdapter?.currentList ?: return@MusicAdapter
                     viewModel.updateCurrentPlaylist(ArrayList(currentFiles))
                     requireContext().openPlayer(position, view)
-                }) { song ->
-                viewModel.deleteSong(song)
-            }
+                },
+                onDeleteClick = { song ->
+                    viewModel.deleteSong(song)
+                },
+                onColorGenerated = { id, color ->
+                    viewModel.updateSongColor(id, color)
+                }
+            )
         }
         binding.recyclerView.adapter = musicAdapter
     }

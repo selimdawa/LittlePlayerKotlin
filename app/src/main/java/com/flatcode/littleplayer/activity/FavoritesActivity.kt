@@ -44,9 +44,11 @@ class FavoritesActivity : AppCompatActivity() {
                     adapter = MusicAdapter(this, onItemClick = { _, position, view ->
                         musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
                         openPlayer(position, view)
-                    }) { song ->
+                    }, onDeleteClick = { song ->
                         musicViewModel.deleteSong(song)
-                    }
+                    }, onColorGenerated = { id, color ->
+                        viewModel.updateSongColor(id, color)
+                    })
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songs)

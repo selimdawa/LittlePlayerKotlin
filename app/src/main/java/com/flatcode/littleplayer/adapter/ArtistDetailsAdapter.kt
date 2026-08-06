@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -11,6 +12,8 @@ import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
+import com.flatcode.littleplayer.utils.generateRandomColor
+import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
@@ -18,7 +21,8 @@ import com.flatcode.littleplayer.utils.visible
 
 class ArtistDetailsAdapter(
     private val context: Context,
-    private val onItemClick: (MusicFiles, Int) -> Unit
+    private val onItemClick: (MusicFiles, Int) -> Unit,
+    private val onColorGenerated: ((String, Int) -> Unit)? = null
 ) : ListAdapter<MusicFiles, ArtistDetailsAdapter.ArtistDetailsViewHolder>(ArtistDetailsDiffCallback()), PlaybackAnimatable {
 
     private var playingPath: String? = null
@@ -53,9 +57,19 @@ class ArtistDetailsAdapter(
             R.string.song_details_format, song.safeArtist, song.album ?: DATA.UNKNOWN
         )
 
-        holder.binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
+        var songColor = song.color
+        val hasAlbumArt = (song.albumId != null && song.albumId != "-1" && song.albumId != "0") ||
+                !song.cachedImagePath.isNullOrEmpty()
+
+        if (songColor == null && !hasAlbumArt) {
+            val newColor = generateRandomColor()
+            songColor = newColor
+            song.id?.let { onColorGenerated?.invoke(it, newColor) }
+        }
+
+        holder.binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath, songColor)
         holder.binding.imageBlur.loadSongImageBlur(
-            song.albumId, 100, song.path, song.cachedImagePath
+            song.albumId, 100, song.path, song.cachedImagePath, songColor
         )
 
         if ((song.path == playingPath) && isPlaying) {
@@ -63,6 +77,14 @@ class ArtistDetailsAdapter(
         } else {
             holder.binding.wave.gone()
         }
+
+        val params = holder.itemView.layoutParams as MarginLayoutParams
+        params.bottomMargin = if (position == (itemCount - 1)) {
+            (95 * context.resources.displayMetrics.density).toInt()
+        } else {
+            (10 * context.resources.displayMetrics.density).toInt()
+        }
+        holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
             onItemClick(song, holder.bindingAdapterPosition)

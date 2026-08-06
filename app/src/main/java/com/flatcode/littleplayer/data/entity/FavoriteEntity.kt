@@ -12,5 +12,6 @@ data class FavoriteEntity(
     val albumId: String? = null,
     val duration: String?,
     val lyrics: String? = null,
-    val path: String
+    val path: String,
+    val color: Int? = null
 )

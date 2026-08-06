@@ -39,10 +39,12 @@ class ArtistDetailsActivity : AppCompatActivity() {
         viewModel.songs.collectWithLifecycle(this) { songList ->
             if (songList.isNotEmpty()) {
                 if (adapter == null) {
-                    adapter = ArtistDetailsAdapter(context) { _, position ->
+                    adapter = ArtistDetailsAdapter(context, onItemClick = { _, position ->
                         viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
                         openPlayer(position)
-                    }
+                    }, onColorGenerated = { id, color ->
+                        viewModel.updateSongColor(id, color)
+                    })
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songList)

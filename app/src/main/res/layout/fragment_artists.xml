@@ -26,7 +26,6 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_artist" />
 
-        <!-- Custom FastScroll Thumb Container -->
         <FrameLayout
             android:id="@+id/fastScrollThumb"
             android:layout_width="40dp"
@@ -43,7 +42,6 @@
 
         </FrameLayout>
 
-        <!-- Alphabet Bubble -->
         <TextView
             android:id="@+id/fastScrollBubble"
             android:layout_width="45dp"

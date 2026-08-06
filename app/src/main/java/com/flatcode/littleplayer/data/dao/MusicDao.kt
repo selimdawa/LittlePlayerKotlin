@@ -8,6 +8,7 @@ import androidx.room.Query
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
+import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
 import kotlinx.coroutines.flow.Flow
@@ -30,14 +31,29 @@ interface MusicDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertToPlaylist(playlistItem: PlaylistEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertToPlaylist(playlistItems: List<PlaylistEntity>)
+
     @Query("DELETE FROM playlists_table WHERE playlistName = :name AND songId = :sId")
     suspend fun deleteFromPlaylist(name: String, sId: String)
 
     @Query("SELECT * FROM playlists_table WHERE playlistName = :name")
     fun getSongsFromPlaylist(name: String): Flow<List<PlaylistEntity>>
 
+    @Query("SELECT * FROM playlists_table WHERE playlistName = :name")
+    suspend fun getSongsFromPlaylistSync(name: String): List<PlaylistEntity>
+
+    @Query("DELETE FROM playlists_table WHERE playlistName = :name")
+    suspend fun deletePlaylist(name: String)
+
+    @Query("UPDATE playlists_table SET playlistName = :newName WHERE playlistName = :oldName")
+    suspend fun renamePlaylist(oldName: String, newName: String)
+
     @Query("SELECT DISTINCT playlistName FROM playlists_table")
     fun getAllPlaylistNames(): Flow<List<String>>
+
+    @Query("SELECT DISTINCT playlistName FROM playlists_table")
+    suspend fun getAllPlaylistNamesSync(): List<String>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecent(song: RecentEntity)
@@ -65,4 +81,13 @@ interface MusicDao {
 
     @Query("SELECT * FROM equalizer_table WHERE id = 1")
     fun getEqualizerSettings(): Flow<EqualizerEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun savePlaybackState(state: PlaybackStateEntity)
+
+    @Query("SELECT * FROM playback_state_table WHERE id = 1")
+    fun getPlaybackState(): Flow<PlaybackStateEntity?>
+
+    @Query("SELECT * FROM playback_state_table WHERE id = 1")
+    suspend fun getPlaybackStateSync(): PlaybackStateEntity?
 }

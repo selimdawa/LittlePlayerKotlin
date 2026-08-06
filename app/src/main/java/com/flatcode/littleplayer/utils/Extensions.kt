@@ -12,6 +12,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -35,6 +36,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import coil.load
+import coil.map.Mapper
+import coil.request.Options
 import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
@@ -148,56 +151,76 @@ fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
     Snackbar.make(this, message, duration).show()
 }
 
-fun ImageView.loadSongImage(albumId: String?, path: String? = null, cachedPath: String? = null) {
+fun ImageView.loadSongImage(
+    albumId: String?, path: String? = null, cachedPath: String? = null, songColor: Int? = null
+) {
     val model: Any = if (!cachedPath.isNullOrEmpty()) {
         File(cachedPath)
-    } else if (albumId != null && albumId != "-1" && albumId != "0") {
-        getSongArt(albumId)
-    } else if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path) ?: R.color.image_profile
+    } else if (path != null || (albumId != null && albumId != "-1" && albumId != "0")) {
+        SongArt(albumId, path)
+    } else if (songColor != null) {
+        ColorDrawable(songColor)
     } else {
         R.color.image_profile
     }
 
     load(model) {
         crossfade(true)
-        placeholder(R.color.image_profile)
-        error(R.color.image_profile)
+        if (songColor != null) {
+            val drawable = ColorDrawable(songColor)
+            placeholder(drawable)
+            error(drawable)
+        } else {
+            placeholder(R.color.image_profile)
+            error(R.color.image_profile)
+        }
     }
 }
 
-fun ImageView.loadSongImageByPath(path: String?, cachedPath: String? = null) {
+fun ImageView.loadSongImageByPath(path: String?, cachedPath: String? = null, songColor: Int? = null) {
     val model: Any = if (!cachedPath.isNullOrEmpty()) {
         File(cachedPath)
-    } else if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path) ?: R.color.image_profile
+    } else if (songColor != null) {
+        ColorDrawable(songColor)
     } else {
         R.color.image_profile
     }
     load(model) {
         crossfade(true)
-        placeholder(R.color.image_profile)
-        error(R.color.image_profile)
+        if (songColor != null) {
+            val drawable = ColorDrawable(songColor)
+            placeholder(drawable)
+            error(drawable)
+        } else {
+            placeholder(R.color.image_profile)
+            error(R.color.image_profile)
+        }
     }
 }
 
 fun ImageView.loadSongImageBlur(
-    albumId: String?, level: Int, path: String? = null, cachedPath: String? = null
+    albumId: String?, level: Int, path: String? = null, cachedPath: String? = null, songColor: Int? = null
 ) {
     val model: Any = if (!cachedPath.isNullOrEmpty()) {
         File(cachedPath)
-    } else if (albumId != null && albumId != "-1" && albumId != "0") {
-        getSongArt(albumId)
-    } else if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path) ?: R.color.image_profile
+    } else if (path != null || (albumId != null && albumId != "-1" && albumId != "0")) {
+        SongArt(albumId, path)
+    } else if (songColor != null) {
+        ColorDrawable(songColor)
     } else {
         R.color.image_profile
     }
 
     load(model) {
         crossfade(true)
-        placeholder(R.color.image_profile)
-        error(R.color.image_profile)
+        if (songColor != null) {
+            val drawable = ColorDrawable(songColor)
+            placeholder(drawable)
+            error(drawable)
+        } else {
+            placeholder(R.color.image_profile)
+            error(R.color.image_profile)
+        }
         transformations(SimpleBlurTransformation(level.toFloat()))
     }
 }
@@ -208,6 +231,15 @@ fun ImageView.loadCachedAlbumImage(cachedPath: String?) {
         crossfade(true)
         placeholder(R.color.image_profile)
         error(R.color.image_profile)
+    }
+}
+
+data class SongArt(val albumId: String?, val path: String?)
+
+class SongArtMapper : Mapper<SongArt, Any> {
+    override fun map(data: SongArt, options: Options): Any {
+        val art = getAlbumArtBytes(data.path)
+        return art ?: getSongArt(data.albumId)
     }
 }
 
@@ -278,20 +310,6 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
     }
 }
 
-fun getLyrics(path: String?): String? {
-    if (path.isNullOrEmpty()) return null
-    val retriever = MediaMetadataRetriever()
-    return try {
-        retriever.setDataSource(path)
-        val lyrics = retriever.extractMetadata(1000) // METADATA_KEY_LYRICS
-        retriever.release()
-        lyrics
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
-}
-
 fun Context.getAppCompatActivity(): AppCompatActivity? {
     var currentContext = this
     while (currentContext is ContextWrapper) {
@@ -301,6 +319,15 @@ fun Context.getAppCompatActivity(): AppCompatActivity? {
         currentContext = currentContext.baseContext
     }
     return null
+}
+
+fun generateRandomColor(): Int {
+    val hsv = floatArrayOf(
+        (0..360).random().toFloat(),
+        0.6f + (0..3).random() * 0.1f, // Saturation 0.6 - 0.9
+        0.7f + (0..2).random() * 0.1f  // Value 0.7 - 0.9
+    )
+    return Color.HSVToColor(hsv)
 }
 
 class SimpleBlurTransformation(private val radius: Float) : Transformation {

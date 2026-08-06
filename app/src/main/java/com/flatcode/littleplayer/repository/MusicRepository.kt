@@ -15,8 +15,11 @@ import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
+import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
+import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.generateRandomColor
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -93,7 +96,8 @@ class MusicRepository @Inject constructor(
                     lyrics = dbSong.lyrics,
                     dateAdded = dbSong.dateAdded,
                     size = dbSong.size,
-                    year = dbSong.year
+                    year = dbSong.year,
+                    color = dbSong.color
                 )
             }
         }
@@ -135,7 +139,8 @@ class MusicRepository @Inject constructor(
                                 lyrics = dbSong.lyrics,
                                 dateAdded = dbSong.dateAdded,
                                 size = dbSong.size,
-                                year = dbSong.year
+                                year = dbSong.year,
+                                color = dbSong.color
                             )
                         )
                     }
@@ -152,6 +157,7 @@ class MusicRepository @Inject constructor(
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
                                 syncWithMediaStore()
+                                syncPlaylistsWithMediaStore()
                             } catch (_: Exception) {
                             }
                         }
@@ -231,6 +237,7 @@ class MusicRepository @Inject constructor(
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             syncWithMediaStore()
+                            syncPlaylistsWithMediaStore()
                         } catch (_: Exception) {
                         }
                     }
@@ -304,16 +311,82 @@ class MusicRepository @Inject constructor(
         if (songEntities.isNotEmpty()) {
             songDao.insertSongs(songEntities)
         }
+        syncPlaylistsWithMediaStore()
     }
 
-    suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {
+    suspend fun syncPlaylistsWithMediaStore() {
+        val playlistUri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI
+        val playlistProjection = arrayOf(
+            MediaStore.Audio.Playlists._ID,
+            MediaStore.Audio.Playlists.NAME
+        )
+
+        context.contentResolver.query(playlistUri, playlistProjection, null, null, null)?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID)
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.NAME)
+
+            while (cursor.moveToNext()) {
+                val playlistId = cursor.getLong(idColumn)
+                val playlistName = cursor.getString(nameColumn) ?: continue
+
+                syncPlaylistMembers(playlistId, playlistName)
+            }
+        }
+    }
+
+    private suspend fun syncPlaylistMembers(playlistId: Long, playlistName: String) {
+        val membersUri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId)
+        val membersProjection = arrayOf(
+            MediaStore.Audio.Playlists.Members.AUDIO_ID,
+            MediaStore.Audio.Playlists.Members.TITLE,
+            MediaStore.Audio.Playlists.Members.ARTIST,
+            MediaStore.Audio.Playlists.Members.DATA,
+            MediaStore.Audio.Playlists.Members.ALBUM_ID
+        )
+
+        context.contentResolver.query(membersUri, membersProjection, null, null, null)?.use { cursor ->
+            val audioIdColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.AUDIO_ID)
+            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.TITLE)
+            val artistColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ARTIST)
+            val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.DATA)
+            val albumIdColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ALBUM_ID)
+
+            val playlistItems = mutableListOf<PlaylistEntity>()
+            while (cursor.moveToNext()) {
+                val songId = cursor.getString(audioIdColumn)
+                val title = cursor.getString(titleColumn) ?: DATA.UNKNOWN
+                val artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN
+                val path = cursor.getString(pathColumn) ?: ""
+                val albumId = cursor.getString(albumIdColumn)
+
+                playlistItems.add(
+                    PlaylistEntity(
+                        playlistName = playlistName,
+                        songId = songId,
+                        title = title,
+                        artist = artist,
+                        path = path,
+                        albumId = albumId
+                    )
+                )
+            }
+            if (playlistItems.isNotEmpty()) {
+                musicDao.insertToPlaylist(playlistItems)
+            }
+        }
+    }
+
+    suspend fun cacheAlbumArt(song: MusicFiles): Boolean = withContext(Dispatchers.IO) {
         val albumName = song.album ?: DATA.UNKNOWN
-        if (albumName == DATA.UNKNOWN) return@withContext
+        if (albumName == DATA.UNKNOWN) return@withContext false
 
         val existing = albumImageDao.getAlbumImageByName(albumName)
-        if ((existing != null) && File(existing.imagePath).exists()) return@withContext
+        if ((existing != null) && File(existing.imagePath).exists()) return@withContext true
 
-        val artBytes = getAlbumArtBytes(song.path) ?: return@withContext
+        val artBytes = getAlbumArtBytes(song.path) ?: return@withContext false
 
         val folder = File(context.filesDir, "album_art")
         if (!folder.exists()) folder.mkdirs()
@@ -326,8 +399,10 @@ class MusicRepository @Inject constructor(
                 out.write(artBytes)
             }
             albumImageDao.insertAlbumImage(AlbumImageEntity(albumName, file.absolutePath))
+            return@withContext true
         } catch (e: Exception) {
             e.printStackTrace()
+            return@withContext false
         }
     }
 
@@ -335,11 +410,30 @@ class MusicRepository @Inject constructor(
         val processedAlbums = mutableSetOf<String>()
         songs.forEach { song ->
             val album = song.album ?: DATA.UNKNOWN
+            val hasArtInfo = (song.albumId != null && song.albumId != "-1" && song.albumId != "0")
+            
             if (album != DATA.UNKNOWN && !processedAlbums.contains(album)) {
-                cacheAlbumArt(song)
+                val hasEmbeddedArt = cacheAlbumArt(song)
+                
+                if (!hasEmbeddedArt && !hasArtInfo && song.color == null) {
+                    val color = generateRandomColor()
+                    song.id?.let { updateSongColor(it, color) }
+                }
+                
                 processedAlbums.add(album)
+            } else if (album == DATA.UNKNOWN && !hasArtInfo && song.color == null) {
+                // For songs without album name, check embedded art individually
+                val artBytes = getAlbumArtBytes(song.path)
+                if (artBytes == null) {
+                    val color = generateRandomColor()
+                    song.id?.let { updateSongColor(it, color) }
+                }
             }
         }
+    }
+
+    suspend fun updateSongColor(songId: String, color: Int) = withContext(Dispatchers.IO) {
+        songDao.updateSongColor(songId, color)
     }
 
 
@@ -353,25 +447,28 @@ class MusicRepository @Inject constructor(
         )
     }
 
-    fun updateCurrentPlaylist(songs: List<MusicFiles>) {
+    fun updateCurrentPlaylist(songs: List<MusicFiles>, saveToRoom: Boolean = true) {
         _currentPlaylist.value = songs
-        CoroutineScope(Dispatchers.IO).launch {
-            musicDao.clearQueue()
-            val entities = songs.mapIndexed { index, song ->
-                CurrentQueueEntity(
-                    songId = song.id ?: "",
-                    title = song.title,
-                    artist = song.artist,
-                    album = song.album,
-                    albumId = song.albumId,
-                    duration = song.duration,
-                    path = song.path,
-                    cachedImagePath = song.cachedImagePath,
-                    lyrics = song.lyrics,
-                    orderIndex = index
-                )
+        if (saveToRoom) {
+            CoroutineScope(Dispatchers.IO).launch {
+                musicDao.clearQueue()
+                val entities = songs.mapIndexed { index, song ->
+                    CurrentQueueEntity(
+                        songId = song.id ?: "",
+                        title = song.title,
+                        artist = song.artist,
+                        album = song.album,
+                        albumId = song.albumId,
+                        duration = song.duration,
+                        path = song.path,
+                        cachedImagePath = song.cachedImagePath,
+                        lyrics = song.lyrics,
+                        orderIndex = index,
+                        color = song.color
+                    )
+                }
+                musicDao.insertQueue(entities)
             }
-            musicDao.insertQueue(entities)
         }
     }
 
@@ -386,7 +483,8 @@ class MusicRepository @Inject constructor(
                 duration = it.duration,
                 path = it.path,
                 cachedImagePath = it.cachedImagePath,
-                lyrics = it.lyrics
+                lyrics = it.lyrics,
+                color = it.color
             )
         }
     }
@@ -396,6 +494,16 @@ class MusicRepository @Inject constructor(
     }
 
     fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
+
+    fun getPlaybackState(): Flow<PlaybackStateEntity?> = musicDao.getPlaybackState()
+
+    suspend fun savePlaybackState(state: PlaybackStateEntity) = withContext(Dispatchers.IO) {
+        musicDao.savePlaybackState(state)
+    }
+
+    suspend fun getPlaybackStateSync(): PlaybackStateEntity? = withContext(Dispatchers.IO) {
+        musicDao.getPlaybackStateSync()
+    }
 
     suspend fun clearArtCache() = withContext(Dispatchers.IO) {
         albumImageDao.clearAllAlbumImages()

@@ -6,6 +6,7 @@ import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
+import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.data.entity.SongEntity
@@ -54,14 +55,35 @@ class MusicRoomRepository @Inject constructor(
         musicDao.insertToPlaylist(playlistItem)
     }
 
+    suspend fun insertToPlaylist(playlistItems: List<PlaylistEntity>) = withContext(Dispatchers.IO) {
+        musicDao.insertToPlaylist(playlistItems)
+    }
+
     suspend fun deleteFromPlaylist(name: String, songId: String) = withContext(Dispatchers.IO) {
         musicDao.deleteFromPlaylist(name, songId)
+    }
+
+    suspend fun deletePlaylist(name: String) = withContext(Dispatchers.IO) {
+        musicDao.deletePlaylist(name)
+    }
+
+    suspend fun renamePlaylist(oldName: String, newName: String) = withContext(Dispatchers.IO) {
+        musicDao.renamePlaylist(oldName, newName)
     }
 
     fun getSongsFromPlaylist(name: String): Flow<List<PlaylistEntity>> =
         musicDao.getSongsFromPlaylist(name)
 
+    suspend fun getSongsFromPlaylistSync(name: String): List<PlaylistEntity> =
+        withContext(Dispatchers.IO) {
+            musicDao.getSongsFromPlaylistSync(name)
+        }
+
     fun getAllPlaylistNames(): Flow<List<String>> = musicDao.getAllPlaylistNames()
+
+    suspend fun getAllPlaylistNamesSync(): List<String> = withContext(Dispatchers.IO) {
+        musicDao.getAllPlaylistNamesSync()
+    }
 
     fun getAllAlbumImages(): Flow<List<AlbumImageEntity>> = albumImageDao.getAllAlbumImages()
 
@@ -88,6 +110,10 @@ class MusicRoomRepository @Inject constructor(
         songDao.updateLyrics(songId, lyrics)
     }
 
+    suspend fun updateSongColor(songId: String, color: Int) = withContext(Dispatchers.IO) {
+        songDao.updateSongColor(songId, color)
+    }
+
     suspend fun getSongById(songId: String): SongEntity? = withContext(Dispatchers.IO) {
         songDao.getSongById(songId)
     }
@@ -97,4 +123,18 @@ class MusicRoomRepository @Inject constructor(
     }
 
     fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
+
+    suspend fun savePlaybackState(state: PlaybackStateEntity) = withContext(Dispatchers.IO) {
+        musicDao.savePlaybackState(state)
+    }
+
+    fun getPlaybackState(): Flow<PlaybackStateEntity?> = musicDao.getPlaybackState()
+
+    suspend fun getPlaybackStateSync(): PlaybackStateEntity? = withContext(Dispatchers.IO) {
+        musicDao.getPlaybackStateSync()
+    }
+
+    suspend fun getQueue() = withContext(Dispatchers.IO) {
+        musicDao.getQueue()
+    }
 }

@@ -227,6 +227,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             applyCurrentModeColors()
         }
 
+        nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
+            color?.let {
+                currentDominantColor = it
+                binding.paletteColor.setCardBackgroundColor(it)
+                if (currentMode == DATA.MODE_PALETTE) {
+                    applyCurrentModeColors()
+                }
+            }
+        }
+
         viewModel.currentSong.collectWithLifecycle(this) { song ->
             song?.let {
                 updateSongUI(it)
@@ -252,8 +262,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         animateTextChange(binding.songArtist, song.artist ?: DATA.UNKNOWN)
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
-        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
-        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
+        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath, song.color)
+        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath, song.color)
 
         val request =
             ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path)
@@ -366,16 +376,26 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun animateSkip(toNext: Boolean) {
         if (isAnimating || (mediaController == null)) return
-        isAnimating = true
 
         val controller = mediaController!!
-        val nextIndex = if (toNext) {
-            if (controller.hasNextMediaItem()) controller.nextMediaItemIndex else 0
-        } else {
-            if (controller.hasPreviousMediaItem()) controller.previousMediaItemIndex else controller.mediaItemCount - 1
+        val hasNext = if (toNext) controller.hasNextMediaItem() else controller.hasPreviousMediaItem()
+
+        if (!hasNext) {
+            if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
+            return
         }
 
-        val nextSong = if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
+        isAnimating = true
+        val nextIndex = if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
+
+        val nextSong =
+            if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
+
+        // Update UI info immediately if we have it
+        nextSong?.let {
+            binding.songName.text = it.title ?: DATA.UNKNOWN
+            binding.songArtist.text = it.artist ?: DATA.UNKNOWN
+        }
 
         val width = binding.card.width.toFloat()
         val outX = if (toNext) -width else width
@@ -391,6 +411,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     val request = ImageRequest.Builder(this)
                         .data(nextSong.cachedImagePath ?: nextSong.path)
                         .allowHardware(enable = false)
+                        .listener(
+                            onError = { _, _ -> performSkipAndSlideIn(toNext, inX) },
+                            onCancel = { performSkipAndSlideIn(toNext, inX) }
+                        )
                         .target { result ->
                             val bitmap = (result as? BitmapDrawable)?.bitmap
                             if (bitmap != null) {
@@ -399,17 +423,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                                         ?: palette?.getLightVibrantColor(Color.GRAY)
                                         ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
 
-                                    // Perform actual skip
-                                    if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
-
-                                    binding.card.translationX = inX
-                                    binding.card.animate()
-                                        .translationX(0f)
-                                        .alpha(1f)
-                                        .setDuration(200)
-                                        .setInterpolator(DecelerateInterpolator())
-                                        .withEndAction { isAnimating = false }
-                                        .start()
+                                    performSkipAndSlideIn(toNext, inX)
                                 }
                             } else {
                                 performSkipAndSlideIn(toNext, inX)
@@ -619,7 +633,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                 .build()
         }
-        controller.setMediaItems(mediaItems, viewModel.position, 0L)
+        controller.setMediaItems(mediaItems, viewModel.position, viewModel.lastProgress)
         controller.prepare()
     }
 

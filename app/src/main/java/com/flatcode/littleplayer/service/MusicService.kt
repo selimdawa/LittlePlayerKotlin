@@ -7,6 +7,7 @@ import android.media.audiofx.Virtualizer
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -26,6 +27,7 @@ import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
+import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
@@ -97,6 +99,54 @@ class MusicService : MediaSessionService(), Player.Listener {
 
             loadEqualizerSettings()
             initAudioEffects(player.audioSessionId)
+            loadPlaybackStateAndQueue()
+        }
+    }
+
+    private fun loadPlaybackStateAndQueue() {
+        serviceScope.launch {
+            val queue = repository.getQueue()
+            val state = repository.getPlaybackStateSync()
+
+            if (queue.isNotEmpty() && (exoPlayer?.mediaItemCount ?: 0) == 0) {
+                val mediaItems = queue.map { item ->
+                    val uri = item.path?.toUri() ?: "".toUri()
+                    val metadata = MediaMetadata.Builder()
+                        .setTitle(item.title)
+                        .setArtist(item.artist)
+                        .setExtras(Bundle().apply {
+                            putString("ALBUM_ID", item.albumId)
+                            putString("CACHED_IMAGE_PATH", item.cachedImagePath)
+                        })
+                        .build()
+                    MediaItem.Builder()
+                        .setUri(uri)
+                        .setMediaId(item.songId)
+                        .setMediaMetadata(metadata)
+                        .build()
+                }
+
+                val startItemIndex = if (state != null && !state.currentSongId.isNullOrEmpty()) {
+                    val index = queue.indexOfFirst { it.songId == state.currentSongId }
+                    if (index != -1) index else (if (state.lastPosition in queue.indices) state.lastPosition else 0)
+                } else if (state != null && state.lastPosition in queue.indices) {
+                    state.lastPosition
+                } else 0
+
+                val startPosition = state?.lastProgress ?: 0L
+
+                exoPlayer?.let { player ->
+                    player.setMediaItems(mediaItems, startItemIndex, startPosition)
+                    player.shuffleModeEnabled = state?.shuffleModeEnabled ?: false
+                    player.repeatMode = state?.repeatMode ?: Player.REPEAT_MODE_ALL
+                    player.prepare()
+                }
+            } else if (state != null) {
+                exoPlayer?.let { player ->
+                    player.shuffleModeEnabled = state.shuffleModeEnabled
+                    player.repeatMode = state.repeatMode
+                }
+            }
         }
     }
 
@@ -197,6 +247,9 @@ class MusicService : MediaSessionService(), Player.Listener {
         val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
         val path = currentMediaItem.localConfiguration?.uri?.path ?: ""
         val currentIndex = player.currentMediaItemIndex
+        val shuffleMode = player.shuffleModeEnabled
+        val repeatMode = player.repeatMode
+        val currentProgress = player.currentPosition
 
         serviceScope.launch(Dispatchers.IO) {
             repository.insertRecent(
@@ -208,6 +261,16 @@ class MusicService : MediaSessionService(), Player.Listener {
                     albumId = albumId,
                     duration = null,
                     path = path
+                )
+            )
+
+            repository.savePlaybackState(
+                PlaybackStateEntity(
+                    currentSongId = songId,
+                    lastPosition = currentIndex,
+                    shuffleModeEnabled = shuffleMode,
+                    repeatMode = repeatMode,
+                    lastProgress = currentProgress
                 )
             )
 
@@ -252,6 +315,17 @@ class MusicService : MediaSessionService(), Player.Listener {
 
             mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton, stopButton))
         }
+    }
+
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
+        if (!isPlaying) {
+            updateLastPlayedInfo()
+        }
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        updateLastPlayedInfo()
+        super.onTaskRemoved(rootIntent)
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -331,6 +405,13 @@ class MusicService : MediaSessionService(), Player.Listener {
             )
         ) {
             updateNotificationLayout()
+            if (events.containsAny(
+                    Player.EVENT_REPEAT_MODE_CHANGED,
+                    Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED
+                )
+            ) {
+                updateLastPlayedInfo()
+            }
         }
     }
 
@@ -348,6 +429,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                 .add(SessionCommand(COMMAND_SET_VIRTUALIZER, Bundle.EMPTY))
                 .add(SessionCommand(COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY))
                 .add(SessionCommand(COMMAND_SET_PRESET, Bundle.EMPTY))
+                .add(SessionCommand(COMMAND_SAVE_EQ_SETTINGS, Bundle.EMPTY))
                 .build()
 
             val playerCommands = MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
@@ -432,6 +514,10 @@ class MusicService : MediaSessionService(), Player.Listener {
                     startSleepTimer(minutes)
                 }
 
+                MusicService.COMMAND_SAVE_EQ_SETTINGS -> {
+                    saveEqualizerSettings()
+                }
+
                 COMMAND_SET_EQ_BAND -> {
                     val band = args.getShort("BAND", 0)
                     val level = args.getShort("LEVEL", 0)
@@ -443,7 +529,6 @@ class MusicService : MediaSessionService(), Player.Listener {
                             }
                         }
                         equalizer?.setBandLevel(band, level)
-                        saveEqualizerSettings()
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -491,6 +576,7 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     private fun stopPlaybackAndService() {
         sleepTimer?.cancel()
+        updateLastPlayedInfo()
         exoPlayer?.let {
             it.stop()
             it.clearMediaItems()
@@ -530,6 +616,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         const val COMMAND_PLAYBACK_CYCLE = "COMMAND_PLAYBACK_CYCLE"
         const val COMMAND_SET_SLEEP_TIMER = "COMMAND_SET_SLEEP_TIMER"
         const val COMMAND_SET_EQ_BAND = "COMMAND_SET_EQ_BAND"
+        const val COMMAND_SAVE_EQ_SETTINGS = "COMMAND_SAVE_EQ_SETTINGS"
         const val COMMAND_TOGGLE_EQ = "COMMAND_TOGGLE_EQ"
         const val COMMAND_SET_BASS = "COMMAND_SET_BASS"
         const val COMMAND_SET_VIRTUALIZER = "COMMAND_SET_VIRTUALIZER"

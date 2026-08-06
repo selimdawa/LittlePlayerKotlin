@@ -12,5 +12,6 @@ data class RecentEntity(
     val albumId: String? = null,
     val duration: String?,
     val path: String,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val color: Int? = null
 )

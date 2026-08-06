@@ -104,8 +104,11 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                                             ).build(),
                                     ).build()
                             }
-                            val startIndex =
-                                currentQueue.indexOfFirst { it.path == song.path }.coerceAtLeast(0)
+                            val startIndex = if (!song.id.isNullOrEmpty()) {
+                                currentQueue.indexOfFirst { it.id == song.id }
+                            } else {
+                                currentQueue.indexOfFirst { it.path == song.path }
+                            }.coerceAtLeast(0)
                             controller.setMediaItems(mediaItems, startIndex, 0L)
                             controller.prepare()
                             controller.play()
@@ -142,7 +145,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
             song?.let {
-                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath, it.color)
                 binding.name.text = it.safeTitle
                 binding.artist.text = it.safeArtist
             }

@@ -44,8 +44,10 @@ class NowPlayerViewModel @Inject constructor(
     private val songIdKey = stringPreferencesKey(DATA.SONG_ID)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
+    private val songColorKey = intPreferencesKey(DATA.SONG_COLOR)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
     private val bottomPlayerThemeKey = androidx.datastore.preferences.core.booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
+    private val themeExtractedColorKey = intPreferencesKey(DATA.THEME_EXTRACTED_COLOR)
 
     init {
         restoreSession()
@@ -54,25 +56,40 @@ class NowPlayerViewModel @Inject constructor(
     private fun restoreSession() {
         viewModelScope.launch {
             val queue = repository.loadCurrentQueue()
-            if (queue.isNotEmpty()) {
-                repository.updateCurrentPlaylist(queue)
+            if (queue.isNotEmpty() && repository.currentPlaylist.value.isEmpty()) {
+                repository.updateCurrentPlaylist(queue, saveToRoom = false)
             }
 
-            dataStore.data.collect { preferences ->
-                val path = preferences[musicFileKey]
-                if (!path.isNullOrEmpty()) {
-                    val song = MusicFiles(
-                        path = path,
-                        artist = preferences[artistNameKey] ?: DATA.UNKNOWN,
-                        title = preferences[songNameKey] ?: DATA.UNKNOWN,
-                        id = preferences[songIdKey],
-                        albumId = preferences[albumIdKey],
-                        cachedImagePath = preferences[cachedImagePathKey]
-                    )
-                    _currentPlayingSong.value = song
+            val playbackState = repository.getPlaybackStateSync()
+            if (playbackState != null && !playbackState.currentSongId.isNullOrEmpty()) {
+                val songInQueue = queue.find { it.id == playbackState.currentSongId }
+                if (songInQueue != null) {
+                    _currentPlayingSong.value = songInQueue
                 }
+            }
+            
+            // Collect everything in one place to avoid multiple suspending collectors
+            dataStore.data.collect { preferences ->
+                // 1. Theme Settings
                 _themeColorMode.value = preferences[themeColorModeKey] ?: DATA.MODE_BASIC
                 _bottomPlayerThemeEnabled.value = preferences[bottomPlayerThemeKey] ?: false
+                _currentThemeColor.value = preferences[themeExtractedColorKey]
+
+                // 2. Song Recovery (if not already loaded from playback state)
+                if (_currentPlayingSong.value == null) {
+                    val path = preferences[musicFileKey]
+                    if (!path.isNullOrEmpty()) {
+                        _currentPlayingSong.value = MusicFiles(
+                            path = path,
+                            artist = preferences[artistNameKey] ?: DATA.UNKNOWN,
+                            title = preferences[songNameKey] ?: DATA.UNKNOWN,
+                            id = preferences[songIdKey],
+                            albumId = preferences[albumIdKey],
+                            cachedImagePath = preferences[cachedImagePathKey],
+                            color = preferences[songColorKey]
+                        )
+                    }
+                }
             }
         }
     }
@@ -83,6 +100,11 @@ class NowPlayerViewModel @Inject constructor(
 
     fun updateThemeColor(color: Int) {
         _currentThemeColor.value = color
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[themeExtractedColorKey] = color
+            }
+        }
     }
 
     fun setThemeColorMode(mode: Int) {
@@ -118,6 +140,7 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[songIdKey] = song.id ?: ""
                 preferences[albumIdKey] = song.albumId ?: ""
                 preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
+                song.color?.let { preferences[songColorKey] = it }
             }
         }
     }
