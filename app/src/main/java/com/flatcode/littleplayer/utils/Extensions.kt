@@ -204,7 +204,7 @@ fun ImageView.loadSongImageBlur(
 
 fun ImageView.loadCachedAlbumImage(cachedPath: String?) {
     load(if (!cachedPath.isNullOrEmpty()) File(cachedPath) else R.color.image_profile) {
-        scale(Scale.FILL)
+        scale(Scale.FIT)
         crossfade(true)
         placeholder(R.color.image_profile)
         error(R.color.image_profile)

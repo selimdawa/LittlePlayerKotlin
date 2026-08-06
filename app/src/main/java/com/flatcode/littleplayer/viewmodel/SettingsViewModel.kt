@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.viewmodel
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
@@ -21,15 +22,28 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val darkModeKey = intPreferencesKey("dark_mode_preference")
+    private val showSongToastKey = booleanPreferencesKey(DATA.SHOW_SONG_TOAST)
 
     val darkModeFlow: Flow<Int> = dataStore.data.map { preferences ->
         preferences[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+    }
+
+    val showSongToastFlow: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[showSongToastKey] ?: false
     }
 
     fun setDarkMode(mode: Int) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[darkModeKey] = mode
+            }
+        }
+    }
+
+    fun setShowSongToast(show: Boolean) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[showSongToastKey] = show
             }
         }
     }

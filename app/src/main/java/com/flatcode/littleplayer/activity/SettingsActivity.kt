@@ -14,6 +14,7 @@ import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivitySettingsBinding
 import com.flatcode.littleplayer.databinding.DialogAboutBinding
+import com.flatcode.littleplayer.fragment.SleepTimerBottomSheet
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
@@ -79,9 +80,8 @@ class SettingsActivity : AppCompatActivity() {
             launchActivity<EqualizerActivity>()
         }
 
-        binding.settingAccount.setOnClickListener { binding.root.snackbar(getString(R.string.account_settings_coming_soon)) }
         binding.settingNotifications.setOnClickListener {
-            binding.root.snackbar(getString(R.string.notifications_managed_by_system))
+            launchActivity<NotificationsActivity>()
         }
         binding.settingDataStorage.setOnClickListener {
             launchActivity<DataStorageActivity>()
@@ -114,24 +114,10 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showSleepTimerDialog() {
-        val options = arrayOf(
-            getString(R.string.off),
-            getString(R.string._1_minute),
-            getString(R.string._5_minutes),
-            getString(R.string._15_minutes),
-            getString(R.string._30_minutes),
-            getString(R.string._1_hour),
-            getString(R.string._2_hours),
-            getString(R.string._4_hours),
-            getString(R.string._8_hours)
-        )
-        val values = intArrayOf(0, 1, 5, 15, 30, 60, 120, 240, 480)
-
-        AlertDialog.Builder(this).setTitle(R.string.set_sleep_timer).setItems(options) { _, which ->
-            val minutes = values[which]
+        SleepTimerBottomSheet { minutes, status ->
             setSleepTimer(minutes)
-            binding.tvSleepTimerStatus.text = options[which]
-        }.show()
+            binding.tvSleepTimerStatus.text = status
+        }.show(supportFragmentManager, "SleepTimer")
     }
 
     private fun setSleepTimer(minutes: Int) {
