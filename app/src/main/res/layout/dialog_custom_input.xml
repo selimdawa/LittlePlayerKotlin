@@ -16,8 +16,7 @@
         <TextView
             android:id="@+id/dialogTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/new_playlist"
+            android:layout_height="wrap_content"            android:text="@string/new_playlist"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="?attr/colorError"
             android:textStyle="bold" />
@@ -27,27 +26,23 @@
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textColorHint="?attr/colorError"
-            app:boxBackgroundColor="@android:color/transparent"
+            android:layout_marginTop="20dp"
+            android:hint="@string/playlist_name"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp"
-            app:boxStrokeColor="@android:color/black"
-            app:cursorColor="?attr/colorError"
-            app:hintEnabled="true"
-            app:hintTextColor="?attr/colorError">
+            app:boxStrokeColor="?attr/mc_track"
+            app:cursorColor="?attr/mc_track"
+            app:hintTextColor="?attr/mc_track">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:hint="@string/playlist_name"
                 android:inputType="textCapSentences"
                 android:maxLines="1"
-                android:textColor="?attr/colorError" />
+                android:textColor="?attr/colorOnSurface" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -64,7 +59,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cancel"
-                android:textColor="?attr/colorError" />
+                android:textColor="@color/gray" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCreate"
@@ -73,8 +68,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="@string/create"
-                android:textColor="?attr/colorError"
-                app:backgroundTint="?attr/colorError"
+                android:textColor="@color/white"
+                app:backgroundTint="?attr/mc_track"
                 app:cornerRadius="12dp" />
 
         </LinearLayout>

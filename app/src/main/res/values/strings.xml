@@ -49,8 +49,12 @@
     <string name="new_playlist">New Playlist</string>
     <string name="playlist_name">Playlist Name</string>
     <string name="create">Create</string>
+    <string name="rename">Rename</string>
     <string name="cancel">Cancel</string>
     <string name="playlist">Playlist</string>
+    <string name="delete_playlist">Delete Playlist</string>
+    <string name="delete_playlist_message">Are you sure you want to delete \"%1$s\"?</string>
+    <string name="rename_playlist">Rename Playlist</string>
     <string name="audio_quality">Audio Quality</string>
     <string name="notifications">Notifications</string>
     <string name="data_storage">Data &amp; Storage</string>

@@ -24,7 +24,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxHeight="300dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_playlist_small" />
+
+    <TextView
+        android:id="@+id/emptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="@string/no_items_found"
+        android:textColor="@color/gray"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/btnCreateNewPlaylist"
