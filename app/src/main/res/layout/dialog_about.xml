@@ -67,9 +67,9 @@
             android:layout_marginStart="@dimen/spacing_8"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_flag_syria_revolution"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.ExtraSmall"
             app:strokeColor="?attr/colorOutlineVariant"
-            app:strokeWidth="0.5dp" />
+            app:strokeWidth="0.25dp" />
 
     </LinearLayout>
 

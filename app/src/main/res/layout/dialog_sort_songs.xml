@@ -47,6 +47,7 @@
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -77,6 +78,7 @@
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -107,6 +109,7 @@
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -137,6 +140,7 @@
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -167,6 +171,7 @@
             android:src="@drawable/ic_check"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
+
     </LinearLayout>
 
 </LinearLayout>

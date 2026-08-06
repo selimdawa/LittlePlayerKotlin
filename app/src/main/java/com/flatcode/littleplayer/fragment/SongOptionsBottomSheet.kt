@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
-import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.DialogSongOptionsBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.requestDeletion
@@ -18,8 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.R as MaterialR
 
 class SongOptionsBottomSheet(
-    private val song: MusicFiles,
-    private val onDeleteClick: (MusicFiles) -> Unit
+    private val song: MusicFiles, private val onDeleteClick: (MusicFiles) -> Unit
 ) : BottomSheetDialogFragment() {
 
     private var _binding: DialogSongOptionsBinding? = null
@@ -44,7 +42,7 @@ class SongOptionsBottomSheet(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.dialogTitle.text = song.title
+        binding.title.text = song.title
 
         binding.optionAddToPlaylist.setOnClickListener {
             val playlistSheet = PlaylistSelectionBottomSheet(song)
@@ -78,8 +76,6 @@ class SongOptionsBottomSheet(
         }
         startActivity(Intent.createChooser(shareIntent, "Share Song"))
     }
-
-    override fun getTheme(): Int = R.style.CustomBottomSheetDialog
 
     override fun onStart() {
         super.onStart()

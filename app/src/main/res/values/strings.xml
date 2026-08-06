@@ -51,7 +51,6 @@
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="playlist">Playlist</string>
-    <string name="account">Account</string>
     <string name="audio_quality">Audio Quality</string>
     <string name="notifications">Notifications</string>
     <string name="data_storage">Data &amp; Storage</string>
@@ -64,6 +63,7 @@
     <string name="_5_minutes">5 minutes</string>
     <string name="_15_minutes">15 minutes</string>
     <string name="_30_minutes">30 minutes</string>
+    <string name="_60_minutes">60 minutes</string>
     <string name="_1_hour">1 hour</string>
     <string name="_2_hours">2 hours</string>
     <string name="_4_hours">4 hours</string>
@@ -72,7 +72,6 @@
     <string name="music_service_not_connected">Music Service not connected yet</string>
     <string name="disabled">Disabled</string>
     <string name="library_rescan_started">Library Rescan Started</string>
-    <string name="account_settings_coming_soon">Account settings coming soon</string>
     <string name="notifications_managed_by_system">Notifications are managed by the system</string>
     <string name="light_mode">Light Mode</string>
     <string name="custom">Custom</string>
@@ -112,4 +111,9 @@
     <string name="clear_recent_history_desc">Deletes the list of your most recently played songs.</string>
     <string name="art_cache_cleared">Album art cache cleared</string>
     <string name="history_cleared">Recent history cleared</string>
+
+    <string name="show_song_toast">Show Song Toast</string>
+    <string name="show_song_toast_desc">Show a popup message with song title when a new song starts.</string>
+    <string name="system_notification_settings">System Notification Settings</string>
+    <string name="system_notification_settings_desc">Manage app notifications in Android settings.</string>
 </resources>

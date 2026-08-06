@@ -82,19 +82,18 @@ class EqualizerActivity : AppCompatActivity() {
             }
         }
 
-        nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
-            color?.let {
-                val csl = ColorStateList.valueOf(it)
-                binding.switchEq.thumbTintList = csl
-                binding.bassKnob.setIndicatorColor(it)
-                binding.virtualizerKnob.setIndicatorColor(it)
+        nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { _ ->
+            val trackColor = getLibraryColor("mc_track")
+            val csl = ColorStateList.valueOf(trackColor)
+            binding.switchEq.thumbTintList = csl
+            binding.bassKnob.setIndicatorColor(trackColor)
+            binding.virtualizerKnob.setIndicatorColor(trackColor)
 
-                bandSeekBars.forEach { sb ->
-                    sb.progressTintList = csl
-                    sb.thumbTintList = csl
-                }
-                updatePresetSelectionUI(selectedPresetName, it)
+            bandSeekBars.forEach { sb ->
+                sb.progressTintList = csl
+                sb.thumbTintList = csl
             }
+            updatePresetSelectionUI(selectedPresetName, trackColor)
         }
     }
 
@@ -179,9 +178,9 @@ class EqualizerActivity : AppCompatActivity() {
     }
 
     private fun selectPreset(name: String) {
-        val themeColor = nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY
+        val trackColor = getLibraryColor("mc_track")
         selectedPresetName = name
-        updatePresetSelectionUI(name, themeColor)
+        updatePresetSelectionUI(name, trackColor)
 
         val bundlePreset = Bundle().apply { putString("PRESET", name) }
         mediaController?.sendCustomCommand(
@@ -206,6 +205,9 @@ class EqualizerActivity : AppCompatActivity() {
 
     private fun updatePresetSelectionUI(selected: String?, themeColor: Int) {
         val containerBg = getLibraryColor("colorSurfaceContainerHigh")
+        val trackColor = getLibraryColor("mc_track")
+        val trackCsl = ColorStateList.valueOf(trackColor)
+        val whiteCsl = ColorStateList.valueOf(Color.WHITE)
 
         binding.cardCustom.setCardBackgroundColor(containerBg)
         binding.cardPop.setCardBackgroundColor(containerBg)
@@ -223,47 +225,55 @@ class EqualizerActivity : AppCompatActivity() {
         binding.textDance.setTextColor(Color.GRAY)
         binding.textFlat.setTextColor(Color.GRAY)
 
+        binding.icCustom.imageTintList = trackCsl
+        binding.icPop.imageTintList = trackCsl
+        binding.icRock.imageTintList = trackCsl
+        binding.icJazz.imageTintList = trackCsl
+        binding.icClassical.imageTintList = trackCsl
+        binding.icDance.imageTintList = trackCsl
+        binding.icFlat.imageTintList = trackCsl
+
         when (selected) {
             "Custom" -> {
-                binding.cardCustom.setCardBackgroundColor(themeColor); binding.textCustom.setTextColor(
-                    Color.WHITE
-                )
+                binding.cardCustom.setCardBackgroundColor(themeColor)
+                binding.textCustom.setTextColor(Color.WHITE)
+                binding.icCustom.imageTintList = whiteCsl
             }
 
             "Pop" -> {
-                binding.cardPop.setCardBackgroundColor(themeColor); binding.textPop.setTextColor(
-                    Color.WHITE
-                )
+                binding.cardPop.setCardBackgroundColor(themeColor)
+                binding.textPop.setTextColor(Color.WHITE)
+                binding.icPop.imageTintList = whiteCsl
             }
 
             "Rock" -> {
-                binding.cardRock.setCardBackgroundColor(themeColor); binding.textRock.setTextColor(
-                    Color.WHITE
-                )
+                binding.cardRock.setCardBackgroundColor(themeColor)
+                binding.textRock.setTextColor(Color.WHITE)
+                binding.icRock.imageTintList = whiteCsl
             }
 
             "Jazz" -> {
-                binding.cardJazz.setCardBackgroundColor(themeColor); binding.textJazz.setTextColor(
-                    Color.WHITE
-                )
+                binding.cardJazz.setCardBackgroundColor(themeColor)
+                binding.textJazz.setTextColor(Color.WHITE)
+                binding.icJazz.imageTintList = whiteCsl
             }
 
             "Classical" -> {
-                binding.cardClassical.setCardBackgroundColor(themeColor); binding.textClassical.setTextColor(
-                    Color.WHITE
-                )
+                binding.cardClassical.setCardBackgroundColor(themeColor)
+                binding.textClassical.setTextColor(Color.WHITE)
+                binding.icClassical.imageTintList = whiteCsl
             }
 
             "Dance" -> {
-                binding.cardDance.setCardBackgroundColor(themeColor); binding.textDance.setTextColor(
-                    Color.WHITE
-                )
+                binding.cardDance.setCardBackgroundColor(themeColor)
+                binding.textDance.setTextColor(Color.WHITE)
+                binding.icDance.imageTintList = whiteCsl
             }
 
             "Flat" -> {
-                binding.cardFlat.setCardBackgroundColor(themeColor); binding.textFlat.setTextColor(
-                    Color.WHITE
-                )
+                binding.cardFlat.setCardBackgroundColor(themeColor)
+                binding.textFlat.setTextColor(Color.WHITE)
+                binding.icFlat.imageTintList = whiteCsl
             }
         }
     }
@@ -298,9 +308,7 @@ class EqualizerActivity : AppCompatActivity() {
 
                     if (fromUser) {
                         selectedPresetName = "Custom"
-                        updatePresetSelectionUI(
-                            "Custom", nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY
-                        )
+                        updatePresetSelectionUI("Custom", getLibraryColor("mc_track"))
                         val bundlePreset = Bundle().apply { putString("PRESET", "Custom") }
                         mediaController?.sendCustomCommand(
                             SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY),

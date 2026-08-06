@@ -71,7 +71,9 @@ class MusicAdapter(
 
         if ((currentFile.path == playingPath) && isPlaying) {
             holder.binding.wave.visible()
-            holder.binding.songName.setTextColor(context.getLibraryColor("mc_track"))
+            val trackColor = context.getLibraryColor("mc_track")
+            holder.binding.wave.startColor = trackColor
+            holder.binding.songName.setTextColor(trackColor)
         } else {
             holder.binding.wave.gone()
             holder.binding.songName.setTextColor(context.getLibraryColor("colorError"))

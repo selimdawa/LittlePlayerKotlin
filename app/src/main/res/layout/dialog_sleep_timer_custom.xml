@@ -64,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="@string/ok"
-                android:textColor="?attr/colorError"
+                android:textColor="?attr/colorOnBackground"
                 app:backgroundTint="?attr/colorError"
                 app:cornerRadius="12dp" />
 

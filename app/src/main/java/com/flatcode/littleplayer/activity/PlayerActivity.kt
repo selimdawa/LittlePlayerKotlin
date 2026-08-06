@@ -13,34 +13,35 @@ import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.SeekBar
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import androidx.palette.graphics.Palette
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
+import com.flatcode.littleplayer.fragment.SleepTimerBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
-import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
+import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.utils.togglePlayPause
-import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
@@ -119,6 +120,20 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE) 4 else 1
     }
 
+    private fun setSleepTimer(minutes: Int) {
+        if (mediaController == null) {
+            binding.root.snackbar(getString(R.string.music_service_not_connected))
+            return
+        }
+        mediaController?.let { controller ->
+            val bundle = Bundle().apply { putInt("MINUTES", minutes) }
+            controller.sendCustomCommand(
+                SessionCommand(MusicService.COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY), bundle
+            )
+            binding.root.snackbar(getString(R.string.timer_set_format, minutes))
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setupListeners() {
         binding.back.setOnClickListener { supportFinishAfterTransition() }
@@ -131,6 +146,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
         binding.whiteColor.setOnClickListener {
             nowPlayerViewModel.setThemeColorMode(DATA.MODE_WHITE)
+        }
+
+        binding.sleepTimer.setOnClickListener {
+            SleepTimerBottomSheet { minutes, _ ->
+                setSleepTimer(minutes)
+            }.show(supportFragmentManager, "SleepTimer")
         }
 
         binding.seekBar.setOnSeekBarChangeListener(
@@ -159,12 +180,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.repeat.setOnClickListener {
             mediaController?.let { controller ->
                 when {
-                    !controller.shuffleModeEnabled && controller.repeatMode != Player.REPEAT_MODE_ONE -> {
+                    (!controller.shuffleModeEnabled) && (controller.repeatMode != Player.REPEAT_MODE_ONE) -> {
                         controller.repeatMode = Player.REPEAT_MODE_ONE
                         controller.shuffleModeEnabled = false
                     }
 
-                    !controller.shuffleModeEnabled && controller.repeatMode == Player.REPEAT_MODE_ONE -> {
+                    (!controller.shuffleModeEnabled) && (controller.repeatMode == Player.REPEAT_MODE_ONE) -> {
                         controller.repeatMode = Player.REPEAT_MODE_ALL
                         controller.shuffleModeEnabled = true
                     }
@@ -190,7 +211,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 if (event.action == MotionEvent.ACTION_UP) {
                     v.performClick()
                 }
-                v.onTouchEvent(event)
+                false
             }
         }
     }
@@ -208,8 +229,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
             song?.let {
-                binding.songName.text = it.title
-                binding.songArtist.text = it.artist
                 updateSongUI(it)
                 lifecycleScope.launch {
                     delay(300.milliseconds)
@@ -229,7 +248,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updateSongUI(song: MusicFiles) {
-        binding.durationTotal.text = song.durationDuration.formatAsTime()
+        animateTextChange(binding.songName, song.title ?: DATA.UNKNOWN)
+        animateTextChange(binding.songArtist, song.artist ?: DATA.UNKNOWN)
+        animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
+
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
@@ -242,7 +264,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                         Palette.from(it).generate { palette ->
                             currentDominantColor = palette?.getVibrantColor(Color.GRAY)
                                 ?: palette?.getLightVibrantColor(
-                                    Color.GRAY
+                                    Color.GRAY,
                                 ) ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
 
                             binding.paletteColor.setCardBackgroundColor(currentDominantColor)
@@ -255,6 +277,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     }
                 }.build()
         imageLoader.enqueue(request)
+    }
+
+    private fun animateTextChange(textView: TextView, newText: String) {
+        if (textView.text == newText) return
+        textView.animate().alpha(0f).setDuration(150).withEndAction {
+            textView.text = newText
+            textView.animate().alpha(1f).setDuration(150).start()
+        }.start()
     }
 
     private fun loadWaveform(songId: String, path: String) {
@@ -295,7 +325,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun getIntentMethod() {
         val position = intent.getIntExtra(DATA.POSITION, -1)
 
-        if (position != -1 && !isIntentProcessed) {
+        if ((position != -1) && (!isIntentProcessed)) {
             binding.playPause.setImageResource(R.drawable.ic_pause)
             viewModel.updatePositionAndSong(position)
         }
@@ -323,7 +353,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun nextBtn(animate: Boolean = true) {
         if (animate) {
-            animateSkip(true)
+            animateSkip(toNext = true)
             return
         }
         mediaController?.let { controller ->
@@ -335,8 +365,18 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun animateSkip(toNext: Boolean) {
-        if (isAnimating) return
+        if (isAnimating || (mediaController == null)) return
         isAnimating = true
+
+        val controller = mediaController!!
+        val nextIndex = if (toNext) {
+            if (controller.hasNextMediaItem()) controller.nextMediaItemIndex else 0
+        } else {
+            if (controller.hasPreviousMediaItem()) controller.previousMediaItemIndex else controller.mediaItemCount - 1
+        }
+
+        val nextSong = if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
+
         val width = binding.card.width.toFloat()
         val outX = if (toNext) -width else width
         val inX = if (toNext) width else -width
@@ -344,25 +384,65 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.card.animate()
             .translationX(outX)
             .alpha(0f)
-            .setDuration(150)
+            .setDuration(200)
             .setInterpolator(AccelerateInterpolator())
             .withEndAction {
-                if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
-                binding.card.translationX = inX
-                binding.card.animate()
-                    .translationX(0f)
-                    .alpha(1f)
-                    .setDuration(150)
-                    .setInterpolator(DecelerateInterpolator())
-                    .withEndAction { isAnimating = false }
-                    .start()
+                if (nextSong != null) {
+                    val request = ImageRequest.Builder(this)
+                        .data(nextSong.cachedImagePath ?: nextSong.path)
+                        .allowHardware(enable = false)
+                        .target { result ->
+                            val bitmap = (result as? BitmapDrawable)?.bitmap
+                            if (bitmap != null) {
+                                Palette.from(bitmap).generate { palette ->
+                                    currentDominantColor = palette?.getVibrantColor(Color.GRAY)
+                                        ?: palette?.getLightVibrantColor(Color.GRAY)
+                                        ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+
+                                    // Perform actual skip
+                                    if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
+
+                                    binding.card.translationX = inX
+                                    binding.card.animate()
+                                        .translationX(0f)
+                                        .alpha(1f)
+                                        .setDuration(200)
+                                        .setInterpolator(DecelerateInterpolator())
+                                        .withEndAction { isAnimating = false }
+                                        .start()
+                                }
+                            } else {
+                                performSkipAndSlideIn(toNext, inX)
+                            }
+                        }
+                        .build()
+                    imageLoader.enqueue(request)
+                } else {
+                    performSkipAndSlideIn(toNext, inX)
+                }
             }
+            .start()
+    }
+
+    private fun performSkipAndSlideIn(toNext: Boolean, inX: Float) {
+        if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
+        binding.card.translationX = inX
+        binding.card.animate()
+            .translationX(0f)
+            .alpha(1f)
+            .setDuration(200)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction { isAnimating = false }
             .start()
     }
 
     private inner class SwipeGestureListener : GestureDetector.SimpleOnGestureListener() {
         private val swipeThreshold = 100
         private val swipeVelocityThreshold = 100
+
+        override fun onDown(e: MotionEvent): Boolean {
+            return true
+        }
 
         override fun onFling(
             e1: MotionEvent?,
@@ -374,7 +454,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             val diffX = e2.x - e1.x
             val diffY = e2.y - e1.y
             if (abs(diffX) > abs(diffY)) {
-                if (abs(diffX) > swipeThreshold && abs(velocityX) > swipeVelocityThreshold) {
+                if ((abs(diffX) > swipeThreshold) && (abs(velocityX) > swipeVelocityThreshold)) {
                     if (diffX > 0) {
                         prevBtn()
                     } else {
@@ -403,7 +483,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     val duration = controller.duration
 
                     if (duration > 0) {
-                        if (binding.seekBar.max != duration.toInt() / 1000) {
+                        if (binding.seekBar.max != (duration.toInt() / 1000)) {
                             binding.seekBar.max = duration.toInt() / 1000
                         }
 
@@ -443,7 +523,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         mediaController?.let { controller ->
             val intentPosition = intent.getIntExtra(DATA.POSITION, -1)
 
-            if (intentPosition != -1 && !isIntentProcessed) {
+            if ((intentPosition != -1) && (!isIntentProcessed)) {
                 isIntentProcessed = true
                 intent.removeExtra(DATA.POSITION)
                 if (viewModel.listSongs.isNotEmpty()) {
@@ -592,7 +672,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     override fun onEvents(player: Player, events: Player.Events) {
         if (events.containsAny(
-                Player.EVENT_REPEAT_MODE_CHANGED, Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED
+                Player.EVENT_REPEAT_MODE_CHANGED,
+                Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
             )
         ) {
             updateRepeatShuffleIcons(player)

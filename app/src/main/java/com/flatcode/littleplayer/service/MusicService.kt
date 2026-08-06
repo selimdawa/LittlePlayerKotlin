@@ -6,8 +6,10 @@ import android.media.audiofx.Equalizer
 import android.media.audiofx.Virtualizer
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.widget.Toast
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -35,6 +37,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -73,6 +77,7 @@ class MusicService : MediaSessionService(), Player.Listener {
     private val songIdKey = stringPreferencesKey(DATA.SONG_ID)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
+    private val showSongToastKey = booleanPreferencesKey(DATA.SHOW_SONG_TOAST)
 
     private val customCommandFavorite = SessionCommand(COMMAND_FAVORITE, Bundle.EMPTY)
     private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
@@ -266,6 +271,19 @@ class MusicService : MediaSessionService(), Player.Listener {
             if (currentId != null) {
                 serviceScope.launch {
                     repository.incrementPlayCount(currentId)
+                }
+            }
+
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+                mediaItem?.mediaMetadata?.title?.let { title ->
+                    serviceScope.launch {
+                        val showToast = dataStore.data.map { preferences ->
+                            preferences[showSongToastKey] ?: false
+                        }.first()
+                        if (showToast) {
+                            Toast.makeText(this@MusicService, title, Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
         }
