@@ -22,7 +22,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     fun loadSongs(playlistName: String) {
         viewModelScope.launch {
             repository.getSongsFromPlaylist(playlistName).collect { entities ->
-                _songs.value = entities.map {
+                _songs.value = entities.filter { it.songId.isNotEmpty() }.map {
                     MusicFiles(
                         id = it.songId,
                         title = it.title,

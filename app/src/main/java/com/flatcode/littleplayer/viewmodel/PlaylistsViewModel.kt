@@ -43,7 +43,8 @@ class PlaylistsViewModel @Inject constructor(
                 if (names.isEmpty()) flowOf(emptyList())
                 else combine(names.map { name ->
                     repository.getSongsFromPlaylist(name).map { songs ->
-                        Playlist(name, songs.size, songs.firstOrNull()?.path)
+                        val realSongs = songs.filter { it.songId.isNotEmpty() }
+                        Playlist(name, realSongs.size, realSongs.firstOrNull()?.path)
                     }
                 }) { it.toList() }
             }.collect {
@@ -68,9 +69,15 @@ class PlaylistsViewModel @Inject constructor(
 
     fun createPlaylist(name: String) {
         viewModelScope.launch {
-            // Room will handle distinct names via the @Insert REPLACE or just adding one item
-            // Here we just insert a dummy or a first song if needed, but usually we just want the name to exist.
-            // For now, let's keep it simple.
+            repository.insertToPlaylist(
+                PlaylistEntity(
+                    playlistName = name,
+                    songId = "",
+                    title = "",
+                    artist = "",
+                    path = ""
+                )
+            )
         }
     }
 }

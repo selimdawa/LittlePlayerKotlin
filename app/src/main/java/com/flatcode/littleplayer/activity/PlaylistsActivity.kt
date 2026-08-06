@@ -13,6 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.PlaylistAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlaylistsBinding
+import com.flatcode.littleplayer.databinding.DialogCustomInputBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -45,27 +46,28 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun showCreatePlaylistDialog() {
-        val container = FrameLayout(this)
-        val params = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.setMargins(48, 24, 48, 24)
-        val editText = EditText(this)
-        editText.layoutParams = params
-        editText.hint = getString(R.string.playlist_name)
-        container.addView(editText)
+        val dialogBinding = DialogCustomInputBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .create()
 
-        AlertDialog.Builder(this)
-            .setTitle(R.string.new_playlist)
-            .setView(container)
-            .setPositiveButton(R.string.create) { _, _ ->
-                val name = editText.text.toString()
-                if (name.isNotEmpty()) {
-                    viewModel.createPlaylist(name)
-                }
+        dialogBinding.dialogTitle.text = getString(R.string.new_playlist)
+        dialogBinding.editText.hint = getString(R.string.playlist_name)
+
+        dialogBinding.btnCreate.setOnClickListener {
+            val name = dialogBinding.editText.text.toString()
+            if (name.isNotEmpty()) {
+                viewModel.createPlaylist(name)
+                alertDialog.dismiss()
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        }
+
+        dialogBinding.btnCancel.setOnClickListener {
+            alertDialog.dismiss()
+        }
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        alertDialog.show()
     }
 
     private fun observeViewModel() {

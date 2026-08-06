@@ -77,8 +77,6 @@ class PlaylistSelectionBottomSheet(
         dialog.setCanceledOnTouchOutside(false)
     }
 
-    override fun getTheme(): Int = R.style.CustomBottomSheetDialog
-
     override fun onStart() {
         super.onStart()
         dialog?.window?.apply {
