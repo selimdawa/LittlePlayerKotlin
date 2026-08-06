@@ -16,7 +16,7 @@ import com.flatcode.littleplayer.data.entity.SongEntity
 
 @Database(
     entities = [SongEntity::class, AlbumImageEntity::class, FavoriteEntity::class, PlaylistEntity::class, RecentEntity::class, CurrentQueueEntity::class, EqualizerEntity::class, PlaybackStateEntity::class],
-    version = 15,
+    version = 17,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

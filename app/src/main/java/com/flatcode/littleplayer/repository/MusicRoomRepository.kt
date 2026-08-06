@@ -106,14 +106,6 @@ class MusicRoomRepository @Inject constructor(
         songDao.updateWaveform(songId, waveform)
     }
 
-    suspend fun updateLyrics(songId: String, lyrics: String) = withContext(Dispatchers.IO) {
-        songDao.updateLyrics(songId, lyrics)
-    }
-
-    suspend fun updateSongColor(songId: String, color: Int) = withContext(Dispatchers.IO) {
-        songDao.updateSongColor(songId, color)
-    }
-
     suspend fun getSongById(songId: String): SongEntity? = withContext(Dispatchers.IO) {
         songDao.getSongById(songId)
     }

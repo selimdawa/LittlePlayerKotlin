@@ -228,12 +228,6 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }
 
-    fun updateSongColor(songId: String, color: Int) {
-        viewModelScope.launch {
-            repository.updateSongColor(songId, color)
-        }
-    }
-
     fun getSongUri(songId: String): Uri = repository.getSongUri(songId)
 }
 

@@ -12,13 +12,12 @@ import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
-import com.flatcode.littleplayer.utils.SongArtMapper
 import dagger.hilt.android.HiltAndroidApp
 import io.selimdawa.multicolors.MultiColorManager
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -30,7 +29,7 @@ class Application : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
 
-        MainScope().launch {
+        runBlocking {
             val darkModeKey = intPreferencesKey("dark_mode_preference")
             val mode =
                 dataStore.data.map { it[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM }
@@ -56,8 +55,6 @@ class Application : Application(), ImageLoaderFactory {
         }.diskCache {
             DiskCache.Builder().directory(cacheDir.resolve("image_cache"))
                 .maxSizeBytes(50L * 1024 * 1024).build()
-        }.components {
-            add(SongArtMapper())
         }.crossfade(true).build()
     }
 

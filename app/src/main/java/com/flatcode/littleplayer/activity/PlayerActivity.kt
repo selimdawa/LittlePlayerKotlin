@@ -262,8 +262,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         animateTextChange(binding.songArtist, song.artist ?: DATA.UNKNOWN)
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
-        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath, song.color)
-        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath, song.color)
+        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
+        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
         val request =
             ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path)

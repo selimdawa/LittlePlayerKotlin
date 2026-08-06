@@ -145,7 +145,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
             song?.let {
-                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath, it.color)
+                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
                 binding.name.text = it.safeTitle
                 binding.artist.text = it.safeArtist
             }
@@ -171,7 +171,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         val tick = requireContext().getLibraryColor("mc_tick")
 
         fun applyTo(view: View) {
-            val background = view.background.mutate()
+            val background = view.background?.mutate() ?: return
             val gradient = when (background) {
                 is GradientDrawable -> background
                 is LayerDrawable -> background.getDrawable(0) as? GradientDrawable

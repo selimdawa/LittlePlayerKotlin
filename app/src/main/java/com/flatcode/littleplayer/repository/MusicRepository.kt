@@ -19,7 +19,6 @@ import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
-import com.flatcode.littleplayer.utils.generateRandomColor
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -93,11 +92,9 @@ class MusicRepository @Inject constructor(
                     waveform = dbSong.waveform,
                     playCount = dbSong.playCount,
                     cachedImagePath = imageMap[cleanedAlbum]?.imagePath,
-                    lyrics = dbSong.lyrics,
                     dateAdded = dbSong.dateAdded,
                     size = dbSong.size,
-                    year = dbSong.year,
-                    color = dbSong.color
+                    year = dbSong.year
                 )
             }
         }
@@ -136,11 +133,9 @@ class MusicRepository @Inject constructor(
                                 waveform = dbSong.waveform,
                                 playCount = dbSong.playCount,
                                 cachedImagePath = cachedImages[cleanedAlbum]?.imagePath,
-                                lyrics = dbSong.lyrics,
                                 dateAdded = dbSong.dateAdded,
                                 size = dbSong.size,
-                                year = dbSong.year,
-                                color = dbSong.color
+                                year = dbSong.year
                             )
                         )
                     }
@@ -379,14 +374,14 @@ class MusicRepository @Inject constructor(
         }
     }
 
-    suspend fun cacheAlbumArt(song: MusicFiles): Boolean = withContext(Dispatchers.IO) {
+    suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {
         val albumName = song.album ?: DATA.UNKNOWN
-        if (albumName == DATA.UNKNOWN) return@withContext false
+        if (albumName == DATA.UNKNOWN) return@withContext
 
         val existing = albumImageDao.getAlbumImageByName(albumName)
-        if ((existing != null) && File(existing.imagePath).exists()) return@withContext true
+        if ((existing != null) && File(existing.imagePath).exists()) return@withContext
 
-        val artBytes = getAlbumArtBytes(song.path) ?: return@withContext false
+        val artBytes = getAlbumArtBytes(song.path) ?: return@withContext
 
         val folder = File(context.filesDir, "album_art")
         if (!folder.exists()) folder.mkdirs()
@@ -399,10 +394,8 @@ class MusicRepository @Inject constructor(
                 out.write(artBytes)
             }
             albumImageDao.insertAlbumImage(AlbumImageEntity(albumName, file.absolutePath))
-            return@withContext true
         } catch (e: Exception) {
             e.printStackTrace()
-            return@withContext false
         }
     }
 
@@ -410,30 +403,11 @@ class MusicRepository @Inject constructor(
         val processedAlbums = mutableSetOf<String>()
         songs.forEach { song ->
             val album = song.album ?: DATA.UNKNOWN
-            val hasArtInfo = (song.albumId != null && song.albumId != "-1" && song.albumId != "0")
-            
             if (album != DATA.UNKNOWN && !processedAlbums.contains(album)) {
-                val hasEmbeddedArt = cacheAlbumArt(song)
-                
-                if (!hasEmbeddedArt && !hasArtInfo && song.color == null) {
-                    val color = generateRandomColor()
-                    song.id?.let { updateSongColor(it, color) }
-                }
-                
+                cacheAlbumArt(song)
                 processedAlbums.add(album)
-            } else if (album == DATA.UNKNOWN && !hasArtInfo && song.color == null) {
-                // For songs without album name, check embedded art individually
-                val artBytes = getAlbumArtBytes(song.path)
-                if (artBytes == null) {
-                    val color = generateRandomColor()
-                    song.id?.let { updateSongColor(it, color) }
-                }
             }
         }
-    }
-
-    suspend fun updateSongColor(songId: String, color: Int) = withContext(Dispatchers.IO) {
-        songDao.updateSongColor(songId, color)
     }
 
 
@@ -462,9 +436,7 @@ class MusicRepository @Inject constructor(
                         duration = song.duration,
                         path = song.path,
                         cachedImagePath = song.cachedImagePath,
-                        lyrics = song.lyrics,
-                        orderIndex = index,
-                        color = song.color
+                        orderIndex = index
                     )
                 }
                 musicDao.insertQueue(entities)
@@ -482,9 +454,7 @@ class MusicRepository @Inject constructor(
                 albumId = it.albumId,
                 duration = it.duration,
                 path = it.path,
-                cachedImagePath = it.cachedImagePath,
-                lyrics = it.lyrics,
-                color = it.color
+                cachedImagePath = it.cachedImagePath
             )
         }
     }

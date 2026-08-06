@@ -44,7 +44,6 @@ class NowPlayerViewModel @Inject constructor(
     private val songIdKey = stringPreferencesKey(DATA.SONG_ID)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
-    private val songColorKey = intPreferencesKey(DATA.SONG_COLOR)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
     private val bottomPlayerThemeKey = androidx.datastore.preferences.core.booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
     private val themeExtractedColorKey = intPreferencesKey(DATA.THEME_EXTRACTED_COLOR)
@@ -85,8 +84,7 @@ class NowPlayerViewModel @Inject constructor(
                             title = preferences[songNameKey] ?: DATA.UNKNOWN,
                             id = preferences[songIdKey],
                             albumId = preferences[albumIdKey],
-                            cachedImagePath = preferences[cachedImagePathKey],
-                            color = preferences[songColorKey]
+                            cachedImagePath = preferences[cachedImagePathKey]
                         )
                     }
                 }
@@ -140,7 +138,6 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[songIdKey] = song.id ?: ""
                 preferences[albumIdKey] = song.albumId ?: ""
                 preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
-                song.color?.let { preferences[songColorKey] = it }
             }
         }
     }

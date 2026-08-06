@@ -45,7 +45,7 @@ class PlayerViewModel @Inject constructor(
                     val state = musicRepository.getPlaybackStateSync()
                     val savedSongId = state?.currentSongId
                     lastProgress = state?.lastProgress ?: 0L
-                    
+
                     if (savedSongId != null) {
                         val index = it.indexOfFirst { s -> s.id == savedSongId }
                         if (index != -1) {
@@ -94,12 +94,10 @@ class PlayerViewModel @Inject constructor(
                             title = preferences[stringPreferencesKey(DATA.SONG_NAME)],
                             id = preferences[stringPreferencesKey(DATA.SONG_ID)],
                             albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
-                            cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)],
-                            lyrics = preferences[stringPreferencesKey(DATA.LYRICS)],
-                            color = preferences[intPreferencesKey(DATA.SONG_COLOR)]
+                            cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)]
                         )
                         _currentSong.value = song
-                        
+
                         if (listSongs.isNotEmpty()) {
                             val index = listSongs.indexOfFirst { it.path == path }
                             if (index != -1) position = index
@@ -132,9 +130,7 @@ class PlayerViewModel @Inject constructor(
                         album = song.album,
                         albumId = song.albumId,
                         duration = song.duration,
-                        lyrics = song.lyrics,
-                        path = song.path ?: "",
-                        color = song.color
+                        path = song.path ?: ""
                     )
                 )
                 _isFavorite.value = false
@@ -147,9 +143,7 @@ class PlayerViewModel @Inject constructor(
                         album = song.album,
                         albumId = song.albumId,
                         duration = song.duration,
-                        lyrics = song.lyrics,
-                        path = song.path ?: "",
-                        color = song.color
+                        path = song.path ?: ""
                     )
                 )
                 _isFavorite.value = true
@@ -182,15 +176,6 @@ class PlayerViewModel @Inject constructor(
     fun updateWaveform(songId: String, waveform: String) {
         viewModelScope.launch {
             repository.updateWaveform(songId, waveform)
-        }
-    }
-
-    fun updateLyrics(songId: String, lyrics: String) {
-        viewModelScope.launch {
-            repository.updateLyrics(songId, lyrics)
-            if (_currentSong.value?.id == songId) {
-                _currentSong.value = _currentSong.value?.copy(lyrics = lyrics)
-            }
         }
     }
 }

@@ -15,8 +15,6 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollableAdapter
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
-import com.flatcode.littleplayer.utils.generateRandomColor
-import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getAppCompatActivity
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.gone
@@ -28,7 +26,6 @@ class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int, View) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit,
-    private val onColorGenerated: ((String, Int) -> Unit)? = null
 ) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable,
     FastScrollableAdapter {
 
@@ -65,21 +62,11 @@ class MusicAdapter(
         )
         holder.binding.songDetails.text = songDetailsText
 
-        var songColor = currentFile.color
-        val hasAlbumArt = (currentFile.albumId != null && currentFile.albumId != "-1" && currentFile.albumId != "0") ||
-                !currentFile.cachedImagePath.isNullOrEmpty()
-
-        if (songColor == null && !hasAlbumArt) {
-            val newColor = generateRandomColor()
-            songColor = newColor
-            currentFile.id?.let { onColorGenerated?.invoke(it, newColor) }
-        }
-
         holder.binding.image.loadSongImage(
-            currentFile.albumId, currentFile.path, currentFile.cachedImagePath, songColor
+            currentFile.albumId, currentFile.path, currentFile.cachedImagePath
         )
         holder.binding.imageBlur.loadSongImageBlur(
-            currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath, songColor
+            currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath
         )
 
         if ((currentFile.path == playingPath) && isPlaying) {

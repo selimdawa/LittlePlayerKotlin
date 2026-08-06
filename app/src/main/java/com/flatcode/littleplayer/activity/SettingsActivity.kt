@@ -3,8 +3,8 @@ package com.flatcode.littleplayer.activity
 import android.content.ComponentName
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
@@ -63,8 +63,18 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.switchNightMode.setOnClickListener {
+            val isChecked = binding.switchNightMode.isChecked
+            val mode =
+                if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            if (AppCompatDelegate.getDefaultNightMode() != mode) {
+                viewModel.setDarkMode(mode)
+                AppCompatDelegate.setDefaultNightMode(mode)
+            }
+        }
+
         binding.btnNightMode.setOnClickListener {
-            binding.root.snackbar(getString(R.string.disabled))
+            binding.switchNightMode.performClick()
         }
 
         binding.settingScanMedia.setOnClickListener {
@@ -88,13 +98,14 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.settingPrivacy.setOnClickListener { showPrivacyDialog() }
         binding.settingAbout.setOnClickListener { showAboutDialog() }
+        binding.settingTest.setOnClickListener {
+            launchActivity<TestActivity>()
+        }
     }
 
     private fun showPrivacyDialog() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.privacy_policy_title)
-            .setMessage(R.string.privacy_policy_content)
-            .show()
+        MaterialAlertDialogBuilder(this).setTitle(R.string.privacy_policy_title)
+            .setMessage(R.string.privacy_policy_content).show()
     }
 
     private fun showAboutDialog() {
@@ -108,9 +119,7 @@ class SettingsActivity : AppCompatActivity() {
             aboutBinding.tvVersion.text = getString(R.string.version_format, "1.0.0")
         }
 
-        MaterialAlertDialogBuilder(this)
-            .setView(aboutBinding.root)
-            .show()
+        MaterialAlertDialogBuilder(this).setView(aboutBinding.root).show()
     }
 
     private fun showSleepTimerDialog() {
@@ -135,6 +144,10 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
+        viewModel.darkModeFlow.collectWithLifecycle(this) { mode ->
+            binding.switchNightMode.isChecked = mode == AppCompatDelegate.MODE_NIGHT_YES
+        }
+
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
         }
