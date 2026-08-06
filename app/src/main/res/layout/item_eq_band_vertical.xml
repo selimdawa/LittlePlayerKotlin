@@ -14,10 +14,16 @@
         <SeekBar
             android:id="@+id/sbBandLevel"
             android:layout_width="200dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_gravity="center"
+            android:maxHeight="8dp"
+            android:minHeight="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:progressTint="?attr/mc_track"
             android:rotation="-90"
+            android:splitTrack="false"
+            android:thumb="@drawable/seekbar_thumb_large"
             android:thumbTint="?attr/mc_track" />
 
     </FrameLayout>

@@ -213,6 +213,7 @@
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
                                 app:tint="?attr/mc_track" />
+
                         </com.google.android.material.card.MaterialCardView>
 
                         <TextView
@@ -252,6 +253,7 @@
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
                                 app:tint="?attr/mc_track" />
+
                         </com.google.android.material.card.MaterialCardView>
 
                         <TextView
@@ -291,6 +293,7 @@
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
                                 app:tint="?attr/mc_track" />
+
                         </com.google.android.material.card.MaterialCardView>
 
                         <TextView
@@ -330,6 +333,7 @@
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
                                 app:tint="?attr/mc_track" />
+
                         </com.google.android.material.card.MaterialCardView>
 
                         <TextView
@@ -400,15 +404,10 @@
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
-                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                    <com.flatcode.littleplayer.utils.KnobView
                         android:id="@+id/bassKnob"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:progress="0"
-                        app:indicatorColor="?attr/mc_track"
-                        app:indicatorSize="80dp"
-                        app:trackColor="?attr/colorSurfaceContainerHigh"
-                        app:trackThickness="8dp" />
+                        android:layout_width="80dp"
+                        android:layout_height="80dp" />
 
                 </LinearLayout>
 
@@ -429,15 +428,10 @@
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
-                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                    <com.flatcode.littleplayer.utils.KnobView
                         android:id="@+id/virtualizerKnob"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:progress="0"
-                        app:indicatorColor="?attr/mc_track"
-                        app:indicatorSize="80dp"
-                        app:trackColor="?attr/colorSurfaceContainerHigh"
-                        app:trackThickness="8dp" />
+                        android:layout_width="80dp"
+                        android:layout_height="80dp" />
 
                 </LinearLayout>
 

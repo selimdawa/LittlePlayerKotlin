@@ -23,10 +23,8 @@ import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.viewmodel.EqualizerViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.math.atan2
 
 @UnstableApi
 @AndroidEntryPoint
@@ -76,24 +74,8 @@ class EqualizerActivity : AppCompatActivity() {
                 val levels =
                     it.bandLevels.split(",").map { level -> level.toShort() }.toShortArray()
                 setupBands(levels)
-                updatePresetSelectionUI(
-                    selectedPresetName, nowPlayerViewModel.currentThemeColor.value ?: Color.GRAY
-                )
+                updatePresetSelectionUI(selectedPresetName, getLibraryColor("mc_track"))
             }
-        }
-
-        nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { _ ->
-            val trackColor = getLibraryColor("mc_track")
-            val csl = ColorStateList.valueOf(trackColor)
-            binding.switchEq.thumbTintList = csl
-            binding.bassKnob.setIndicatorColor(trackColor)
-            binding.virtualizerKnob.setIndicatorColor(trackColor)
-
-            bandSeekBars.forEach { sb ->
-                sb.progressTintList = csl
-                sb.thumbTintList = csl
-            }
-            updatePresetSelectionUI(selectedPresetName, trackColor)
         }
     }
 
@@ -124,18 +106,39 @@ class EqualizerActivity : AppCompatActivity() {
             )
         }
 
-        binding.bassKnob.setOnTouchListener { v, event ->
-            handleKnobTouch(v as CircularProgressIndicator, event) { progress ->
-                sendBassStrength(progress * 10)
+        val trackColor = getLibraryColor("mc_track")
+        val containerBg = getLibraryColor("colorSurfaceContainerHigh")
+
+        binding.bassKnob.apply {
+            this.trackColor = containerBg
+            this.progressColor = trackColor
+            this.knobColor = Color.WHITE
+            this.indicatorColor = trackColor
+            onProgressChanged = { progress, fromUser ->
+                if (fromUser) {
+                    sendBassStrength(progress * 10)
+                    mediaController?.sendCustomCommand(
+                        SessionCommand(MusicService.COMMAND_SAVE_EQ_SETTINGS, Bundle.EMPTY),
+                        Bundle.EMPTY
+                    )
+                }
             }
-            true
         }
 
-        binding.virtualizerKnob.setOnTouchListener { v, event ->
-            handleKnobTouch(v as CircularProgressIndicator, event) { progress ->
-                sendVirtualizerStrength(progress * 10)
+        binding.virtualizerKnob.apply {
+            this.trackColor = containerBg
+            this.progressColor = trackColor
+            this.knobColor = Color.WHITE
+            this.indicatorColor = trackColor
+            onProgressChanged = { progress, fromUser ->
+                if (fromUser) {
+                    sendVirtualizerStrength(progress * 10)
+                    mediaController?.sendCustomCommand(
+                        SessionCommand(MusicService.COMMAND_SAVE_EQ_SETTINGS, Bundle.EMPTY),
+                        Bundle.EMPTY
+                    )
+                }
             }
-            true
         }
 
         binding.btnPresetCustom.setOnClickListener { selectPreset("Custom") }
@@ -145,22 +148,6 @@ class EqualizerActivity : AppCompatActivity() {
         binding.btnPresetClassical.setOnClickListener { selectPreset("Classical") }
         binding.btnPresetDance.setOnClickListener { selectPreset("Dance") }
         binding.btnPresetFlat.setOnClickListener { selectPreset("Flat") }
-    }
-
-    private fun handleKnobTouch(
-        knob: CircularProgressIndicator, event: MotionEvent, onProgressChanged: (Int) -> Unit
-    ) {
-        val x = event.x - (knob.width / 2)
-        val y = (knob.height / 2) - event.y
-        val angle = Math.toDegrees(atan2(x.toDouble(), y.toDouble())).toFloat()
-
-        val normalizedAngle = if (angle < 0) angle + 360 else angle
-        val progress = (normalizedAngle / 3.6f).toInt().coerceIn(0, 100)
-
-        knob.progress = progress
-        if (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_UP) {
-            onProgressChanged(progress)
-        }
     }
 
     private fun sendBassStrength(strength: Int) {
@@ -201,6 +188,9 @@ class EqualizerActivity : AppCompatActivity() {
                 )
             }
         }
+        mediaController?.sendCustomCommand(
+            SessionCommand(MusicService.COMMAND_SAVE_EQ_SETTINGS, Bundle.EMPTY), Bundle.EMPTY
+        )
     }
 
     private fun updatePresetSelectionUI(selected: String?, themeColor: Int) {
@@ -278,6 +268,7 @@ class EqualizerActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupBands(initialLevels: ShortArray? = null) {
         binding.eqContainer.removeAllViews()
         bandSeekBars.clear()
@@ -300,13 +291,42 @@ class EqualizerActivity : AppCompatActivity() {
 
             bandSeekBars.add(seekBar)
 
+            seekBar.setOnTouchListener { v, event ->
+                if (event.action == MotionEvent.ACTION_DOWN) {
+                    v.parent.requestDisallowInterceptTouchEvent(true)
+                }
+                if (event.action == MotionEvent.ACTION_UP) {
+                    v.performClick()
+                }
+                false
+            }
+
             seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                var lastSentLevel: Int = -1
+
                 override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
                     val dbLevel = (progress - 1500) / 100
                     tvLevel.text =
                         getString(R.string.db_format, if (dbLevel > 0) "+" else "", dbLevel)
 
                     if (fromUser) {
+                        val currentLevel = progress - 1500
+                        if (kotlin.math.abs(currentLevel - lastSentLevel) > 10) {
+                            lastSentLevel = currentLevel
+                            val bundle = Bundle().apply {
+                                putShort("BAND", i.toShort())
+                                putShort("LEVEL", currentLevel.toShort())
+                            }
+                            mediaController?.sendCustomCommand(
+                                SessionCommand(MusicService.COMMAND_SET_EQ_BAND, Bundle.EMPTY),
+                                bundle
+                            )
+                        }
+                    }
+                }
+
+                override fun onStartTrackingTouch(sb: SeekBar?) {
+                    if (selectedPresetName != "Custom") {
                         selectedPresetName = "Custom"
                         updatePresetSelectionUI("Custom", getLibraryColor("mc_track"))
                         val bundlePreset = Bundle().apply { putString("PRESET", "Custom") }
@@ -314,19 +334,25 @@ class EqualizerActivity : AppCompatActivity() {
                             SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY),
                             bundlePreset
                         )
-                        val level = (progress - 1500).toShort()
+                    }
+                }
+
+                override fun onStopTrackingTouch(sb: SeekBar?) {
+                    sb?.let {
+                        val finalLevel = it.progress - 1500
                         val bundle = Bundle().apply {
                             putShort("BAND", i.toShort())
-                            putShort("LEVEL", level)
+                            putShort("LEVEL", finalLevel.toShort())
                         }
                         mediaController?.sendCustomCommand(
                             SessionCommand(MusicService.COMMAND_SET_EQ_BAND, Bundle.EMPTY), bundle
                         )
+                        mediaController?.sendCustomCommand(
+                            SessionCommand(MusicService.COMMAND_SAVE_EQ_SETTINGS, Bundle.EMPTY),
+                            Bundle.EMPTY
+                        )
                     }
                 }
-
-                override fun onStartTrackingTouch(sb: SeekBar?) {}
-                override fun onStopTrackingTouch(sb: SeekBar?) {}
             })
             binding.eqContainer.addView(bandView)
         }

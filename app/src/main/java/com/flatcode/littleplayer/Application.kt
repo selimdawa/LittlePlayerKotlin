@@ -4,16 +4,17 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.disk.DiskCache
-import coil.memory.MemoryCache
-import dagger.hilt.android.HiltAndroidApp
-import io.selimdawa.multicolors.MultiColorManager
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import com.flatcode.littleplayer.utils.SongArtMapper
+import dagger.hilt.android.HiltAndroidApp
+import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -31,7 +32,9 @@ class Application : Application(), ImageLoaderFactory {
 
         MainScope().launch {
             val darkModeKey = intPreferencesKey("dark_mode_preference")
-            val mode = dataStore.data.map { it[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM }.first()
+            val mode =
+                dataStore.data.map { it[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM }
+                    .first()
             AppCompatDelegate.setDefaultNightMode(mode)
         }
 
@@ -53,6 +56,8 @@ class Application : Application(), ImageLoaderFactory {
         }.diskCache {
             DiskCache.Builder().directory(cacheDir.resolve("image_cache"))
                 .maxSizeBytes(50L * 1024 * 1024).build()
+        }.components {
+            add(SongArtMapper())
         }.crossfade(true).build()
     }
 
