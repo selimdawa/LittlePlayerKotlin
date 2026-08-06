@@ -26,6 +26,7 @@ object DATA {
     const val LAST_POSITION = "LAST_POSITION"
     const val THEME_COLOR_MODE = "THEME_COLOR_MODE"
     const val BOTTOM_PLAYER_THEME = "BOTTOM_PLAYER_THEME"
+    const val SHOW_SONG_TOAST = "SHOW_SONG_TOAST"
 
     const val MODE_BASIC = 0
     const val MODE_PALETTE = 1

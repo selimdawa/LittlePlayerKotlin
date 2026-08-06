@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?colorOnBackground">
+
+    <include
+        android:id="@+id/customToolbar"
+        layout="@layout/toolbar_custom" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/fragBottomPlayer"
+        android:layout_below="@id/customToolbar"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_medium">
+
+            <!-- Show Song Toast Toggle -->
+            <LinearLayout
+                android:id="@+id/btnShowSongToast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_medium">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_medium"
+                    android:layout_height="@dimen/icon_size_medium"
+                    android:src="@drawable/ic_notifications"
+                    app:tint="?attr/mc_track" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_medium"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_song_toast"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="@dimen/text_size_body" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_song_toast_desc"
+                        android:textColor="@color/gray"
+                        android:textSize="@dimen/text_size_small" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchShowSongToast"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:splitTrack="false"
+                    android:thumb="@drawable/switch_thumb_custom"
+                    app:showText="false"
+                    app:switchMinWidth="48dp"
+                    app:thumbTint="?attr/mc_track"
+                    app:track="@drawable/switch_track_custom"
+                    app:trackTint="@null" />
+            </LinearLayout>
+
+            <!-- System Notification Settings -->
+            <LinearLayout
+                android:id="@+id/btnSystemNotificationSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_medium">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_medium"
+                    android:layout_height="@dimen/icon_size_medium"
+                    android:src="@drawable/ic_settings"
+                    app:tint="?attr/mc_track" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_medium"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/system_notification_settings"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="@dimen/text_size_body" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/system_notification_settings_desc"
+                        android:textColor="@color/gray"
+                        android:textSize="@dimen/text_size_small" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_20"
+                    android:layout_height="@dimen/icon_size_20"
+                    android:src="@drawable/ic_navigate_next"
+                    app:tint="@color/gray" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <include
+        android:id="@+id/fragBottomPlayer"
+        layout="@layout/layout_now_player_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+
+</RelativeLayout>
