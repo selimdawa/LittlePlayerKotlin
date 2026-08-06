@@ -4,7 +4,7 @@
     android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="45dp"
-    android:background="?colorOnBackground"
+    android:background="?attr/colorOnBackground"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="16dp"
@@ -64,6 +64,6 @@
         android:clickable="true"
         android:focusable="true"
         android:src="@drawable/ic_settings"
-        app:tint="?colorError" />
+        app:tint="?attr/colorError" />
 
 </LinearLayout>

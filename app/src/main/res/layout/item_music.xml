@@ -65,7 +65,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/song_title"
-            android:textColor="?colorError"
+            android:textColor="?attr/colorError"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -89,10 +89,10 @@
         android:layout_marginEnd="10dp"
         android:scaleY="-1"
         android:visibility="gone"
-        app:mwhCloseColor="?mc_tick"
+        app:mwhCloseColor="?attr/mc_tick"
         app:mwhProgress="100"
         app:mwhShape="Oval"
-        app:mwhStartColor="?mc_track" />
+        app:mwhStartColor="?attr/mc_track" />
 
     <ImageView
         android:id="@+id/more"

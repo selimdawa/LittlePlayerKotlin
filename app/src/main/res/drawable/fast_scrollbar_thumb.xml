@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="?mc_track" />
+    <solid android:color="?attr/mc_track" />
     <corners android:radius="4dp" />
     <size android:width="4dp" />
 </shape>

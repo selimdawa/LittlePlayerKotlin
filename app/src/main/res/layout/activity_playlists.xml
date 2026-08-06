@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?colorOnBackground">
+    android:background="?attr/colorOnBackground">
 
     <include
         android:id="@+id/customToolbar"
@@ -62,7 +62,7 @@
         android:layout_margin="24dp"
         android:contentDescription="@null"
         android:src="@drawable/ic_add"
-        app:backgroundTint="?mc_track"
+        app:backgroundTint="?attr/mc_track"
         app:elevation="8dp"
         app:tint="@color/white" />
 

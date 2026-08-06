@@ -55,7 +55,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?mc_bg"
+            android:background="?attr/mc_bg"
             android:orientation="vertical">
 
             <TextView

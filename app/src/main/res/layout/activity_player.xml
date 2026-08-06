@@ -68,7 +68,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="24dp"
-                app:cardBackgroundColor="?mc_track"
+                app:cardBackgroundColor="?attr/mc_track"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/white"
@@ -175,10 +175,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="20dp"
-                    android:progressBackgroundTint="?mc_track"
-                    android:progressTint="?mc_track"
-                    android:secondaryProgressTint="?mc_track"
-                    android:thumbTint="?mc_track" />
+                    android:progressBackgroundTint="?attr/mc_track"
+                    android:progressTint="?attr/mc_track"
+                    android:secondaryProgressTint="?attr/mc_track"
+                    android:thumbTint="?attr/mc_track" />
 
                 <RelativeLayout
                     android:id="@+id/seek_bar_layout"
@@ -296,7 +296,7 @@
                 app:wave_corner_radius="2dp"
                 app:wave_gap="2dp"
                 app:wave_gravity="center"
-                app:wave_progress_color="?mc_tick"
+                app:wave_progress_color="?attr/mc_tick"
                 app:wave_width="3dp" />
 
         </LinearLayout>

@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:background="@drawable/button6"
-                android:backgroundTint="?mc_track"
+                android:backgroundTint="?attr/mc_track"
                 android:fontFamily="sans-serif-condensed"
                 android:paddingHorizontal="30dp"
                 android:paddingVertical="5dp"

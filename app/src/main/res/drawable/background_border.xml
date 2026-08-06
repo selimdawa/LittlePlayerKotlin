@@ -4,8 +4,8 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="45"
-                android:endColor="?mc_tick"
-                android:startColor="?mc_track"
+                android:endColor="?attr/mc_tick"
+                android:startColor="?attr/mc_track"
                 android:type="linear" />
             <corners android:radius="16dp" />
         </shape>
