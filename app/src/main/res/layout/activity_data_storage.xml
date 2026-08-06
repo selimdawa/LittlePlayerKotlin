@@ -14,22 +14,21 @@
         android:layout_height="match_parent"
         android:layout_above="@id/fragBottomPlayer"
         android:layout_below="@id/customToolbar"
-        android:scrollbars="vertical"
-        android:fadeScrollbars="true"
-        android:scrollbarDefaultDelayBeforeFade="500">
+        android:scrollbars="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingVertical="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp"
+                android:paddingTop="16dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -72,12 +71,14 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="?attr/colorSurfaceVariant" />
+                android:background="?attr/colorSurfaceVariant"
+                android:paddingHorizontal="16dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
+                android:paddingHorizontal="16dp"
                 android:text="@string/live_preview"
                 android:textColor="?attr/mc_track"
                 android:textSize="14sp"
@@ -107,6 +108,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
+                android:paddingHorizontal="16dp"
                 android:text="@string/cache_and_history"
                 android:textColor="?attr/mc_track"
                 android:textSize="14sp"
@@ -115,6 +117,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="16dp"
                 android:layout_marginTop="16dp"
                 app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
                 app:cardCornerRadius="24dp"
@@ -159,6 +162,7 @@
                                 android:text="0 MB"
                                 android:textColor="@color/gray"
                                 android:textSize="14sp" />
+
                         </LinearLayout>
 
                         <ImageView
@@ -166,6 +170,7 @@
                             android:layout_height="24dp"
                             android:src="@drawable/ic_close"
                             app:tint="@color/gray" />
+
                     </LinearLayout>
 
                     <View
@@ -205,6 +210,7 @@
                                 android:text="@string/clear_recent_history_desc"
                                 android:textColor="@color/gray"
                                 android:textSize="14sp" />
+
                         </LinearLayout>
 
                         <ImageView
@@ -212,6 +218,7 @@
                             android:layout_height="24dp"
                             android:src="@drawable/ic_close"
                             app:tint="@color/gray" />
+
                     </LinearLayout>
 
                 </LinearLayout>
@@ -219,6 +226,7 @@
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
     <include

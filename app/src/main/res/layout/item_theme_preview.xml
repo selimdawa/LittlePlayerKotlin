@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingBottom="16dp">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/tvThemeLabel"
@@ -12,128 +11,143 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:layout_marginBottom="8dp"
+        android:paddingHorizontal="16dp"
         android:text="@string/basic"
-        android:textColor="?attr/mc_track"
+        android:textColor="?attr/colorError"
         android:textSize="14sp"
         android:textStyle="bold" />
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardPreview"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="@android:color/transparent"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp">
 
-        <LinearLayout
-            android:id="@+id/previewContainer"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBottomPlayer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/background_border"
-            android:orientation="vertical">
-
-            <ProgressBar
-                android:id="@+id/previewProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:max="100"
-                android:progress="60"
-                android:progressBackgroundTint="?attr/colorError"
-                android:progressTint="?attr/colorError" />
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
+                android:id="@+id/bottomPlayerContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingTop="11dp"
-                android:paddingBottom="8dp">
+                android:background="@drawable/background_border"
+                android:orientation="vertical">
 
-                <FrameLayout
-                    android:id="@+id/albumArtContainer"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/image_border">
-
-                    <com.google.android.material.imageview.ShapeableImageView
-                        android:id="@+id/albumArt"
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:layout_gravity="center"
-                        android:contentDescription="@null"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_music"
-                        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImage" />
-
-                </FrameLayout>
+                <ProgressBar
+                    android:id="@+id/miniProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressBackgroundTint="?attr/colorError"
+                    android:progressTint="?attr/colorError" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="11dp"
+                    android:paddingBottom="8dp">
 
-                    <TextView
-                        android:id="@+id/tvSongName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="@string/song_title"
-                        android:textColor="?attr/colorError"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                    <FrameLayout
+                        android:id="@+id/albumArtContainer"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/image_border">
 
-                    <TextView
-                        android:id="@+id/tvArtistName"
-                        android:layout_width="match_parent"
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/albumArt"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:scaleType="centerCrop"
+                            android:src="@color/image_profile"
+                            android:transitionName="song_image"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.CircleImage" />
+
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="@string/artist_name"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="14sp" />
+                        android:layout_marginStart="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/song_title"
+                            android:textColor="?attr/colorError"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/artist"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/artist_name"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="14sp" />
+
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/playPauseBtn"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/ic_gradient_border"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <com.flatcode.littleplayer.utils.PlayPauseView
+                            android:id="@+id/playPauseView"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="center"
+                            android:foregroundTint="?attr/colorError"
+                            android:padding="12dp" />
+
+                    </FrameLayout>
+
+                    <ImageView
+                        android:id="@+id/nextBtn"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="@string/next_song"
+                        android:focusable="true"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_skip_next"
+                        app:tint="?attr/colorError" />
 
                 </LinearLayout>
 
-                <FrameLayout
-                    android:id="@+id/previewPlayPauseBtn"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/ic_gradient_border">
-
-                    <com.flatcode.littleplayer.utils.PlayPauseView
-                        android:id="@+id/previewPlayPauseView"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center"
-                        android:padding="12dp"
-                        android:foregroundTint="?attr/colorError" />
-
-                </FrameLayout>
-
-                <ImageView
-                    android:id="@+id/previewNextBtn"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@null"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_skip_next"
-                    app:tint="?attr/colorError" />
-
             </LinearLayout>
 
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-    </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
 
 </LinearLayout>

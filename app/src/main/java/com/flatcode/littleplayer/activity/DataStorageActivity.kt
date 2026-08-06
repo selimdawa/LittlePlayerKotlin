@@ -1,7 +1,7 @@
 package com.flatcode.littleplayer.activity
 
-import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
@@ -9,7 +9,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
-import androidx.core.graphics.toColorInt
+import androidx.palette.graphics.Palette
+import coil.imageLoader
+import coil.load
+import coil.request.ImageRequest
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityDataStorageBinding
 import com.flatcode.littleplayer.databinding.ItemThemePreviewBinding
@@ -30,6 +33,7 @@ class DataStorageActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDataStorageBinding
     private val viewModel: NowPlayerViewModel by viewModels()
     private val dataViewModel: DataStorageViewModel by viewModels()
+    private var currentDominantColor: Int = Color.GRAY
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,8 +41,26 @@ class DataStorageActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         initToolbar(getString(R.string.data_storage))
+        extractPaletteColor()
         setupListeners()
         observeViewModel()
+    }
+
+    private fun extractPaletteColor() {
+        val request = ImageRequest.Builder(this).data(R.drawable.image_1).allowHardware(false)
+            .target { result ->
+                val bitmap = (result as? BitmapDrawable)?.bitmap
+                bitmap?.let {
+                    Palette.from(it).generate { palette ->
+                        currentDominantColor =
+                            palette?.getVibrantColor(Color.GRAY) ?: palette?.getLightVibrantColor(
+                                Color.GRAY
+                            ) ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+                        updatePreview(viewModel.themeColorMode.value)
+                    }
+                }
+            }.build()
+        imageLoader.enqueue(request)
     }
 
     private fun setupListeners() {
@@ -46,13 +68,13 @@ class DataStorageActivity : AppCompatActivity() {
             viewModel.setBottomPlayerThemeEnabled(isChecked)
         }
 
-        binding.itemBasic.cardPreview.setOnClickListener {
+        binding.itemBasic.root.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_BASIC)
         }
-        binding.itemPalette.cardPreview.setOnClickListener {
+        binding.itemPalette.root.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_PALETTE)
         }
-        binding.itemWhite.cardPreview.setOnClickListener {
+        binding.itemWhite.root.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_WHITE)
         }
 
@@ -70,6 +92,7 @@ class DataStorageActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.bottomPlayerThemeEnabled.collectWithLifecycle(this) { enabled ->
             binding.switchBottomPlayerTheme.isChecked = enabled
+            updatePreview(viewModel.themeColorMode.value)
         }
 
         viewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
@@ -87,64 +110,94 @@ class DataStorageActivity : AppCompatActivity() {
     }
 
     private fun updatePreview(mode: Int) {
-        // Basic
+        val imageRes = R.drawable.image_1
+
+        // Song 1: Basic (Default Gradient)
         setupThemeItem(
             binding.itemBasic,
             getString(R.string.basic),
-            intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick")),
-            mode == DATA.MODE_BASIC,
+            imageRes,
+            40,
+            DATA.MODE_BASIC,
+            null,
+            mode == DATA.MODE_BASIC
         )
 
-        // Palette
-        val paletteColor = "#8A47EB".toColorInt()
+        // Song 2: Palette (Solid Color from Image)
         setupThemeItem(
             binding.itemPalette,
             getString(R.string.palette),
-            intArrayOf(paletteColor, paletteColor),
-            mode == DATA.MODE_PALETTE,
+            imageRes,
+            60,
+            DATA.MODE_PALETTE,
+            currentDominantColor,
+            mode == DATA.MODE_PALETTE
         )
 
-        // White
+        // Song 3: White (Solid White)
         setupThemeItem(
             binding.itemWhite,
             getString(R.string.white),
-            intArrayOf(Color.WHITE, Color.WHITE),
-            mode == DATA.MODE_WHITE,
+            imageRes,
+            20,
+            DATA.MODE_WHITE,
+            Color.WHITE,
+            mode == DATA.MODE_WHITE
         )
     }
 
     private fun setupThemeItem(
         itemBinding: ItemThemePreviewBinding,
         label: String,
-        colors: IntArray,
-        isSelected: Boolean,
+        imageSource: Any?,
+        progress: Int,
+        mode: Int,
+        targetColor: Int?,
+        isSelected: Boolean
     ) {
         itemBinding.tvThemeLabel.text = label
-        itemBinding.tvThemeLabel.setTextColor(if (isSelected) getLibraryColor("mc_track") else Color.GRAY)
-        itemBinding.cardPreview.strokeWidth = if (isSelected) 4 else 0
-        itemBinding.cardPreview.strokeColor = getLibraryColor("mc_track")
 
-        val background = itemBinding.previewContainer.background.mutate()
-        when (background) {
-            is LayerDrawable -> {
-                val gradientDrawable = background.getDrawable(0) as GradientDrawable
-                gradientDrawable.colors = colors
-            }
+        itemBinding.name.text = "Blinding Lights"
+        @Suppress("SpellCheckingInspection") itemBinding.artist.text = "The Weeknd"
+        itemBinding.miniProgressBar.progress = progress
 
-            is GradientDrawable -> {
-                background.colors = colors
-            }
+        val track = getLibraryColor("mc_track")
+        val tick = getLibraryColor("mc_tick")
+
+        // 1. تلوين الحاوية الأساسية (LayerDrawable)
+        val background = itemBinding.bottomPlayerContainer.background.mutate() as? LayerDrawable
+        val bgShape = background?.getDrawable(0) as? GradientDrawable
+
+        // 2. تلوين إطار الصورة (LayerDrawable)
+        val albumArtBG =
+            (itemBinding.albumArtContainer.background.mutate() as? LayerDrawable)?.getDrawable(0) as? GradientDrawable
+
+        // 3. تلوين زر التشغيل (GradientDrawable)
+        val playBtnBG = itemBinding.playPauseBtn.background.mutate() as? GradientDrawable
+
+        val colorToApply = when (mode) {
+            DATA.MODE_PALETTE -> targetColor
+            DATA.MODE_WHITE -> Color.WHITE
+            else -> null
         }
 
-        val primaryColor = colors[0]
-        itemBinding.previewProgressBar.progressTintList = ColorStateList.valueOf(primaryColor)
-        itemBinding.previewPlayPauseView.foregroundTintList = ColorStateList.valueOf(primaryColor)
-        itemBinding.previewNextBtn.imageTintList = ColorStateList.valueOf(primaryColor)
-        itemBinding.tvSongName.setTextColor(primaryColor)
+        if (colorToApply != null) {
+            val colors = intArrayOf(colorToApply, colorToApply)
+            bgShape?.colors = colors
+            albumArtBG?.colors = colors
+            playBtnBG?.colors = colors
+        } else {
+            val colors = intArrayOf(track, tick)
+            bgShape?.colors = colors
+            albumArtBG?.colors = colors
+            playBtnBG?.colors = colors
+        }
 
-        val playPauseBg = itemBinding.previewPlayPauseBtn.background.mutate()
-        if (playPauseBg is GradientDrawable) {
-            playPauseBg.colors = colors
+        itemBinding.albumArt.load(imageSource ?: R.drawable.ic_music) {
+            crossfade(true)
+            placeholder(R.drawable.ic_music)
+            error(R.drawable.ic_music)
+            size(200, 200)
         }
     }
 }
