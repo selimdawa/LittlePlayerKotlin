@@ -14,9 +14,11 @@
         android:layout_height="match_parent"
         android:layout_above="@id/fragBottomPlayer"
         android:layout_below="@id/customToolbar"
-        android:scrollbars="vertical"
         android:fadeScrollbars="true"
-        android:scrollbarDefaultDelayBeforeFade="500">
+        android:scrollbarDefaultDelayBeforeFade="500"
+        android:scrollbarSize="4dp"
+        android:scrollbarThumbVertical="@drawable/fast_scrollbar_thumb"
+        android:scrollbars="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -24,7 +26,6 @@
             android:orientation="vertical"
             android:padding="@dimen/spacing_medium">
 
-            <!-- Night Mode Toggle -->
             <LinearLayout
                 android:id="@+id/btnNightMode"
                 android:layout_width="match_parent"
@@ -32,12 +33,13 @@
                 android:background="@color/transparent"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingVertical="@dimen/spacing_medium">
+                android:paddingVertical="4dp">
 
                 <ImageView
+                    android:id="@+id/ivNightMode"
                     android:layout_width="@dimen/icon_size_medium"
                     android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/ic_sort"
+                    android:src="@drawable/ic_moon"
                     app:tint="?attr/mc_track" />
 
                 <TextView
@@ -49,16 +51,20 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="@dimen/text_size_body" />
 
-                <TextView
-                    android:id="@+id/tvNightMode"
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchNightMode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/dark_mode"
-                    android:textColor="@color/gray"
-                    android:textSize="@dimen/text_size_small" />
+                    android:splitTrack="false"
+                    android:thumb="@drawable/switch_thumb_custom"
+                    app:showText="false"
+                    app:switchMinWidth="48dp"
+                    app:thumbTint="?attr/mc_track"
+                    app:track="@drawable/switch_track_custom"
+                    app:trackTint="@null" />
+
             </LinearLayout>
 
-            <!-- Audio Quality / Equalizer -->
             <LinearLayout
                 android:id="@+id/settingEqualizer"
                 android:layout_width="match_parent"
@@ -88,9 +94,9 @@
                     android:layout_height="@dimen/icon_size_20"
                     android:src="@drawable/ic_navigate_next"
                     app:tint="@color/gray" />
+
             </LinearLayout>
 
-            <!-- Notifications -->
             <LinearLayout
                 android:id="@+id/settingNotifications"
                 android:layout_width="match_parent"
@@ -122,7 +128,6 @@
                     app:tint="@color/gray" />
             </LinearLayout>
 
-            <!-- Data & Storage -->
             <LinearLayout
                 android:id="@+id/settingDataStorage"
                 android:layout_width="match_parent"
@@ -152,9 +157,9 @@
                     android:layout_height="@dimen/icon_size_20"
                     android:src="@drawable/ic_navigate_next"
                     app:tint="@color/gray" />
+
             </LinearLayout>
 
-            <!-- Privacy -->
             <LinearLayout
                 android:id="@+id/settingPrivacy"
                 android:layout_width="match_parent"
@@ -184,9 +189,9 @@
                     android:layout_height="@dimen/icon_size_20"
                     android:src="@drawable/ic_navigate_next"
                     app:tint="@color/gray" />
+
             </LinearLayout>
 
-            <!-- About -->
             <LinearLayout
                 android:id="@+id/settingAbout"
                 android:layout_width="match_parent"
@@ -216,9 +221,9 @@
                     android:layout_height="@dimen/icon_size_20"
                     android:src="@drawable/ic_navigate_next"
                     app:tint="@color/gray" />
+
             </LinearLayout>
 
-            <!-- Sleep Timer Section -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/settingSleepTimer"
                 android:layout_width="match_parent"
@@ -266,6 +271,7 @@
                             android:text="@string/off"
                             android:textColor="@color/gray"
                             android:textSize="@dimen/text_size_small" />
+
                     </LinearLayout>
 
                     <ImageView
@@ -273,11 +279,11 @@
                         android:layout_height="@dimen/icon_size_20"
                         android:src="@drawable/ic_navigate_next"
                         app:tint="@color/gray" />
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Rescan Media (Extra) -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/settingScanMedia"
                 style="@style/Widget.Material3.Button.TextButton"
@@ -289,6 +295,7 @@
                 app:rippleColor="@color/transparent" />
 
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
     <include
