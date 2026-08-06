@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
@@ -34,6 +35,7 @@ class PlaylistSelectionBottomSheet(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.syncPlaylists()
 
         val adapter = PlaylistSmallAdapter { playlistName ->
             viewModel.addToPlaylist(playlistName, song)
@@ -43,6 +45,8 @@ class PlaylistSelectionBottomSheet(
 
         viewModel.playlistNames.collectWithLifecycle(viewLifecycleOwner) { names ->
             adapter.submitList(names)
+            binding.emptyState.isVisible = names.isEmpty()
+            binding.recyclerView.isVisible = names.isNotEmpty()
         }
 
         binding.btnCreateNewPlaylist.setOnClickListener {

@@ -28,10 +28,17 @@ class PlaylistDetailsViewModel @Inject constructor(
                         title = it.title,
                         albumId = it.albumId,
                         artist = it.artist,
-                        path = it.path
+                        path = it.path,
+                        color = it.color
                     )
                 }
             }
+        }
+    }
+
+    fun updateSongColor(songId: String, color: Int) {
+        viewModelScope.launch {
+            repository.updateSongColor(songId, color)
         }
     }
 }

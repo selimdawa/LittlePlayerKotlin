@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.model.Playlist
+import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistsViewModel @Inject constructor(
-    private val repository: MusicRoomRepository
+    private val repository: MusicRoomRepository,
+    private val musicRepository: MusicRepository
 ) : ViewModel() {
 
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
@@ -31,6 +33,7 @@ class PlaylistsViewModel @Inject constructor(
     val playlistNames: StateFlow<List<String>> = _playlistNames.asStateFlow()
 
     init {
+        syncPlaylists()
         viewModelScope.launch {
             repository.getAllPlaylistNames().collect {
                 _playlistNames.value = it
@@ -78,6 +81,24 @@ class PlaylistsViewModel @Inject constructor(
                     path = ""
                 )
             )
+        }
+    }
+
+    fun deletePlaylist(name: String) {
+        viewModelScope.launch {
+            repository.deletePlaylist(name)
+        }
+    }
+
+    fun renamePlaylist(oldName: String, newName: String) {
+        viewModelScope.launch {
+            repository.renamePlaylist(oldName, newName)
+        }
+    }
+
+    fun syncPlaylists() {
+        viewModelScope.launch {
+            musicRepository.syncPlaylistsWithMediaStore()
         }
     }
 }

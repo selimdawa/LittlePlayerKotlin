@@ -26,7 +26,7 @@ class PlaylistAdapter(
 
         holder.binding.playlistImage.loadSongImageByPath(playlist.firstSongPath)
 
-        holder.binding.root.setOnClickListener {
+        holder.binding.foregroundCard.setOnClickListener {
             onItemClick(playlist.name)
         }
     }

@@ -34,6 +34,7 @@ class PlayerViewModel @Inject constructor(
 
     var listSongs: List<MusicFiles> = emptyList()
     var position = -1
+    var lastProgress = 0L
     var uri: Uri? = null
 
     init {
@@ -41,7 +42,18 @@ class PlayerViewModel @Inject constructor(
             musicRepository.currentPlaylist.collect {
                 listSongs = it
                 if (it.isNotEmpty()) {
-                    if (position != -1) {
+                    val state = musicRepository.getPlaybackStateSync()
+                    val savedSongId = state?.currentSongId
+                    lastProgress = state?.lastProgress ?: 0L
+                    
+                    if (savedSongId != null) {
+                        val index = it.indexOfFirst { s -> s.id == savedSongId }
+                        if (index != -1) {
+                            updatePositionAndSong(index)
+                        } else if (position != -1) {
+                            updatePositionAndSong(position)
+                        }
+                    } else if (position != -1) {
                         updatePositionAndSong(position)
                     } else if (_currentSong.value != null) {
                         val index = it.indexOfFirst { s -> s.path == _currentSong.value?.path }
@@ -58,14 +70,21 @@ class PlayerViewModel @Inject constructor(
 
     private fun loadSession() {
         viewModelScope.launch {
+            val state = musicRepository.getPlaybackStateSync()
+            val savedSongId = state?.currentSongId
+            lastProgress = state?.lastProgress ?: 0L
+
             dataStore.data.collect { preferences ->
-                if (position == -1) {
-                    val savedPos = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
-                    if (savedPos != -1) {
-                        position = savedPos
+                // Priority 1: Restore by Song ID from PlaybackState (most accurate)
+                if (_currentSong.value == null && savedSongId != null && listSongs.isNotEmpty()) {
+                    val index = listSongs.indexOfFirst { it.id == savedSongId }
+                    if (index != -1) {
+                        position = index
+                        _currentSong.value = listSongs[index]
                     }
                 }
 
+                // Priority 2: Restore by Path from DataStore
                 if (_currentSong.value == null) {
                     val path = preferences[stringPreferencesKey(DATA.MUSIC_FILE)]
                     if (!path.isNullOrEmpty()) {
@@ -76,11 +95,23 @@ class PlayerViewModel @Inject constructor(
                             id = preferences[stringPreferencesKey(DATA.SONG_ID)],
                             albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
                             cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)],
-                            lyrics = preferences[stringPreferencesKey(DATA.LYRICS)]
+                            lyrics = preferences[stringPreferencesKey(DATA.LYRICS)],
+                            color = preferences[intPreferencesKey(DATA.SONG_COLOR)]
                         )
-                        if (_currentSong.value == null) {
-                            _currentSong.value = song
+                        _currentSong.value = song
+                        
+                        if (listSongs.isNotEmpty()) {
+                            val index = listSongs.indexOfFirst { it.path == path }
+                            if (index != -1) position = index
                         }
+                    }
+                }
+
+                // Priority 3: Restore by index (last resort)
+                if (position == -1) {
+                    val savedPos = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
+                    if (savedPos != -1 && listSongs.isNotEmpty() && savedPos in listSongs.indices) {
+                        position = savedPos
                     }
                 }
             }
@@ -102,7 +133,8 @@ class PlayerViewModel @Inject constructor(
                         albumId = song.albumId,
                         duration = song.duration,
                         lyrics = song.lyrics,
-                        path = song.path ?: ""
+                        path = song.path ?: "",
+                        color = song.color
                     )
                 )
                 _isFavorite.value = false
@@ -116,7 +148,8 @@ class PlayerViewModel @Inject constructor(
                         albumId = song.albumId,
                         duration = song.duration,
                         lyrics = song.lyrics,
-                        path = song.path ?: ""
+                        path = song.path ?: "",
+                        color = song.color
                     )
                 )
                 _isFavorite.value = true
