@@ -292,10 +292,16 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         controllerFuture = MediaController.Builder(currentContext, sessionToken).buildAsync()
         controllerFuture?.addListener(
             {
-                mediaController = controllerFuture?.get()
-                mediaController?.addListener(this)
-                mediaController?.let { updateUiFromPlayer(it) }
-                startProgressUpdater()
+                try {
+                    if (_binding != null && isAdded) {
+                        mediaController = controllerFuture?.get()
+                        mediaController?.addListener(this)
+                        mediaController?.let { updateUiFromPlayer(it) }
+                        startProgressUpdater()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             },
             ContextCompat.getMainExecutor(currentContext),
         )

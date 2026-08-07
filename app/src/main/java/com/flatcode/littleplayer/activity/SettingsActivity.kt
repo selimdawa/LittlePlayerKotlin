@@ -52,7 +52,13 @@ class SettingsActivity : AppCompatActivity() {
         val sessionToken = SessionToken(this, ComponentName(this, MusicService::class.java))
         controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture?.addListener({
-            mediaController = controllerFuture?.get()
+            try {
+                if (!isFinishing && !isDestroyed) {
+                    mediaController = controllerFuture?.get()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }, ContextCompat.getMainExecutor(this))
     }
 
@@ -98,9 +104,6 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.settingPrivacy.setOnClickListener { showPrivacyDialog() }
         binding.settingAbout.setOnClickListener { showAboutDialog() }
-        binding.settingTest.setOnClickListener {
-            launchActivity<TestActivity>()
-        }
     }
 
     private fun showPrivacyDialog() {
