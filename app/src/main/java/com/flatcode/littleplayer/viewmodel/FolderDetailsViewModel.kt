@@ -46,10 +46,4 @@ class FolderDetailsViewModel @Inject constructor(
     fun updateCurrentPlaylist(songs: List<MusicFiles>) {
         repository.updateCurrentPlaylist(songs)
     }
-
-    fun updateSongCoverIndex(songId: String, index: Int) {
-        viewModelScope.launch {
-            repository.updateSongCoverIndex(songId, index)
-        }
-    }
 }
