@@ -46,8 +46,6 @@ class RecentActivity : AppCompatActivity() {
                         openPlayer(position, view)
                     }, onDeleteClick = { song ->
                         musicViewModel.deleteSong(song)
-                    }, onColorGenerated = { id, color ->
-                        viewModel.updateSongColor(id, color)
                     })
                     binding.recyclerView.adapter = adapter
                 }

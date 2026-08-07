@@ -63,8 +63,6 @@ class SearchActivity : AppCompatActivity() {
                         openPlayer(position, view)
                     }, onDeleteClick = { song ->
                         viewModel.deleteSong(song)
-                    }, onColorGenerated = { id, color ->
-                        viewModel.updateSongColor(id, color)
                     })
                 binding.recyclerView.adapter = adapter
             }

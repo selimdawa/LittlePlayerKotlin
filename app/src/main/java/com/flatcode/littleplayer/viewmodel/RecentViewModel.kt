@@ -36,19 +36,12 @@ class RecentViewModel @Inject constructor(
                         albumId = it.albumId,
                         duration = it.duration,
                         path = it.path,
-                        cachedImagePath = imageMap[it.album ?: DATA.UNKNOWN]?.imagePath,
-                        color = it.color
+                        cachedImagePath = imageMap[it.album ?: DATA.UNKNOWN]?.imagePath
                     )
                 }
             }.collect {
                 _recentSongs.value = it
             }
-        }
-    }
-
-    fun updateSongColor(songId: String, color: Int) {
-        viewModelScope.launch {
-            repository.updateSongColor(songId, color)
         }
     }
 }

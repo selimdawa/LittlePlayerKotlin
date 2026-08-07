@@ -47,9 +47,9 @@ class FolderDetailsViewModel @Inject constructor(
         repository.updateCurrentPlaylist(songs)
     }
 
-    fun updateSongColor(songId: String, color: Int) {
+    fun updateSongCoverIndex(songId: String, index: Int) {
         viewModelScope.launch {
-            repository.updateSongColor(songId, color)
+            repository.updateSongCoverIndex(songId, index)
         }
     }
 }

@@ -54,12 +54,10 @@ class AlbumDetailsActivity : AppCompatActivity() {
                 }
 
                 if (adapter == null) {
-                    adapter = AlbumDetailsAdapter(context, onItemClick = { _, position ->
+                    adapter = AlbumDetailsAdapter(context) { _, position ->
                         viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
                         openPlayer(position)
-                    }, onColorGenerated = { id, color ->
-                        viewModel.updateSongColor(id, color)
-                    })
+                    }
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(state.songs)

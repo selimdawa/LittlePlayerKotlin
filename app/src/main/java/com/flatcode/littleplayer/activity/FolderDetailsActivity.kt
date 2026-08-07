@@ -39,12 +39,10 @@ class FolderDetailsActivity : AppCompatActivity() {
         viewModel.songs.collectWithLifecycle(this) { songList ->
             if (songList.isNotEmpty()) {
                 if (adapter == null) {
-                    adapter = FolderDetailsAdapter(context, onItemClick = { _, position ->
+                    adapter = FolderDetailsAdapter(context) { _, position ->
                         viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
                         openPlayer(position)
-                    }, onColorGenerated = { id, color ->
-                        viewModel.updateSongColor(id, color)
-                    })
+                    }
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songList)

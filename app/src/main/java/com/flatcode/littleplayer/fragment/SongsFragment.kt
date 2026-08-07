@@ -107,9 +107,6 @@ class SongsFragment : Fragment() {
                 },
                 onDeleteClick = { song ->
                     viewModel.deleteSong(song)
-                },
-                onColorGenerated = { id, color ->
-                    viewModel.updateSongColor(id, color)
                 }
             )
         }

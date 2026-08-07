@@ -12,8 +12,6 @@ import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
-import com.flatcode.littleplayer.utils.generateRandomColor
-import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
@@ -21,8 +19,7 @@ import com.flatcode.littleplayer.utils.visible
 
 class ArtistDetailsAdapter(
     private val context: Context,
-    private val onItemClick: (MusicFiles, Int) -> Unit,
-    private val onColorGenerated: ((String, Int) -> Unit)? = null
+    private val onItemClick: (MusicFiles, Int) -> Unit
 ) : ListAdapter<MusicFiles, ArtistDetailsAdapter.ArtistDetailsViewHolder>(ArtistDetailsDiffCallback()), PlaybackAnimatable {
 
     private var playingPath: String? = null
@@ -57,19 +54,9 @@ class ArtistDetailsAdapter(
             R.string.song_details_format, song.safeArtist, song.album ?: DATA.UNKNOWN
         )
 
-        var songColor = song.color
-        val hasAlbumArt = (song.albumId != null && song.albumId != "-1" && song.albumId != "0") ||
-                !song.cachedImagePath.isNullOrEmpty()
-
-        if (songColor == null && !hasAlbumArt) {
-            val newColor = generateRandomColor()
-            songColor = newColor
-            song.id?.let { onColorGenerated?.invoke(it, newColor) }
-        }
-
-        holder.binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath, songColor)
+        holder.binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
         holder.binding.imageBlur.loadSongImageBlur(
-            song.albumId, 100, song.path, song.cachedImagePath, songColor
+            song.albumId, 100, song.path, song.cachedImagePath
         )
 
         if ((song.path == playingPath) && isPlaying) {

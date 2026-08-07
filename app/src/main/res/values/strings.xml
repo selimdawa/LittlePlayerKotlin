@@ -108,7 +108,6 @@
     <string name="version_format">Version %1$s</string>
     <string name="ok">OK</string>
     <string name="stop">Stop</string>
-    <string name="no_lyrics">No lyrics found for this song.</string>
     <string name="cache_and_history">Cache &amp; History</string>
     <string name="clear_art_cache">Clear Art Cache</string>
     <string name="clear_recent_history">Clear Recent History</string>

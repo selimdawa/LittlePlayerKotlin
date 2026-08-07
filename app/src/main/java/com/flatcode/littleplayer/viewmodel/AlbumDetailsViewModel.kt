@@ -57,10 +57,4 @@ class AlbumDetailsViewModel @Inject constructor(
     fun updateCurrentPlaylist(songs: List<MusicFiles>) {
         repository.updateCurrentPlaylist(songs)
     }
-
-    fun updateSongColor(songId: String, color: Int) {
-        viewModelScope.launch {
-            roomRepository.updateSongColor(songId, color)
-        }
-    }
 }

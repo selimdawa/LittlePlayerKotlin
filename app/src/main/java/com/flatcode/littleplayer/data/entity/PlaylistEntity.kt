@@ -10,6 +10,5 @@ data class PlaylistEntity(
     val title: String,
     val albumId: String? = null,
     val artist: String,
-    val path: String,
-    val color: Int? = null
+    val path: String
 )
