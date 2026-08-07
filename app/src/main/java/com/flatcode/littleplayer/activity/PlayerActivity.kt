@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.activity
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
@@ -16,6 +17,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -24,20 +26,19 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
-import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import androidx.palette.graphics.Palette
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
-import com.flatcode.littleplayer.fragment.SleepTimerBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
+import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.snackbar
@@ -120,20 +121,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE) 4 else 1
     }
 
-    private fun setSleepTimer(minutes: Int) {
-        if (mediaController == null) {
-            binding.root.snackbar(getString(R.string.music_service_not_connected))
-            return
-        }
-        mediaController?.let { controller ->
-            val bundle = Bundle().apply { putInt("MINUTES", minutes) }
-            controller.sendCustomCommand(
-                SessionCommand(MusicService.COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY), bundle
-            )
-            binding.root.snackbar(getString(R.string.timer_set_format, minutes))
-        }
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     private fun setupListeners() {
         binding.back.setOnClickListener { supportFinishAfterTransition() }
@@ -146,12 +133,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
         binding.whiteColor.setOnClickListener {
             nowPlayerViewModel.setThemeColorMode(DATA.MODE_WHITE)
-        }
-
-        binding.sleepTimer.setOnClickListener {
-            SleepTimerBottomSheet { minutes, _ ->
-                setSleepTimer(minutes)
-            }.show(supportFragmentManager, "SleepTimer")
         }
 
         binding.seekBar.setOnSeekBarChangeListener(
@@ -265,24 +246,36 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
+        val model = getSongImageModel(song.albumId, song.path, song.cachedImagePath)
+
         val request =
-            ImageRequest.Builder(this).data(song.cachedImagePath ?: song.path)
+            ImageRequest.Builder(this).data(model)
                 .allowHardware(enable = false)
                 .target { result ->
-                    val bitmap = (result as? BitmapDrawable)?.bitmap
-                    bitmap?.let {
-                        Palette.from(it).generate { palette ->
-                            currentDominantColor = palette?.getVibrantColor(Color.GRAY)
-                                ?: palette?.getLightVibrantColor(
-                                    Color.GRAY,
-                                ) ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+                    val bitmap = if (result is BitmapDrawable) {
+                        result.bitmap
+                    } else {
+                        val drawable = result
+                        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 200
+                        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 200
+                        val bmp = createBitmap(width, height)
+                        val canvas = Canvas(bmp)
+                        drawable.setBounds(0, 0, canvas.width, canvas.height)
+                        drawable.draw(canvas)
+                        bmp
+                    }
 
-                            binding.paletteColor.setCardBackgroundColor(currentDominantColor)
-                            nowPlayerViewModel.updateThemeColor(currentDominantColor)
+                    Palette.from(bitmap).generate { palette ->
+                        val dominantColor = palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+                        currentDominantColor = palette?.getVibrantColor(dominantColor)
+                            ?: palette?.getLightVibrantColor(dominantColor)
+                            ?: dominantColor
 
-                            if (currentMode == DATA.MODE_PALETTE) {
-                                applyCurrentModeColors()
-                            }
+                        binding.paletteColor.setCardBackgroundColor(currentDominantColor)
+                        nowPlayerViewModel.updateThemeColor(currentDominantColor)
+
+                        if (currentMode == DATA.MODE_PALETTE) {
+                            applyCurrentModeColors()
                         }
                     }
                 }.build()
@@ -408,24 +401,34 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             .setInterpolator(AccelerateInterpolator())
             .withEndAction {
                 if (nextSong != null) {
+                    val model = getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath)
                     val request = ImageRequest.Builder(this)
-                        .data(nextSong.cachedImagePath ?: nextSong.path)
+                        .data(model)
                         .allowHardware(enable = false)
                         .listener(
                             onError = { _, _ -> performSkipAndSlideIn(toNext, inX) },
                             onCancel = { performSkipAndSlideIn(toNext, inX) }
                         )
                         .target { result ->
-                            val bitmap = (result as? BitmapDrawable)?.bitmap
-                            if (bitmap != null) {
-                                Palette.from(bitmap).generate { palette ->
-                                    currentDominantColor = palette?.getVibrantColor(Color.GRAY)
-                                        ?: palette?.getLightVibrantColor(Color.GRAY)
-                                        ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
-
-                                    performSkipAndSlideIn(toNext, inX)
-                                }
+                            val bitmap = if (result is BitmapDrawable) {
+                                result.bitmap
                             } else {
+                                val drawable = result
+                                val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 200
+                                val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 200
+                                val bmp = createBitmap(width, height)
+                                val canvas = Canvas(bmp)
+                                drawable.setBounds(0, 0, canvas.width, canvas.height)
+                                drawable.draw(canvas)
+                                bmp
+                            }
+
+                            Palette.from(bitmap).generate { palette ->
+                                val dominantColor = palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+                                currentDominantColor = palette?.getVibrantColor(dominantColor)
+                                    ?: palette?.getLightVibrantColor(dominantColor)
+                                    ?: dominantColor
+
                                 performSkipAndSlideIn(toNext, inX)
                             }
                         }

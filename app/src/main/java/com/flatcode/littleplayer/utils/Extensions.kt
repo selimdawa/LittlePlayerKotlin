@@ -148,56 +148,56 @@ fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
     Snackbar.make(this, message, duration).show()
 }
 
-fun ImageView.loadSongImage(albumId: String?, path: String? = null, cachedPath: String? = null) {
-    val model: Any = if (!cachedPath.isNullOrEmpty()) {
-        File(cachedPath)
-    } else if (albumId != null && albumId != "-1" && albumId != "0") {
-        getSongArt(albumId)
-    } else if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path) ?: R.color.image_profile
-    } else {
-        R.color.image_profile
-    }
+fun ImageView.loadSongImage(
+    albumId: String?, path: String? = null, cachedPath: String? = null,
+    fallback: Int = R.drawable.cover_song
+) {
+    val model = getSongImageModel(albumId, path, cachedPath, fallback)
 
     load(model) {
         crossfade(true)
         placeholder(R.color.image_profile)
-        error(R.color.image_profile)
+        error(fallback)
     }
 }
 
-fun ImageView.loadSongImageByPath(path: String?, cachedPath: String? = null) {
+fun ImageView.loadSongImageByPath(
+    path: String?, cachedPath: String? = null,
+    fallback: Int = R.drawable.cover_song
+) {
     val model: Any = if (!cachedPath.isNullOrEmpty()) {
         File(cachedPath)
     } else if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path) ?: R.color.image_profile
+        getAlbumArtBytes(path) ?: fallback
     } else {
-        R.color.image_profile
+        fallback
     }
     load(model) {
         crossfade(true)
         placeholder(R.color.image_profile)
-        error(R.color.image_profile)
+        error(fallback)
     }
 }
 
 fun ImageView.loadSongImageBlur(
-    albumId: String?, level: Int, path: String? = null, cachedPath: String? = null
+    albumId: String?, level: Int, path: String? = null, cachedPath: String? = null,
+    fallback: Int = R.drawable.cover_song
 ) {
-    val model: Any = if (!cachedPath.isNullOrEmpty()) {
-        File(cachedPath)
-    } else if (albumId != null && albumId != "-1" && albumId != "0") {
-        getSongArt(albumId)
-    } else if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path) ?: R.color.image_profile
-    } else {
-        R.color.image_profile
-    }
+    val model = getSongImageModel(albumId, path, cachedPath, fallback)
+    val actualFallback = if (fallback == R.drawable.cover_song) R.drawable.cover_song_blur else fallback
 
     load(model) {
         crossfade(true)
         placeholder(R.color.image_profile)
-        error(R.color.image_profile)
+        error(actualFallback)
+        allowHardware(false)
+        if (model is Int) {
+            if (model == R.drawable.cover_song) {
+                target { _ ->
+                    this@loadSongImageBlur.load(R.drawable.cover_song_blur)
+                }
+            }
+        }
         transformations(SimpleBlurTransformation(level.toFloat()))
     }
 }
@@ -211,14 +211,32 @@ fun ImageView.loadCachedAlbumImage(cachedPath: String?) {
     }
 }
 
-private fun getSongArt(albumId: String?): Any {
-    return if (!albumId.isNullOrEmpty()) {
+fun getSongArt(albumId: String?): Any {
+    return if (!albumId.isNullOrEmpty() && albumId != "-1" && albumId != "0") {
         ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(), albumId.toLong()
         )
     } else {
-        R.color.image_profile
+        R.drawable.cover_song
     }
+}
+
+fun getSongImageModel(
+    albumId: String?, path: String? = null, cachedPath: String? = null,
+    fallback: Int = R.drawable.cover_song
+): Any {
+    if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
+
+    val artBytes = if (!path.isNullOrEmpty()) getAlbumArtBytes(path) else null
+    if (artBytes != null) return artBytes
+
+    if (!albumId.isNullOrEmpty() && albumId != "-1" && albumId != "0") {
+        return ContentUris.withAppendedId(
+            "content://media/external/audio/albumart".toUri(), albumId.toLong()
+        )
+    }
+
+    return fallback
 }
 
 fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -> Unit) {
