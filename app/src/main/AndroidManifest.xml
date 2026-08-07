@@ -91,9 +91,7 @@
         <activity
             android:name=".activity.EqualizerActivity"
             android:exported="false" />
-        <activity
-            android:name=".activity.TestActivity"
-            android:exported="false" />
+
         <activity
             android:name=".activity.PlaylistsActivity"
             android:exported="false"
