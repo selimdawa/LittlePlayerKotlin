@@ -10,12 +10,19 @@
         android:id="@+id/customToolbar"
         layout="@layout/toolbar_custom" />
 
+    <include
+        android:id="@+id/toolbarItems"
+        layout="@layout/toolbar_top_items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/customToolbar" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/fragBottomPlayer"
-        android:layout_below="@id/customToolbar"
+        android:layout_below="@id/toolbarItems"
         android:clipToPadding="false"
         android:paddingTop="16dp"
         android:scrollbars="vertical"
@@ -52,19 +59,6 @@
             android:textSize="16sp" />
 
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/addPlaylist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/fragBottomPlayer"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="24dp"
-        android:contentDescription="@null"
-        android:src="@drawable/ic_add"
-        app:backgroundTint="?attr/mc_track"
-        app:elevation="8dp"
-        app:tint="@color/white" />
 
     <include
         android:id="@+id/fragBottomPlayer"

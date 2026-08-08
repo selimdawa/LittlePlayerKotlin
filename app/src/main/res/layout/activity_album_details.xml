@@ -57,6 +57,8 @@
         android:layout_below="@id/layout_image_profile"
         android:layout_marginHorizontal="5dp"
         android:layout_marginTop="10dp"
+        android:paddingBottom="90dp"
+        android:clipToPadding="false"
         android:scrollbars="vertical"
         android:fadeScrollbars="true"
         android:scrollbarDefaultDelayBeforeFade="500"

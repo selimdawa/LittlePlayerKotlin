@@ -149,7 +149,9 @@ fun View.snackbar(message: String, duration: Int = Snackbar.LENGTH_LONG) {
 }
 
 fun ImageView.loadSongImage(
-    albumId: String?, path: String? = null, cachedPath: String? = null,
+    albumId: String?,
+    path: String? = null,
+    cachedPath: String? = null,
     fallback: Int = R.drawable.cover_song
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, fallback)
@@ -162,8 +164,7 @@ fun ImageView.loadSongImage(
 }
 
 fun ImageView.loadSongImageByPath(
-    path: String?, cachedPath: String? = null,
-    fallback: Int = R.drawable.cover_song
+    path: String?, cachedPath: String? = null, fallback: Int = R.drawable.cover_song
 ) {
     val model: Any = if (!cachedPath.isNullOrEmpty()) {
         File(cachedPath)
@@ -180,11 +181,15 @@ fun ImageView.loadSongImageByPath(
 }
 
 fun ImageView.loadSongImageBlur(
-    albumId: String?, level: Int, path: String? = null, cachedPath: String? = null,
+    albumId: String?,
+    level: Int,
+    path: String? = null,
+    cachedPath: String? = null,
     fallback: Int = R.drawable.cover_song
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, fallback)
-    val actualFallback = if (fallback == R.drawable.cover_song) R.drawable.cover_song_blur else fallback
+    val actualFallback =
+        if (fallback == R.drawable.cover_song) R.drawable.cover_song_blur else fallback
 
     load(model) {
         crossfade(true)
@@ -222,7 +227,9 @@ fun getSongArt(albumId: String?): Any {
 }
 
 fun getSongImageModel(
-    albumId: String?, path: String? = null, cachedPath: String? = null,
+    albumId: String?,
+    path: String? = null,
+    cachedPath: String? = null,
     fallback: Int = R.drawable.cover_song
 ): Any {
     if (!cachedPath.isNullOrEmpty()) return File(cachedPath)

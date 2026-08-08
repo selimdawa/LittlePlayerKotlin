@@ -41,7 +41,6 @@ import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
@@ -249,27 +248,23 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val model = getSongImageModel(song.albumId, song.path, song.cachedImagePath)
 
         val request =
-            ImageRequest.Builder(this).data(model)
-                .allowHardware(enable = false)
-                .target { result ->
+            ImageRequest.Builder(this).data(model).allowHardware(enable = false).target { result ->
                     val bitmap = if (result is BitmapDrawable) {
                         result.bitmap
                     } else {
-                        val drawable = result
-                        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 200
-                        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 200
+                        val width = if (result.intrinsicWidth > 0) result.intrinsicWidth else 200
+                        val height = if (result.intrinsicHeight > 0) result.intrinsicHeight else 200
                         val bmp = createBitmap(width, height)
                         val canvas = Canvas(bmp)
-                        drawable.setBounds(0, 0, canvas.width, canvas.height)
-                        drawable.draw(canvas)
+                        result.setBounds(0, 0, canvas.width, canvas.height)
+                        result.draw(canvas)
                         bmp
                     }
 
                     Palette.from(bitmap).generate { palette ->
                         val dominantColor = palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
                         currentDominantColor = palette?.getVibrantColor(dominantColor)
-                            ?: palette?.getLightVibrantColor(dominantColor)
-                            ?: dominantColor
+                            ?: palette?.getLightVibrantColor(dominantColor) ?: dominantColor
 
                         binding.paletteColor.setCardBackgroundColor(currentDominantColor)
                         nowPlayerViewModel.updateThemeColor(currentDominantColor)
@@ -371,7 +366,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (isAnimating || (mediaController == null)) return
 
         val controller = mediaController!!
-        val hasNext = if (toNext) controller.hasNextMediaItem() else controller.hasPreviousMediaItem()
+        val hasNext =
+            if (toNext) controller.hasNextMediaItem() else controller.hasPreviousMediaItem()
 
         if (!hasNext) {
             if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
@@ -379,7 +375,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         isAnimating = true
-        val nextIndex = if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
+        val nextIndex =
+            if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
 
         val nextSong =
             if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
@@ -394,63 +391,53 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val outX = if (toNext) -width else width
         val inX = if (toNext) width else -width
 
-        binding.card.animate()
-            .translationX(outX)
-            .alpha(0f)
-            .setDuration(200)
-            .setInterpolator(AccelerateInterpolator())
-            .withEndAction {
+        binding.card.animate().translationX(outX).alpha(0f).setDuration(200)
+            .setInterpolator(AccelerateInterpolator()).withEndAction {
                 if (nextSong != null) {
-                    val model = getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath)
-                    val request = ImageRequest.Builder(this)
-                        .data(model)
-                        .allowHardware(enable = false)
-                        .listener(
-                            onError = { _, _ -> performSkipAndSlideIn(toNext, inX) },
-                            onCancel = { performSkipAndSlideIn(toNext, inX) }
-                        )
-                        .target { result ->
-                            val bitmap = if (result is BitmapDrawable) {
-                                result.bitmap
-                            } else {
-                                val drawable = result
-                                val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 200
-                                val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 200
-                                val bmp = createBitmap(width, height)
-                                val canvas = Canvas(bmp)
-                                drawable.setBounds(0, 0, canvas.width, canvas.height)
-                                drawable.draw(canvas)
-                                bmp
-                            }
+                    val model =
+                        getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath)
+                    val request =
+                        ImageRequest.Builder(this).data(model).allowHardware(enable = false)
+                            .listener(
+                                onError = { _, _ -> performSkipAndSlideIn(toNext, inX) },
+                                onCancel = { performSkipAndSlideIn(toNext, inX) })
+                            .target { result ->
+                                val bitmap = if (result is BitmapDrawable) {
+                                    result.bitmap
+                                } else {
+                                    val width =
+                                        if (result.intrinsicWidth > 0) result.intrinsicWidth else 200
+                                    val height =
+                                        if (result.intrinsicHeight > 0) result.intrinsicHeight else 200
+                                    val bmp = createBitmap(width, height)
+                                    val canvas = Canvas(bmp)
+                                    result.setBounds(0, 0, canvas.width, canvas.height)
+                                    result.draw(canvas)
+                                    bmp
+                                }
 
-                            Palette.from(bitmap).generate { palette ->
-                                val dominantColor = palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
-                                currentDominantColor = palette?.getVibrantColor(dominantColor)
-                                    ?: palette?.getLightVibrantColor(dominantColor)
-                                    ?: dominantColor
+                                Palette.from(bitmap).generate { palette ->
+                                    val dominantColor =
+                                        palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+                                    currentDominantColor = palette?.getVibrantColor(dominantColor)
+                                        ?: palette?.getLightVibrantColor(dominantColor)
+                                                ?: dominantColor
 
-                                performSkipAndSlideIn(toNext, inX)
-                            }
-                        }
-                        .build()
+                                    performSkipAndSlideIn(toNext, inX)
+                                }
+                            }.build()
                     imageLoader.enqueue(request)
                 } else {
                     performSkipAndSlideIn(toNext, inX)
                 }
-            }
-            .start()
+            }.start()
     }
 
     private fun performSkipAndSlideIn(toNext: Boolean, inX: Float) {
         if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
         binding.card.translationX = inX
-        binding.card.animate()
-            .translationX(0f)
-            .alpha(1f)
-            .setDuration(200)
-            .setInterpolator(DecelerateInterpolator())
-            .withEndAction { isAnimating = false }
-            .start()
+        binding.card.animate().translationX(0f).alpha(1f).setDuration(200)
+            .setInterpolator(DecelerateInterpolator()).withEndAction { isAnimating = false }.start()
     }
 
     private inner class SwipeGestureListener : GestureDetector.SimpleOnGestureListener() {
@@ -483,7 +470,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             return false
         }
     }
-
 
 
     private fun resetProgressLoop() {
@@ -595,24 +581,24 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun forcePlaySong(controller: MediaController, pos: Int) {
         viewModel.updatePositionAndSong(pos, forceUpdate = true)
-        
+
         val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
             val uri = song.path?.toUri() ?: "".toUri()
-            val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
-                .setExtras(
-                    Bundle().apply {
-                        putString("ALBUM_ID", song.albumId)
-                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                    },
-                ).build()
+            val metadata =
+                MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist).setExtras(
+                        Bundle().apply {
+                            putString("ALBUM_ID", song.albumId)
+                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                        },
+                    ).build()
             MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                 .build()
         }
-        
+
         controller.setMediaItems(mediaItems, pos, 0L)
         controller.prepare()
         controller.play()
-        
+
         val song = viewModel.listSongs[pos]
         binding.songName.text = song.title
         binding.songArtist.text = song.artist
@@ -626,13 +612,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun setupMediaItems(controller: MediaController) {
         val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
             val uri = song.path?.toUri() ?: "".toUri()
-            val metadata = MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist)
-                .setExtras(
-                    Bundle().apply {
-                        putString("ALBUM_ID", song.albumId)
-                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                    },
-                ).build()
+            val metadata =
+                MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist).setExtras(
+                        Bundle().apply {
+                            putString("ALBUM_ID", song.albumId)
+                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                        },
+                    ).build()
             MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                 .build()
         }

@@ -61,6 +61,20 @@
             android:src="@drawable/ic_sort"
             app:tint="?attr/mc_track" />
 
+        <ImageView
+            android:id="@+id/btnAdd"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@null"
+            android:focusable="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_add"
+            android:visibility="gone"
+            app:tint="?attr/mc_track" />
+
     </LinearLayout>
 
 </RelativeLayout>

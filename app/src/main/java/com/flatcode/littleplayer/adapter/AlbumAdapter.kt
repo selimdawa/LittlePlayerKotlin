@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.DiffUtil
@@ -39,14 +38,6 @@ class AlbumAdapter(
         holder.binding.imageBlur.loadSongImageBlur(
             currentFile.albumId, 50, currentFile.path, currentFile.cachedImagePath
         )
-
-        val params = holder.itemView.layoutParams as MarginLayoutParams
-        params.bottomMargin = if (position == (itemCount - 1)) {
-            (95 * context.resources.displayMetrics.density).toInt()
-        } else {
-            (10 * context.resources.displayMetrics.density).toInt()
-        }
-        holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile.album ?: "", holder.binding.image)

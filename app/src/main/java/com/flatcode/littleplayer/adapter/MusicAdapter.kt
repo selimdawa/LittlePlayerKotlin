@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -78,14 +77,6 @@ class MusicAdapter(
             holder.binding.wave.gone()
             holder.binding.songName.setTextColor(context.getLibraryColor("colorError"))
         }
-
-        val params = holder.itemView.layoutParams as MarginLayoutParams
-        params.bottomMargin = if (position == (itemCount - 1)) {
-            (95 * context.resources.displayMetrics.density).toInt()
-        } else {
-            (10 * context.resources.displayMetrics.density).toInt()
-        }
-        holder.itemView.layoutParams = params
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition, holder.binding.image)
