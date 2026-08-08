@@ -34,4 +34,10 @@ class PlaylistDetailsViewModel @Inject constructor(
             }
         }
     }
+
+    fun removeSongFromPlaylist(playlistName: String, songId: String) {
+        viewModelScope.launch {
+            repository.deleteFromPlaylist(playlistName, songId)
+        }
+    }
 }

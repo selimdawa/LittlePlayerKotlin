@@ -22,8 +22,6 @@ class MusicRoomRepository @Inject constructor(
     private val albumImageDao: AlbumImageDao,
     private val musicDao: MusicDao
 ) {
-    fun getAllSongs(): Flow<List<SongEntity>> = songDao.getAllSongs()
-
     suspend fun insertSong(song: SongEntity) = withContext(Dispatchers.IO) {
         songDao.insertSong(song)
     }
@@ -55,9 +53,10 @@ class MusicRoomRepository @Inject constructor(
         musicDao.insertToPlaylist(playlistItem)
     }
 
-    suspend fun insertToPlaylist(playlistItems: List<PlaylistEntity>) = withContext(Dispatchers.IO) {
-        musicDao.insertToPlaylist(playlistItems)
-    }
+    suspend fun insertToPlaylist(playlistItems: List<PlaylistEntity>) =
+        withContext(Dispatchers.IO) {
+            musicDao.insertToPlaylist(playlistItems)
+        }
 
     suspend fun deleteFromPlaylist(name: String, songId: String) = withContext(Dispatchers.IO) {
         musicDao.deleteFromPlaylist(name, songId)
@@ -81,15 +80,10 @@ class MusicRoomRepository @Inject constructor(
 
     fun getAllPlaylistNames(): Flow<List<String>> = musicDao.getAllPlaylistNames()
 
-    suspend fun getAllPlaylistNamesSync(): List<String> = withContext(Dispatchers.IO) {
-        musicDao.getAllPlaylistNamesSync()
-    }
+    fun getPlaylistsContainingSong(songId: String): Flow<List<String>> =
+        musicDao.getPlaylistsContainingSong(songId)
 
     fun getAllAlbumImages(): Flow<List<AlbumImageEntity>> = albumImageDao.getAllAlbumImages()
-
-    suspend fun getAllAlbumImagesSync(): List<AlbumImageEntity> = withContext(Dispatchers.IO) {
-        albumImageDao.getAllAlbumImagesSync()
-    }
 
     suspend fun insertRecent(song: RecentEntity) = withContext(Dispatchers.IO) {
         musicDao.insertRecent(song)
@@ -110,9 +104,10 @@ class MusicRoomRepository @Inject constructor(
         songDao.getSongById(songId)
     }
 
-    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) = withContext(Dispatchers.IO) {
-        musicDao.saveEqualizerSettings(equalizerEntity)
-    }
+    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) =
+        withContext(Dispatchers.IO) {
+            musicDao.saveEqualizerSettings(equalizerEntity)
+        }
 
     fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
 

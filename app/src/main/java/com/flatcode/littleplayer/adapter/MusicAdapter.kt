@@ -25,6 +25,7 @@ class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int, View) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit,
+    private val onRemoveFromPlaylistClick: ((MusicFiles) -> Unit)? = null,
 ) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable,
     FastScrollableAdapter {
 
@@ -84,7 +85,8 @@ class MusicAdapter(
 
         holder.binding.more.setOnClickListener {
             context.getAppCompatActivity()?.let { activity ->
-                val bottomSheet = SongOptionsBottomSheet(currentFile, onDeleteClick)
+                val bottomSheet =
+                    SongOptionsBottomSheet(currentFile, onDeleteClick, onRemoveFromPlaylistClick)
                 bottomSheet.show(activity.supportFragmentManager, "SongOptionsBottomSheet")
             }
         }

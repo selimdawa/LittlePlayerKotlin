@@ -55,6 +55,9 @@ interface MusicDao {
     @Query("SELECT DISTINCT playlistName FROM playlists_table")
     suspend fun getAllPlaylistNamesSync(): List<String>
 
+    @Query("SELECT playlistName FROM playlists_table WHERE songId = :songId")
+    fun getPlaylistsContainingSong(songId: String): Flow<List<String>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecent(song: RecentEntity)
 

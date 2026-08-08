@@ -61,7 +61,7 @@
             android:layout_width="@dimen/icon_size_small"
             android:layout_height="@dimen/icon_size_small"
             android:contentDescription="@null"
-            android:src="@drawable/ic_play"
+            android:src="@drawable/ic_navigate_next"
             app:tint="?attr/mc_track" />
     </LinearLayout>
 

@@ -10,6 +10,7 @@ import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -93,6 +94,15 @@ class PlaylistsViewModel @Inject constructor(
     fun renamePlaylist(oldName: String, newName: String) {
         viewModelScope.launch {
             repository.renamePlaylist(oldName, newName)
+        }
+    }
+
+    fun getPlaylistsNotContainingSong(songId: String): Flow<List<String>> {
+        return combine(
+            repository.getAllPlaylistNames(),
+            if (songId.isEmpty()) flowOf(emptyList()) else repository.getPlaylistsContainingSong(songId)
+        ) { allNames, containingNames ->
+            allNames.filter { it !in containingNames }
         }
     }
 

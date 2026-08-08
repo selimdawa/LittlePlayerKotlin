@@ -43,7 +43,7 @@ class PlaylistSelectionBottomSheet(
         }
         binding.recyclerView.adapter = adapter
 
-        viewModel.playlistNames.collectWithLifecycle(viewLifecycleOwner) { names ->
+        viewModel.getPlaylistsNotContainingSong(song.id ?: "").collectWithLifecycle(viewLifecycleOwner) { names ->
             adapter.submitList(names)
             binding.emptyState.isVisible = names.isEmpty()
             binding.recyclerView.isVisible = names.isNotEmpty()
