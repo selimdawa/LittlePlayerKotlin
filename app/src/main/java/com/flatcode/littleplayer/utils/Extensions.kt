@@ -12,6 +12,9 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -19,35 +22,52 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
+import android.widget.SeekBar
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.palette.graphics.Palette
+import coil.imageLoader
 import coil.load
+import coil.request.ImageRequest
 import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.Locale
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 inline fun <reified T : Activity> Context.launchActivity(
     options: Bundle? = null, extras: Intent.() -> Unit = {}
@@ -57,13 +77,116 @@ inline fun <reified T : Activity> Context.launchActivity(
     startActivity(intent, options)
 }
 
-fun Context.getColorFromAttr(attr: Int): Int {
+fun Context.getColorFromAttr(@AttrRes attr: Int): Int {
     val typedValue = TypedValue()
     if (theme.resolveAttribute(attr, typedValue, true)) {
         return typedValue.data
     }
     return Color.WHITE
 }
+
+fun Long.formatAsSize(): String {
+    val sizeMb = this.toDouble() / (1024 * 1024)
+    return String.format(Locale.getDefault(), "%.2f MB", sizeMb)
+}
+
+val Context.appVersionName: String
+    get() = try {
+        packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+    } catch (_: Exception) {
+        "1.0.0"
+    }
+
+fun View.setGradientBackground(
+    @ColorInt startColor: Int, @ColorInt endColor: Int, layerIndex: Int = 0
+) {
+    val background = background?.mutate()
+    val shape = if (background is LayerDrawable) {
+        background.getDrawable(layerIndex) as? GradientDrawable
+    } else {
+        background as? GradientDrawable
+    }
+    shape?.colors = intArrayOf(startColor, endColor)
+}
+
+fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
+    setGradientBackground(color, color, layerIndex)
+}
+
+fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
+    val request = ImageRequest.Builder(this).data(data).allowHardware(false).target { result ->
+            val bitmap = (result as? BitmapDrawable)?.bitmap
+            bitmap?.let {
+                Palette.from(it).generate { palette ->
+                    onPaletteGenerated(palette)
+                }
+            }
+        }.build()
+    imageLoader.enqueue(request)
+}
+
+fun SeekBar.onProgressChanged(action: (progress: Int, fromUser: Boolean) -> Unit) {
+    setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+            action(progress, fromUser)
+        }
+
+        override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+        override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+    })
+}
+
+fun Context.showDialog(title: Int, message: Int, positiveButton: Int = android.R.string.ok) {
+    val dialog = MaterialAlertDialogBuilder(this).setTitle(title).setMessage(message)
+        .setPositiveButton(positiveButton, null).create()
+
+    dialog.setCanceledOnTouchOutside(false)
+    dialog.show()
+}
+
+fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, message, duration).show()
+}
+
+fun Context.toast(@StringRes message: Int, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this, message, duration).show()
+}
+
+val Int.dp: Int
+    get() = (this * android.content.res.Resources.getSystem().displayMetrics.density).toInt()
+
+val Int.px: Int
+    get() = (this / android.content.res.Resources.getSystem().displayMetrics.density).toInt()
+
+fun View.setMargins(left: Int? = null, top: Int? = null, right: Int? = null, bottom: Int? = null) {
+    updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        left?.let { leftMargin = it }
+        top?.let { topMargin = it }
+        right?.let { rightMargin = it }
+        bottom?.let { bottomMargin = it }
+    }
+}
+
+fun Activity.hideKeyboard() {
+    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    currentFocus?.let { imm.hideSoftInputFromWindow(it.windowToken, 0) }
+}
+
+fun Context.getColorCompat(@ColorRes colorRes: Int) = ContextCompat.getColor(this, colorRes)
+
+fun MusicFiles.toMediaItem(): MediaItem {
+    val uri = path?.toUri() ?: "".toUri()
+    val metadata =
+        MediaMetadata.Builder().setTitle(title).setArtist(artist).setExtras(Bundle().apply {
+                putString("ALBUM_ID", albumId)
+                putString("CACHED_IMAGE_PATH", cachedImagePath)
+            }).build()
+    return MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(id ?: "").build()
+}
+
+fun List<MusicFiles>.toMediaItems(): List<MediaItem> = map { it.toMediaItem() }
+
+fun Int.toDuration(): Duration = this.toLong().milliseconds
 
 @SuppressLint("DiscouragedApi")
 fun Context.getLibraryColor(attrName: String): Int {
@@ -307,12 +430,10 @@ fun Int.ensureBrightColor(): Int {
 fun Palette?.extractVibrantColor(): Int {
     val dominantColor = this?.getDominantColor(Color.GRAY) ?: Color.GRAY
     return this?.getLightVibrantColor(Color.TRANSPARENT)
+        .takeIf { it != Color.TRANSPARENT && it != 0 } ?: this?.getVibrantColor(Color.TRANSPARENT)
         .takeIf { it != Color.TRANSPARENT && it != 0 }
-        ?: this?.getVibrantColor(Color.TRANSPARENT)
-            .takeIf { it != Color.TRANSPARENT && it != 0 }
-        ?: this?.getLightMutedColor(Color.TRANSPARENT)
-            .takeIf { it != Color.TRANSPARENT && it != 0 }
-        ?: dominantColor
+    ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT && it != 0 }
+    ?: dominantColor
 }
 
 fun Context.getAppCompatActivity(): AppCompatActivity? {
@@ -332,7 +453,7 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
     override suspend fun transform(input: Bitmap, size: coil.size.Size): Bitmap {
         val scaleFactor = 8
         val w = (input.width / scaleFactor).coerceAtLeast(1)
-        val h = (input.height / scaleFactor).coerceAtLeast(1)
+        val h = (input.height / scaleFactor).toInt().coerceAtLeast(1)
         val small = input.scale(w, h, true)
         val r = (radius / scaleFactor).toInt().coerceAtLeast(1)
         val pix = IntArray(w * h)

@@ -17,6 +17,7 @@
         android:layout_below="@id/customToolbar"
         android:clipToPadding="false"
         android:paddingTop="10dp"
+        android:paddingBottom="90dp"
         android:scrollbars="vertical"
         android:fadeScrollbars="true"
         android:scrollbarDefaultDelayBeforeFade="500"

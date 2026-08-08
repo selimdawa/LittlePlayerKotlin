@@ -13,7 +13,9 @@ import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlaylistDetailsBinding
 import com.flatcode.littleplayer.databinding.DialogConfirmDeleteBinding
 import com.flatcode.littleplayer.databinding.DialogPlaylistNewBinding
+import com.flatcode.littleplayer.fragment.SortSongsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.observePlaybackSync
@@ -57,6 +59,17 @@ class PlaylistDetailsActivity : AppCompatActivity() {
             isVisible = true
             setOnClickListener { showPlaylistOptionsDialog() }
         }
+        binding.toolbarItems.btnFilterSort.apply {
+            isVisible = true
+            setOnClickListener {
+                val bottomSheet = SortSongsBottomSheet(
+                    DATA.PLAYLIST_DETAILS, viewModel.songsSortOrder.value
+                ) { category, sortType ->
+                    viewModel.updateSortOrder(category, sortType)
+                }
+                bottomSheet.show(supportFragmentManager, "SortSongsBottomSheet")
+            }
+        }
     }
 
     private fun observeViewModel() {
@@ -82,9 +95,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showPlaylistOptionsDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_playlist_options, null)
-        val alertDialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogView)
-            .create()
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogView).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 
@@ -110,9 +121,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showDeletePlaylistDialog() {
         val dialogBinding = DialogConfirmDeleteBinding.inflate(layoutInflater)
-        val alertDialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogBinding.root)
-            .create()
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 
@@ -135,9 +144,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showRenamePlaylistDialog() {
         val dialogBinding = DialogPlaylistNewBinding.inflate(layoutInflater)
-        val alertDialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogBinding.root)
-            .create()
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 
@@ -171,9 +178,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showRemoveSongDialog(song: MusicFiles) {
         val view = layoutInflater.inflate(R.layout.dialog_confirm_remove, null)
-        val alertDialog = MaterialAlertDialogBuilder(this)
-            .setView(view)
-            .create()
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(view).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 

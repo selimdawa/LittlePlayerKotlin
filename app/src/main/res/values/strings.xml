@@ -27,8 +27,10 @@
     <string name="recent">Recent</string>
     <string name="search">Search…</string>
     <string name="sort_songs">Sort songs</string>
+    <string name="sort_playlists">Sort playlists</string>
     <string name="by_adding_time">By adding time</string>
-    <string name="by_name">By Name</string>
+    <string name="by_name">By name</string>
+    <string name="by_song_count">By song count</string>
     <string name="by_play_count">By the number of time played</string>
     <string name="by_release_date">By release date</string>
     <string name="by_size">By size</string>

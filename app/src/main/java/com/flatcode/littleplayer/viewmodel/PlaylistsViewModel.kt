@@ -30,11 +30,21 @@ class PlaylistsViewModel @Inject constructor(
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
     val playlists: StateFlow<List<Playlist>> = _playlists.asStateFlow()
 
+    private val _playlistsSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
+    val playlistsSortOrder: StateFlow<String> = _playlistsSortOrder.asStateFlow()
+
     private val _playlistNames = MutableStateFlow<List<String>>(emptyList())
     val playlistNames: StateFlow<List<String>> = _playlistNames.asStateFlow()
 
     init {
         syncPlaylists()
+
+        viewModelScope.launch {
+            musicRepository.getSortOrder(DATA.PLAYLISTS).collect {
+                _playlistsSortOrder.value = it
+            }
+        }
+
         viewModelScope.launch {
             repository.getAllPlaylistNames().collect {
                 _playlistNames.value = it
@@ -43,14 +53,23 @@ class PlaylistsViewModel @Inject constructor(
 
         @OptIn(ExperimentalCoroutinesApi::class)
         viewModelScope.launch {
-            repository.getAllPlaylistNames().flatMapLatest { names ->
-                if (names.isEmpty()) flowOf(emptyList())
-                else combine(names.map { name ->
-                    repository.getSongsFromPlaylist(name).map { songs ->
-                        val realSongs = songs.filter { it.songId.isNotEmpty() }
-                        Playlist(name, realSongs.size, realSongs.firstOrNull()?.path)
-                    }
-                }) { it.toList() }
+            combine(
+                repository.getAllPlaylistNames().flatMapLatest { names ->
+                    if (names.isEmpty()) flowOf(emptyList())
+                    else combine(names.map { name ->
+                        repository.getSongsFromPlaylist(name).map { songs ->
+                            val realSongs = songs.filter { it.songId.isNotEmpty() }
+                            Playlist(name, realSongs.size, realSongs.firstOrNull()?.path)
+                        }
+                    }) { it.toList() }
+                },
+                _playlistsSortOrder
+            ) { playlists, sortOrder ->
+                when (sortOrder) {
+                    DATA.SORT_BY_NAME -> playlists.sortedBy { it.name.lowercase() }
+                    DATA.SORT_BY_SIZE -> playlists.sortedByDescending { it.songCount }
+                    else -> playlists
+                }
             }.collect {
                 _playlists.value = it
             }
@@ -94,6 +113,12 @@ class PlaylistsViewModel @Inject constructor(
     fun renamePlaylist(oldName: String, newName: String) {
         viewModelScope.launch {
             repository.renamePlaylist(oldName, newName)
+        }
+    }
+
+    fun updateSortOrder(category: String, sortType: String) {
+        viewModelScope.launch {
+            musicRepository.saveSortOrder(category, sortType)
         }
     }
 

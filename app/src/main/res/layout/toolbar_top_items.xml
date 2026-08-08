@@ -59,6 +59,7 @@
             android:focusable="true"
             android:padding="4dp"
             android:src="@drawable/ic_sort"
+            android:visibility="gone"
             app:tint="?attr/mc_track" />
 
         <ImageView

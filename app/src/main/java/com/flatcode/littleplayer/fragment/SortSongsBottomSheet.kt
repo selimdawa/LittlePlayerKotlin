@@ -94,6 +94,14 @@ class SortSongsBottomSheet(
             binding.sortByReleaseDate.visibility = View.GONE
             binding.sortBySize.visibility = View.GONE
         }
+
+        if (category == DATA.PLAYLISTS) {
+            binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_playlists)
+            binding.sortByDate.visibility = View.GONE
+            binding.sortByPlayCount.visibility = View.GONE
+            binding.sortByReleaseDate.visibility = View.GONE
+            binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+        }
     }
 
     override fun onStart() {

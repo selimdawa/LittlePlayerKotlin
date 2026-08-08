@@ -13,6 +13,8 @@ object DATA {
     const val ALBUMS = "Albums"
     const val ARTISTS = "Artists"
     const val FOLDERS = "Folders"
+    const val PLAYLISTS = "Playlists"
+    const val PLAYLIST_DETAILS = "PlaylistDetails"
     const val POSITION = "position"
 
     // Media Keys

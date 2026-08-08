@@ -10,11 +10,18 @@
         android:id="@+id/customToolbar"
         layout="@layout/toolbar_custom" />
 
+    <include
+        android:id="@+id/toolbarItems"
+        layout="@layout/toolbar_top_items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/customToolbar" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/customToolbar"
+        android:layout_below="@id/toolbarItems"
         android:clipToPadding="false"
         android:paddingTop="10dp"
         android:paddingBottom="90dp"
