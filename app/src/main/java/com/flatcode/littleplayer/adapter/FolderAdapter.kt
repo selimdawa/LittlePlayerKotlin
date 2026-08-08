@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemFolderBinding
 import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.utils.FastScrollableAdapter
@@ -25,7 +26,11 @@ class FolderAdapter(
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
         val folder = folderList[position]
         holder.binding.folderName.text = folder.name
-        holder.binding.folderDetails.text = "${folder.songsCount} songs | ${folder.path}"
+        
+        val context = holder.itemView.context
+        val songCount = folder.songsCount
+        val songsText = context.resources.getQuantityString(R.plurals.songs_count, songCount, songCount)
+        holder.binding.folderDetails.text = context.getString(R.string.folder_details_format, songsText, folder.path)
 
         holder.itemView.setOnClickListener {
             onItemClick(folder.name, folder.path, holder.itemView)

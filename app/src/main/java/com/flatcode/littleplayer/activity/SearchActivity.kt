@@ -35,7 +35,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.customToolbar.backBtn.setOnClickListener { finish() }
+        binding.customToolbar.backBtn.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
 
         val searchEditText = binding.customToolbar.searchEditText
         searchEditText.requestFocus()

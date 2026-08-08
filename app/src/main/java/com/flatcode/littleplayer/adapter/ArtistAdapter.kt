@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemArtistBinding
 import com.flatcode.littleplayer.model.Artist
 
@@ -27,8 +28,10 @@ class ArtistAdapter(
     override fun onBindViewHolder(holder: ArtistViewHolder, position: Int) {
         val artist = artistList[position]
         holder.binding.artistName.text = artist.name
-        holder.binding.songsCount.text =
-            if (artist.songsCount == 1) "1 song" else "${artist.songsCount} songs"
+        
+        val context = holder.itemView.context
+        val songCount = artist.songsCount
+        holder.binding.songsCount.text = context.resources.getQuantityString(R.plurals.songs_count, songCount, songCount)
 
         holder.itemView.setOnClickListener {
             onItemClick(artist.name, holder.itemView)
