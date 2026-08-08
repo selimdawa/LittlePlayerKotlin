@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/create_new_playlist"
-            android:textColor="?attr/mc_track"
+            android:textColor="?attr/colorError"
             android:textSize="@dimen/dialog_item_text_size" />
 
         <ImageView
@@ -62,7 +62,8 @@
             android:layout_height="@dimen/icon_size_small"
             android:contentDescription="@null"
             android:src="@drawable/ic_navigate_next"
-            app:tint="?attr/mc_track" />
+            app:tint="?attr/colorError" />
+
     </LinearLayout>
 
 </LinearLayout>

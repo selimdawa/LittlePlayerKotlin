@@ -66,6 +66,7 @@ class SleepTimerBottomSheet(
 
         dialog.setOnShowListener {
             dialog.window?.setBackgroundDrawableResource(transparent)
+            dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
             dialogBinding.editText.requestFocus()
             dialogBinding.editText.showKeyboard()
         }

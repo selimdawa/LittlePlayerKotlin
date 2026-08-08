@@ -10,7 +10,6 @@
     android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="@dimen/dialog_padding"
     android:paddingVertical="@dimen/dialog_item_padding">
 
     <ImageView
@@ -19,7 +18,7 @@
         android:layout_marginEnd="@dimen/spacing_12"
         android:contentDescription="@null"
         android:src="@drawable/ic_music"
-        app:tint="?attr/mc_track" />
+        app:tint="?attr/colorError" />
 
     <TextView
         android:id="@+id/name"
