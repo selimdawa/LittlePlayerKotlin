@@ -114,6 +114,9 @@
     <string name="clear_recent_history_desc">Deletes the list of your most recently played songs.</string>
     <string name="art_cache_cleared">Album art cache cleared</string>
     <string name="history_cleared">Recent history cleared</string>
+    <string name="blinding_lights">Blinding Lights</string>
+    <string name="the_weeknd">The Weeknd</string>
+    <string name="mb_format">%1$.2f MB</string>
 
     <string name="show_song_toast">Show Song Toast</string>
     <string name="show_song_toast_desc">Show a popup message with song title when a new song starts.</string>

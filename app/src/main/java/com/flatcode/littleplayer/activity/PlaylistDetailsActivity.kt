@@ -3,7 +3,6 @@ package com.flatcode.littleplayer.activity
 import android.R.color.transparent
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +18,7 @@ import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.observePlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
+import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsViewModel
@@ -82,7 +82,11 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showPlaylistOptionsDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_playlist_options, null)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogView).create()
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create()
+
+        alertDialog.setCanceledOnTouchOutside(false)
 
         val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
         val btnEdit = dialogView.findViewById<View>(R.id.btnEdit)
@@ -106,7 +110,11 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showDeletePlaylistDialog() {
         val dialogBinding = DialogConfirmDeleteBinding.inflate(layoutInflater)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        alertDialog.setCanceledOnTouchOutside(false)
 
         dialogBinding.dialogMessage.text =
             getString(R.string.delete_playlist_message, currentPlaylistName)
@@ -127,7 +135,11 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showRenamePlaylistDialog() {
         val dialogBinding = DialogPlaylistNewBinding.inflate(layoutInflater)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogBinding.root)
+            .create()
+
+        alertDialog.setCanceledOnTouchOutside(false)
 
         dialogBinding.dialogTitle.text = getString(R.string.rename_playlist)
         dialogBinding.editText.setText(currentPlaylistName)
@@ -136,8 +148,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
         alertDialog.window?.setBackgroundDrawableResource(transparent)
         alertDialog.setOnShowListener {
             dialogBinding.editText.requestFocus()
-            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(dialogBinding.editText, InputMethodManager.SHOW_IMPLICIT)
+            dialogBinding.editText.showKeyboard()
         }
 
         dialogBinding.btnCreate.setOnClickListener {
@@ -160,7 +171,11 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun showRemoveSongDialog(song: MusicFiles) {
         val view = layoutInflater.inflate(R.layout.dialog_confirm_remove, null)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(view).create()
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(view)
+            .create()
+
+        alertDialog.setCanceledOnTouchOutside(false)
 
         val tvMessage = view.findViewById<TextView>(R.id.dialogMessage)
         val btnRemove = view.findViewById<MaterialButton>(R.id.btnRemove)

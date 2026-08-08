@@ -20,7 +20,7 @@
         android:contentDescription="@null"
         android:focusable="true"
         android:padding="4dp"
-        android:src="@drawable/ic_more"
+        android:src="@drawable/ic_more_horizontal"
         android:visibility="gone"
         app:tint="?attr/colorError" />
 

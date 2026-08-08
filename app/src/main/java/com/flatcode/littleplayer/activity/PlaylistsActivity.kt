@@ -3,7 +3,6 @@ package com.flatcode.littleplayer.activity
 import android.R.color.transparent
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -11,11 +10,10 @@ import androidx.core.view.isVisible
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.PlaylistAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlaylistsBinding
-import com.flatcode.littleplayer.databinding.DialogConfirmDeleteBinding
-import com.flatcode.littleplayer.databinding.DialogPlaylistNewBinding
 import com.flatcode.littleplayer.model.Playlist
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -54,9 +52,13 @@ class PlaylistsActivity : AppCompatActivity() {
         }
     }
 
-    private fun showPlaylistOptionsDialog(playlist: Playlist, position: Int) {
+    private fun showPlaylistOptionsDialog(playlist: Playlist) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_playlist_options, null)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogView).create()
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create()
+
+        alertDialog.setCanceledOnTouchOutside(false)
 
         val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
         val btnEdit = dialogView.findViewById<View>(R.id.btnEdit)
@@ -71,30 +73,34 @@ class PlaylistsActivity : AppCompatActivity() {
 
         btnRemove.setOnClickListener {
             alertDialog.dismiss()
-            showDeletePlaylistDialog(playlist.name, position)
+            showDeletePlaylistDialog(playlist.name)
         }
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
         alertDialog.show()
     }
 
-    private fun showDeletePlaylistDialog(name: String, position: Int) {
-        val dialogBinding = DialogConfirmDeleteBinding.inflate(layoutInflater)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
+    private fun showDeletePlaylistDialog(name: String) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm_delete, null)
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create()
 
-        dialogBinding.dialogMessage.text = getString(R.string.delete_playlist_message, name)
+        alertDialog.setCanceledOnTouchOutside(false)
 
-        dialogBinding.btnDelete.setOnClickListener {
+        val dialogMessage = dialogView.findViewById<TextView>(R.id.dialogMessage)
+        val btnDelete = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDelete)
+        val btnCancel = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+
+        dialogMessage.text = getString(R.string.delete_playlist_message, name)
+
+        btnDelete.setOnClickListener {
             viewModel.deletePlaylist(name)
             alertDialog.dismiss()
         }
 
-        dialogBinding.btnCancel.setOnClickListener {
+        btnCancel.setOnClickListener {
             alertDialog.dismiss()
-        }
-
-        alertDialog.setOnDismissListener {
-            binding.recyclerView.adapter?.notifyItemChanged(position)
         }
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
@@ -102,31 +108,37 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun showRenamePlaylistDialog(oldName: String) {
-        val dialogBinding = DialogPlaylistNewBinding.inflate(layoutInflater)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_playlist_new, null)
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create()
 
-        dialogBinding.dialogTitle.text = getString(R.string.rename_playlist)
-        dialogBinding.editText.setText(oldName)
-        dialogBinding.btnCreate.text = getString(R.string.rename)
+        alertDialog.setCanceledOnTouchOutside(false)
+
+        val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
+        val editText = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editText)
+        val btnCreate = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCreate)
+        val btnCancel = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+
+        dialogTitle.text = getString(R.string.rename_playlist)
+        editText.setText(oldName)
+        btnCreate.text = getString(R.string.rename)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
         alertDialog.setOnShowListener {
-            dialogBinding.editText.requestFocus()
-            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(
-                dialogBinding.editText, InputMethodManager.SHOW_IMPLICIT
-            )
+            editText.requestFocus()
+            editText.showKeyboard()
         }
 
-        dialogBinding.btnCreate.setOnClickListener {
-            val newName = dialogBinding.editText.text.toString()
+        btnCreate.setOnClickListener {
+            val newName = editText.text.toString()
             if (newName.isNotEmpty() && newName != oldName) {
                 viewModel.renamePlaylist(oldName, newName)
                 alertDialog.dismiss()
             }
         }
 
-        dialogBinding.btnCancel.setOnClickListener {
+        btnCancel.setOnClickListener {
             alertDialog.dismiss()
         }
 
@@ -134,29 +146,35 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun showCreatePlaylistDialog() {
-        val dialogBinding = DialogPlaylistNewBinding.inflate(layoutInflater)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_playlist_new, null)
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .create()
 
-        dialogBinding.dialogTitle.text = getString(R.string.new_playlist)
+        alertDialog.setCanceledOnTouchOutside(false)
+
+        val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
+        val editText = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editText)
+        val btnCreate = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCreate)
+        val btnCancel = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+
+        dialogTitle.text = getString(R.string.new_playlist)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
         alertDialog.setOnShowListener {
-            dialogBinding.editText.requestFocus()
-            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(
-                dialogBinding.editText, InputMethodManager.SHOW_IMPLICIT
-            )
+            editText.requestFocus()
+            editText.showKeyboard()
         }
 
-        dialogBinding.btnCreate.setOnClickListener {
-            val name = dialogBinding.editText.text.toString()
+        btnCreate.setOnClickListener {
+            val name = editText.text.toString()
             if (name.isNotEmpty()) {
                 viewModel.createPlaylist(name)
                 alertDialog.dismiss()
             }
         }
 
-        dialogBinding.btnCancel.setOnClickListener {
+        btnCancel.setOnClickListener {
             alertDialog.dismiss()
         }
 
@@ -169,13 +187,16 @@ class PlaylistsActivity : AppCompatActivity() {
         viewModel.playlists.collectWithLifecycle(this) { playlists ->
             binding.emptyState.isVisible = playlists.isEmpty()
             if (adapter == null) {
-                adapter = PlaylistAdapter(onItemClick = { playlistName ->
-                    launchActivity<PlaylistDetailsActivity> {
-                        putExtra("PLAYLIST_NAME", playlistName)
+                adapter = PlaylistAdapter(
+                    onItemClick = { playlistName ->
+                        launchActivity<PlaylistDetailsActivity> {
+                            putExtra("PLAYLIST_NAME", playlistName)
+                        }
+                    },
+                    onMoreClick = { playlist, _ ->
+                        showPlaylistOptionsDialog(playlist)
                     }
-                }, onMoreClick = { playlist, position ->
-                    showPlaylistOptionsDialog(playlist, position)
-                })
+                )
                 binding.recyclerView.adapter = adapter
             }
             adapter?.submitList(playlists)

@@ -13,7 +13,7 @@ import com.flatcode.littleplayer.utils.loadSongImageByPath
 
 class PlaylistAdapter(
     private val onItemClick: (String) -> Unit,
-    private val onMoreClick: (Playlist, Int) -> Unit
+    private val onMoreClick: (Playlist, Int) -> Unit,
 ) : ListAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder>(PlaylistDiffCallback()) {
 
     class PlaylistViewHolder(val binding: ItemPlaylistBinding) :
@@ -41,6 +41,11 @@ class PlaylistAdapter(
 
         holder.binding.foregroundCard.setOnClickListener {
             onItemClick(playlist.name)
+        }
+
+        holder.binding.foregroundCard.setOnLongClickListener {
+            onMoreClick(playlist, holder.bindingAdapterPosition)
+            true
         }
     }
 
