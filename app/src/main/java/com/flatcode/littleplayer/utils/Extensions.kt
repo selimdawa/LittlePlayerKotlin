@@ -34,6 +34,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.palette.graphics.Palette
 import coil.load
 import coil.size.Scale
 import coil.transform.Transformation
@@ -121,7 +122,7 @@ fun LifecycleOwner.observePlaybackSync(
 fun AppCompatActivity.initToolbar(title: String? = null) {
     findViewById<MaterialToolbar>(R.id.customToolbar)?.apply {
         title?.let { this.title = it }
-        setNavigationOnClickListener { finish() }
+        setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
     }
 }
 
@@ -301,6 +302,26 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
         e.printStackTrace()
         null
     }
+}
+
+fun Int.ensureBrightColor(): Int {
+    val hsv = FloatArray(3)
+    Color.colorToHSV(this, hsv)
+    if (hsv[2] < 0.6f) { // If brightness is too low
+        hsv[2] = 0.6f // Set minimum brightness
+    }
+    return Color.HSVToColor(hsv)
+}
+
+fun Palette?.extractVibrantColor(): Int {
+    val dominantColor = this?.getDominantColor(Color.GRAY) ?: Color.GRAY
+    return this?.getLightVibrantColor(Color.TRANSPARENT)
+        .takeIf { it != Color.TRANSPARENT && it != 0 }
+        ?: this?.getVibrantColor(Color.TRANSPARENT)
+            .takeIf { it != Color.TRANSPARENT && it != 0 }
+        ?: this?.getLightMutedColor(Color.TRANSPARENT)
+            .takeIf { it != Color.TRANSPARENT && it != 0 }
+        ?: dominantColor
 }
 
 fun Context.getAppCompatActivity(): AppCompatActivity? {
