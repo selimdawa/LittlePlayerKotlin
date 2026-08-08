@@ -216,7 +216,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
             color?.let {
                 currentDominantColor = it
-                binding.paletteColor.setCardBackgroundColor(it)
+                binding.paletteColor.setCardBackgroundColor(it.ensureBrightColor())
                 if (currentMode == DATA.MODE_PALETTE) {
                     applyCurrentModeColors()
                 }
@@ -270,7 +270,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     Palette.from(bitmap).generate { palette ->
                         currentDominantColor = palette.extractVibrantColor()
 
-                        binding.paletteColor.setCardBackgroundColor(currentDominantColor)
+                        binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
                         nowPlayerViewModel.updateThemeColor(currentDominantColor)
 
                         if (currentMode == DATA.MODE_PALETTE) {
