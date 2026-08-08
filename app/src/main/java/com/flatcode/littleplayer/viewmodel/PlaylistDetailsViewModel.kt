@@ -8,8 +8,10 @@ import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -80,6 +82,17 @@ class PlaylistDetailsViewModel @Inject constructor(
         _playlistName.value = playlistName
     }
 
+    fun shuffleSongs() {
+        val currentSongs = _songs.value
+        if (currentSongs.isNotEmpty()) {
+            val shuffled = currentSongs.shuffled()
+            musicRepository.updateCurrentPlaylist(shuffled)
+            viewModelScope.launch {
+                _event.emit(PlaylistDetailsEvent.PlaySong(0))
+            }
+        }
+    }
+
     fun updateSortOrder(category: String, sortType: String) {
         viewModelScope.launch {
             musicRepository.saveSortOrder(category, sortType)
@@ -91,4 +104,11 @@ class PlaylistDetailsViewModel @Inject constructor(
             repository.deleteFromPlaylist(playlistName, songId)
         }
     }
+
+    private val _event = MutableSharedFlow<PlaylistDetailsEvent>()
+    val event = _event.asSharedFlow()
+}
+
+sealed class PlaylistDetailsEvent {
+    data class PlaySong(val position: Int) : PlaylistDetailsEvent()
 }

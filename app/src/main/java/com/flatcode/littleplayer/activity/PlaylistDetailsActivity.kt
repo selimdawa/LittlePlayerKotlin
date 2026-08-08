@@ -23,6 +23,7 @@ import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import com.flatcode.littleplayer.viewmodel.PlaylistDetailsEvent
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
 import com.google.android.material.button.MaterialButton
@@ -59,6 +60,12 @@ class PlaylistDetailsActivity : AppCompatActivity() {
             isVisible = true
             setOnClickListener { showPlaylistOptionsDialog() }
         }
+        binding.toolbarItems.btnShuffle.setOnClickListener {
+            viewModel.shuffleSongs()
+        }
+        binding.toolbarItems.btnShufflePlayback.setOnClickListener {
+            viewModel.shuffleSongs()
+        }
         binding.toolbarItems.btnFilterSort.apply {
             isVisible = true
             setOnClickListener {
@@ -74,19 +81,25 @@ class PlaylistDetailsActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.songs.collectWithLifecycle(this) { songs ->
-            if (songs.isNotEmpty()) {
-                if (adapter == null) {
-                    adapter = MusicAdapter(this, onItemClick = { _, position, view ->
-                        musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                        openPlayer(position, view)
-                    }, onDeleteClick = { song ->
-                        musicViewModel.deleteSong(song)
-                    }, onRemoveFromPlaylistClick = { song ->
-                        showRemoveSongDialog(song)
-                    })
-                    binding.recyclerView.adapter = adapter
+            if (adapter == null) {
+                adapter = MusicAdapter(this, onItemClick = { _, position, view ->
+                    musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                    openPlayer(position, view)
+                }, onDeleteClick = { song ->
+                    musicViewModel.deleteSong(song)
+                }, onRemoveFromPlaylistClick = { song ->
+                    viewModel.removeSongFromPlaylist(currentPlaylistName, song.id ?: "")
+                })
+                binding.recyclerView.adapter = adapter
+            }
+            adapter?.submitList(songs)
+        }
+
+        viewModel.event.collectWithLifecycle(this) { event ->
+            when (event) {
+                is PlaylistDetailsEvent.PlaySong -> {
+                    openPlayer(event.position)
                 }
-                adapter?.submitList(songs)
             }
         }
 
@@ -173,32 +186,6 @@ class PlaylistDetailsActivity : AppCompatActivity() {
             alertDialog.dismiss()
         }
 
-        alertDialog.show()
-    }
-
-    private fun showRemoveSongDialog(song: MusicFiles) {
-        val view = layoutInflater.inflate(R.layout.dialog_confirm_remove, null)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(view).create()
-
-        alertDialog.setCanceledOnTouchOutside(false)
-
-        val tvMessage = view.findViewById<TextView>(R.id.dialogMessage)
-        val btnRemove = view.findViewById<MaterialButton>(R.id.btnRemove)
-        val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
-
-        tvMessage.text = getString(R.string.remove_song_from_playlist_message, song.title)
-
-        btnRemove.setOnClickListener {
-            val playlistName = intent.getStringExtra("PLAYLIST_NAME") ?: "Playlist"
-            viewModel.removeSongFromPlaylist(playlistName, song.id ?: "")
-            alertDialog.dismiss()
-        }
-
-        btnCancel.setOnClickListener {
-            alertDialog.dismiss()
-        }
-
-        alertDialog.window?.setBackgroundDrawableResource(transparent)
         alertDialog.show()
     }
 }

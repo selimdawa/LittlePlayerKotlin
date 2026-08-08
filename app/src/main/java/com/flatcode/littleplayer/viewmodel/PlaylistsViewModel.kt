@@ -11,8 +11,10 @@ import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -33,8 +35,8 @@ class PlaylistsViewModel @Inject constructor(
     private val _playlistsSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
     val playlistsSortOrder: StateFlow<String> = _playlistsSortOrder.asStateFlow()
 
-    private val _playlistNames = MutableStateFlow<List<String>>(emptyList())
-    val playlistNames: StateFlow<List<String>> = _playlistNames.asStateFlow()
+    private val _event = MutableSharedFlow<PlaylistsEvent>()
+    val event = _event.asSharedFlow()
 
     init {
         syncPlaylists()
@@ -42,12 +44,6 @@ class PlaylistsViewModel @Inject constructor(
         viewModelScope.launch {
             musicRepository.getSortOrder(DATA.PLAYLISTS).collect {
                 _playlistsSortOrder.value = it
-            }
-        }
-
-        viewModelScope.launch {
-            repository.getAllPlaylistNames().collect {
-                _playlistNames.value = it
             }
         }
 
@@ -72,6 +68,30 @@ class PlaylistsViewModel @Inject constructor(
                 }
             }.collect {
                 _playlists.value = it
+            }
+        }
+    }
+
+    fun shufflePlaylists() {
+        val allPlaylists = _playlists.value
+        if (allPlaylists.isNotEmpty()) {
+            val randomPlaylist = allPlaylists.random()
+            viewModelScope.launch {
+                repository.getSongsFromPlaylistSync(randomPlaylist.name).let { entities ->
+                    val songs = entities.filter { it.songId.isNotEmpty() }.map {
+                        MusicFiles(
+                            id = it.songId,
+                            title = it.title,
+                            albumId = it.albumId,
+                            artist = it.artist,
+                            path = it.path
+                        )
+                    }
+                    if (songs.isNotEmpty()) {
+                        musicRepository.updateCurrentPlaylist(songs.shuffled())
+                        _event.emit(PlaylistsEvent.PlaySong(0))
+                    }
+                }
             }
         }
     }
@@ -136,4 +156,8 @@ class PlaylistsViewModel @Inject constructor(
             musicRepository.syncPlaylistsWithMediaStore()
         }
     }
+}
+
+sealed class PlaylistsEvent {
+    data class PlaySong(val position: Int) : PlaylistsEvent()
 }

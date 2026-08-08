@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.PlaylistAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlaylistsBinding
@@ -15,12 +16,15 @@ import com.flatcode.littleplayer.model.Playlist
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import com.flatcode.littleplayer.viewmodel.PlaylistsEvent
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
+@UnstableApi
 @AndroidEntryPoint
 class PlaylistsActivity : AppCompatActivity() {
 
@@ -50,6 +54,12 @@ class PlaylistsActivity : AppCompatActivity() {
         binding.toolbarItems.btnAdd.apply {
             isVisible = true
             setOnClickListener { showCreatePlaylistDialog() }
+        }
+        binding.toolbarItems.btnShuffle.setOnClickListener {
+            viewModel.shufflePlaylists()
+        }
+        binding.toolbarItems.btnShufflePlayback.setOnClickListener {
+            viewModel.shufflePlaylists()
         }
         binding.toolbarItems.btnFilterSort.apply {
             isVisible = true
@@ -209,6 +219,14 @@ class PlaylistsActivity : AppCompatActivity() {
                 binding.recyclerView.adapter = adapter
             }
             adapter?.submitList(playlists)
+        }
+
+        viewModel.event.collectWithLifecycle(this) { event ->
+            when (event) {
+                is PlaylistsEvent.PlaySong -> {
+                    openPlayer(event.position)
+                }
+            }
         }
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
