@@ -91,6 +91,16 @@ class PlaylistDetailsActivity : AppCompatActivity() {
                     viewModel.removeSongFromPlaylist(currentPlaylistName, song.id ?: "")
                 })
                 binding.recyclerView.adapter = adapter
+
+                // Sync initial playback state
+                adapter?.updatePlaybackState(
+                    nowPlayerViewModel.currentPlayingSong.value?.path,
+                    nowPlayerViewModel.isPlaying.value
+                )
+                adapter?.updateThemeState(
+                    nowPlayerViewModel.themeColorMode.value,
+                    nowPlayerViewModel.currentThemeColor.value ?: android.graphics.Color.WHITE
+                )
             }
             adapter?.submitList(songs)
         }
@@ -166,6 +176,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
         dialogBinding.btnCreate.text = getString(R.string.rename)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
+        alertDialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         alertDialog.setOnShowListener {
             dialogBinding.editText.requestFocus()
             dialogBinding.editText.showKeyboard()

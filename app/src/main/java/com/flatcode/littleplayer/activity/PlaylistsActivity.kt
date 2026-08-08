@@ -146,6 +146,7 @@ class PlaylistsActivity : AppCompatActivity() {
         btnCreate.text = getString(R.string.rename)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
+        alertDialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         alertDialog.setOnShowListener {
             editText.requestFocus()
             editText.showKeyboard()
@@ -183,6 +184,7 @@ class PlaylistsActivity : AppCompatActivity() {
         dialogTitle.text = getString(R.string.new_playlist)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
+        alertDialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         alertDialog.setOnShowListener {
             editText.requestFocus()
             editText.showKeyboard()

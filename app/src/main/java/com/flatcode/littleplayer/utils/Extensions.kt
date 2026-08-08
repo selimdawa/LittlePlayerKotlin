@@ -39,6 +39,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -213,6 +215,7 @@ fun <T> Flow<T>.collectWithLifecycle(
 
 interface PlaybackAnimatable {
     fun updatePlaybackState(path: String?, isPlaying: Boolean)
+    fun updateThemeState(mode: Int, color: Int)
 }
 
 @UnstableApi
@@ -239,6 +242,16 @@ fun LifecycleOwner.observePlaybackSync(
     nowPlayerViewModel.isPlaying.collectWithLifecycle(this) { isPlaying ->
         adapterProvider()?.updatePlaybackState(
             nowPlayerViewModel.currentPlayingSong.value?.path, isPlaying
+        )
+    }
+    nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { mode ->
+        adapterProvider()?.updateThemeState(
+            mode, nowPlayerViewModel.currentThemeColor.value ?: Color.WHITE
+        )
+    }
+    nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
+        adapterProvider()?.updateThemeState(
+            nowPlayerViewModel.themeColorMode.value, color ?: Color.WHITE
         )
     }
 }
@@ -400,8 +413,14 @@ fun Fragment.requestDeletion(
 typealias ActivityLauncher = ActivityResultLauncher<IntentSenderRequest>
 
 fun View.showKeyboard() {
-    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.showSoftInput(this, 0)
+    requestFocus()
+    val activity = context.getAppCompatActivity()
+    if (activity != null) {
+        WindowCompat.getInsetsController(activity.window, this).show(WindowInsetsCompat.Type.ime())
+    } else {
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(this, 0)
+    }
 }
 
 fun getAlbumArtBytes(path: String?): ByteArray? {

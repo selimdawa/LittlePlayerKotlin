@@ -66,6 +66,7 @@ class PlaylistSelectionBottomSheet(
 
         dialog.setCanceledOnTouchOutside(false)
         dialog.window?.setBackgroundDrawableResource(transparent)
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
 
         dialogBinding.btnCreate.setOnClickListener {
             val name = dialogBinding.editText.text.toString().trim()

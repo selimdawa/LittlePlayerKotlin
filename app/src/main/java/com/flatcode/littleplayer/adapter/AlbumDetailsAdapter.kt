@@ -4,43 +4,20 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollableAdapter
-import com.flatcode.littleplayer.utils.PlaybackAnimatable
-import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.utils.visible
 
 class AlbumDetailsAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int) -> Unit
-) : ListAdapter<MusicFiles, AlbumDetailsAdapter.AlbumDetailsViewHolder>(AlbumDetailsDiffCallback()),
-    PlaybackAnimatable, FastScrollableAdapter {
-
-    private var playingPath: String? = null
-    private var isPlaying: Boolean = false
-
-    override fun updatePlaybackState(path: String?, isPlaying: Boolean) {
-        val oldPath = this.playingPath
-        val oldPlaying = this.isPlaying
-
-        this.playingPath = path
-        this.isPlaying = isPlaying
-
-        if ((oldPath != path) || (oldPlaying != isPlaying)) {
-            currentList.forEachIndexed { index, musicFiles ->
-                if ((musicFiles.path == oldPath) || (musicFiles.path == path)) {
-                    notifyItemChanged(index)
-                }
-            }
-        }
-    }
+) : BaseMusicAdapter<AlbumDetailsAdapter.AlbumDetailsViewHolder>(AlbumDetailsDiffCallback()),
+    FastScrollableAdapter {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlbumDetailsViewHolder {
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
@@ -65,11 +42,7 @@ class AlbumDetailsAdapter(
             currentFile.albumId, 50, currentFile.path, currentFile.cachedImagePath
         )
 
-        if ((currentFile.path == playingPath) && isPlaying) {
-            holder.binding.wave.visible()
-        } else {
-            holder.binding.wave.gone()
-        }
+        holder.binding.applyTheme(context, currentFile.path)
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition)

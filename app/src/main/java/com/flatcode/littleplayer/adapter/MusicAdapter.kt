@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
@@ -13,40 +12,17 @@ import com.flatcode.littleplayer.fragment.SongOptionsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollableAdapter
-import com.flatcode.littleplayer.utils.PlaybackAnimatable
 import com.flatcode.littleplayer.utils.getAppCompatActivity
-import com.flatcode.littleplayer.utils.getLibraryColor
-import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.utils.visible
 
 class MusicAdapter(
     private val context: Context,
     private val onItemClick: (MusicFiles, Int, View) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit,
     private val onRemoveFromPlaylistClick: ((MusicFiles) -> Unit)? = null,
-) : ListAdapter<MusicFiles, MusicAdapter.MusicViewHolder>(MusicDiffCallback()), PlaybackAnimatable,
+) : BaseMusicAdapter<MusicAdapter.MusicViewHolder>(MusicDiffCallback()),
     FastScrollableAdapter {
-
-    private var playingPath: String? = null
-    private var isPlaying: Boolean = false
-
-    override fun updatePlaybackState(path: String?, isPlaying: Boolean) {
-        val oldPath = this.playingPath
-        val oldPlaying = this.isPlaying
-
-        this.playingPath = path
-        this.isPlaying = isPlaying
-
-        if ((oldPath != path) || (oldPlaying != isPlaying)) {
-            currentList.forEachIndexed { index, musicFiles ->
-                if ((musicFiles.path == oldPath) || (musicFiles.path == path)) {
-                    notifyItemChanged(index)
-                }
-            }
-        }
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
@@ -69,15 +45,7 @@ class MusicAdapter(
             currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath
         )
 
-        if ((currentFile.path == playingPath) && isPlaying) {
-            holder.binding.wave.visible()
-            val trackColor = context.getLibraryColor("mc_track")
-            holder.binding.wave.startColor = trackColor
-            holder.binding.songName.setTextColor(trackColor)
-        } else {
-            holder.binding.wave.gone()
-            holder.binding.songName.setTextColor(context.getLibraryColor("colorError"))
-        }
+        holder.binding.applyTheme(context, currentFile.path)
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition, holder.binding.image)
