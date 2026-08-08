@@ -63,7 +63,7 @@ class PlaylistsViewModel @Inject constructor(
             ) { playlists, sortOrder ->
                 when (sortOrder) {
                     DATA.SORT_BY_NAME -> playlists.sortedBy { it.name.lowercase() }
-                    DATA.SORT_BY_SIZE -> playlists.sortedByDescending { it.songCount }
+                    DATA.SORT_BY_SONG_COUNT, DATA.SORT_BY_SIZE -> playlists.sortedByDescending { it.songCount }
                     else -> playlists
                 }
             }.collect {

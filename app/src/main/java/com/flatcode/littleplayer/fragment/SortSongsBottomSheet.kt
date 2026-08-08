@@ -62,6 +62,12 @@ class SortSongsBottomSheet(
                 binding.checkBySize.setColorFilter(trackColor)
                 binding.textBySize.setTextColor(trackColor)
             }
+
+            DATA.SORT_BY_SONG_COUNT -> {
+                binding.checkBySize.visible()
+                binding.checkBySize.setColorFilter(trackColor)
+                binding.textBySize.setTextColor(trackColor)
+            }
         }
 
         binding.sortByDate.setOnClickListener {
@@ -85,14 +91,16 @@ class SortSongsBottomSheet(
         }
 
         binding.sortBySize.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_SIZE) onSortSelected(category, DATA.SORT_BY_SIZE)
+            val sortType = if (category == DATA.ALBUMS || category == DATA.PLAYLISTS) DATA.SORT_BY_SONG_COUNT else DATA.SORT_BY_SIZE
+            if (currentSort != sortType) onSortSelected(category, sortType)
             dismiss()
         }
 
         if (category == DATA.ALBUMS) {
+            binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_albums)
             binding.sortByPlayCount.visibility = View.GONE
             binding.sortByReleaseDate.visibility = View.GONE
-            binding.sortBySize.visibility = View.GONE
+            binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
         }
 
         if (category == DATA.PLAYLISTS) {

@@ -20,7 +20,8 @@ data class MusicFiles(
     val cachedImagePath: String? = null,
     val dateAdded: Long = 0,
     val size: Long = 0,
-    val year: Int = 0
+    val year: Int = 0,
+    val songsCount: Int = 0
 ) : Parcelable {
     val safeTitle: String
         get() = title ?: DATA.UNKNOWN

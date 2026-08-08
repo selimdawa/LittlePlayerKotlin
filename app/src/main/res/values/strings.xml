@@ -27,6 +27,7 @@
     <string name="recent">Recent</string>
     <string name="search">Search…</string>
     <string name="sort_songs">Sort songs</string>
+    <string name="sort_albums">Sort albums</string>
     <string name="sort_playlists">Sort playlists</string>
     <string name="by_adding_time">By adding time</string>
     <string name="by_name">By name</string>

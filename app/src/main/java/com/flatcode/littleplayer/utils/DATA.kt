@@ -9,6 +9,7 @@ object DATA {
     const val SORT_BY_SIZE = "sortBySize"
     const val SORT_BY_PLAY_COUNT = "sortByPlayCount"
     const val SORT_BY_RELEASE_DATE = "sortByReleaseDate"
+    const val SORT_BY_SONG_COUNT = "sortBySongCount"
     const val SONGS = "Songs"
     const val ALBUMS = "Albums"
     const val ARTISTS = "Artists"

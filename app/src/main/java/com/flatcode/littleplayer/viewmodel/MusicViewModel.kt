@@ -56,16 +56,20 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     val albumFiles: StateFlow<List<MusicFiles>> = combine(
         allSongs, _albumsSortOrder, _searchQuery
     ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
-        val uniqueAlbums = mutableListOf<MusicFiles>()
-        val duplicates = mutableSetOf<String>()
+        val albumMap = mutableMapOf<String, Pair<Int, MusicFiles>>()
 
         for (song in songs) {
             val albumName = song.album ?: DATA.UNKNOWN
-
-            if (!duplicates.contains(albumName)) {
-                uniqueAlbums.add(song)
-                duplicates.add(albumName)
+            val current = albumMap[albumName]
+            if (current == null) {
+                albumMap[albumName] = Pair(1, song)
+            } else {
+                albumMap[albumName] = Pair(current.first + 1, current.second)
             }
+        }
+
+        val uniqueAlbums = albumMap.map { (name, pair) ->
+            pair.second.copy(songsCount = pair.first)
         }
 
         val filtered = if (query.isEmpty()) uniqueAlbums else {
@@ -75,6 +79,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         when (sortOrder) {
             DATA.SORT_BY_NAME -> filtered.sortedBy { it.album?.lowercase() }
             DATA.SORT_BY_DATE -> filtered.sortedByDescending { it.dateAdded }
+            DATA.SORT_BY_SONG_COUNT -> filtered.sortedByDescending { it.songsCount }
             else -> filtered
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
