@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.viewModels
@@ -42,7 +43,7 @@ class NotificationsActivity : AppCompatActivity() {
 
         binding.btnSystemNotificationSettings.setOnClickListener {
             val intent = Intent().apply {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
                     putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
                 } else {

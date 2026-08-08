@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -13,7 +14,7 @@ import com.flatcode.littleplayer.utils.FastScrollableAdapter
 class FolderAdapter(
     private val context: Context,
     private var folderList: ArrayList<Folder>,
-    private val onItemClick: (String, String, android.view.View) -> Unit
+    private val onItemClick: (String, String, View) -> Unit
 ) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>(), FastScrollableAdapter {
 
     class FolderViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)

@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.fragment
 
 import android.os.Bundle
+import android.R.color.transparent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +9,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.databinding.DialogCustomInputBinding
+import com.flatcode.littleplayer.databinding.DialogPlaylistNewBinding
 import com.flatcode.littleplayer.databinding.DialogPlaylistSelectionBinding
 import com.flatcode.littleplayer.databinding.ItemPlaylistSmallBinding
 import com.flatcode.littleplayer.model.MusicFiles
@@ -56,7 +57,7 @@ class PlaylistSelectionBottomSheet(
 
     private fun showCreatePlaylistDialog() {
         val context = requireContext()
-        val dialogBinding = DialogCustomInputBinding.inflate(LayoutInflater.from(context))
+        val dialogBinding = DialogPlaylistNewBinding.inflate(LayoutInflater.from(context))
         val dialog = MaterialAlertDialogBuilder(context)
             .setView(dialogBinding.root)
             .setCancelable(false)
@@ -85,7 +86,7 @@ class PlaylistSelectionBottomSheet(
         super.onStart()
         dialog?.window?.apply {
             findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
-                android.R.color.transparent
+                transparent
             )
         }
     }

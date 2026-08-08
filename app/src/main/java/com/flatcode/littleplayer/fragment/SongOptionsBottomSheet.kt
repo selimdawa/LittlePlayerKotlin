@@ -1,12 +1,14 @@
 package com.flatcode.littleplayer.fragment
 
 import android.app.Activity
+import android.R.color.transparent
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import com.flatcode.littleplayer.databinding.DialogSongOptionsBinding
@@ -18,6 +20,7 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.flatcode.littleplayer.R
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.R as MaterialR
 
 class SongOptionsBottomSheet(
@@ -84,9 +87,9 @@ class SongOptionsBottomSheet(
             .setView(view)
             .create()
 
-        val tvMessage = view.findViewById<android.widget.TextView>(R.id.dialogMessage)
-        val btnRemove = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnRemove)
-        val btnCancel = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+        val tvMessage = view.findViewById<TextView>(R.id.dialogMessage)
+        val btnRemove = view.findViewById<MaterialButton>(R.id.btnRemove)
+        val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
 
         tvMessage.text = getString(R.string.remove_song_from_playlist_message, song.title)
 
@@ -100,7 +103,7 @@ class SongOptionsBottomSheet(
             alertDialog.dismiss()
         }
 
-        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        alertDialog.window?.setBackgroundDrawableResource(transparent)
         alertDialog.show()
     }
 
@@ -122,7 +125,7 @@ class SongOptionsBottomSheet(
         super.onStart()
         dialog?.window?.apply {
             findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
-                android.R.color.transparent
+                transparent
             )
         }
     }

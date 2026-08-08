@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.fragment
 
 import android.os.Bundle
+import android.R.color.transparent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -99,7 +100,7 @@ class SortSongsBottomSheet(
         super.onStart()
         dialog?.window?.apply {
             findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
-                android.R.color.transparent
+                transparent
             )
         }
     }

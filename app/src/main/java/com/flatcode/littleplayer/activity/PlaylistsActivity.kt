@@ -12,7 +12,7 @@ import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.PlaylistAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlaylistsBinding
 import com.flatcode.littleplayer.databinding.DialogConfirmDeleteBinding
-import com.flatcode.littleplayer.databinding.DialogCustomInputBinding
+import com.flatcode.littleplayer.databinding.DialogPlaylistNewBinding
 import com.flatcode.littleplayer.model.Playlist
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
@@ -102,7 +102,7 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun showRenamePlaylistDialog(oldName: String) {
-        val dialogBinding = DialogCustomInputBinding.inflate(layoutInflater)
+        val dialogBinding = DialogPlaylistNewBinding.inflate(layoutInflater)
         val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
 
         dialogBinding.dialogTitle.text = getString(R.string.rename_playlist)
@@ -134,7 +134,7 @@ class PlaylistsActivity : AppCompatActivity() {
     }
 
     private fun showCreatePlaylistDialog() {
-        val dialogBinding = DialogCustomInputBinding.inflate(layoutInflater)
+        val dialogBinding = DialogPlaylistNewBinding.inflate(layoutInflater)
         val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
 
         dialogBinding.dialogTitle.text = getString(R.string.new_playlist)

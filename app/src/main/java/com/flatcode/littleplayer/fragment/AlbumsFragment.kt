@@ -16,6 +16,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.AlbumDetailsActivity
 import com.flatcode.littleplayer.adapter.AlbumAdapter
 import com.flatcode.littleplayer.databinding.FragmentAlbumsBinding
 import com.flatcode.littleplayer.utils.DATA
@@ -96,7 +97,7 @@ class AlbumsFragment : Fragment() {
     private fun setupAdapter() {
         if (adapter == null) {
             adapter = AlbumAdapter(requireContext(), ArrayList()) { albumName, view ->
-                val intent = Intent(requireContext(), com.flatcode.littleplayer.activity.AlbumDetailsActivity::class.java).apply {
+                val intent = Intent(requireContext(), AlbumDetailsActivity::class.java).apply {
                     putExtra("ALBUM_NAME", albumName)
                 }
                 val options = ActivityOptionsCompat.makeSceneTransitionAnimation(

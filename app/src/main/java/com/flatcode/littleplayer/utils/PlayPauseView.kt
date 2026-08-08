@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.utils
 
 import android.animation.ValueAnimator
+import android.R.attr.foregroundTint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -21,7 +22,7 @@ class PlayPauseView @JvmOverloads constructor(
     }
 
     init {
-        context.withStyledAttributes(attrs, intArrayOf(android.R.attr.foregroundTint)) {
+        context.withStyledAttributes(attrs, intArrayOf(foregroundTint)) {
             getColorStateList(0)?.let {
                 paint.color = it.defaultColor
             }

@@ -26,12 +26,6 @@ interface SongDao {
     @Query("SELECT * FROM songs_table ORDER BY title ASC")
     suspend fun getAllSongsSync(): List<SongEntity>
 
-    @Query("SELECT * FROM songs_table ORDER BY playCount DESC")
-    suspend fun getSongsByPlayCountSync(): List<SongEntity>
-
-    @Query("SELECT * FROM songs_table ORDER BY playCount DESC")
-    fun getSongsByPlayCount(): Flow<List<SongEntity>>
-
     @Query("UPDATE songs_table SET playCount = playCount + 1 WHERE id = :songId")
     suspend fun incrementPlayCount(songId: String)
 
@@ -43,9 +37,6 @@ interface SongDao {
 
     @Query("SELECT * FROM songs_table WHERE isFavorite = 1")
     fun getFavoriteSongs(): Flow<List<SongEntity>>
-
-    @Query("SELECT * FROM songs_table WHERE album = :albumName")
-    fun getSongsByAlbum(albumName: String): Flow<List<SongEntity>>
 
     @Query("DELETE FROM songs_table WHERE id = :songId")
     suspend fun deleteSongById(songId: String)

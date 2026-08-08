@@ -16,7 +16,8 @@
         <TextView
             android:id="@+id/dialogTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"            android:text="@string/new_playlist"
+            android:layout_height="wrap_content"
+            android:text="@string/new_playlist"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="?attr/colorError"
             android:textStyle="bold" />

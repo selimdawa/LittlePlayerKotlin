@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.viewmodel
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -44,9 +45,9 @@ class NowPlayerViewModel @Inject constructor(
     private val songIdKey = stringPreferencesKey(DATA.SONG_ID)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
-    private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
-    private val bottomPlayerThemeKey = androidx.datastore.preferences.core.booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
     private val themeExtractedColorKey = intPreferencesKey(DATA.THEME_EXTRACTED_COLOR)
+    private val bottomPlayerThemeKey = booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
+    private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
 
     init {
         restoreSession()

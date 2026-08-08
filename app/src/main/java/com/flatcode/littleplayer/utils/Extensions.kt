@@ -15,6 +15,7 @@ import android.graphics.Color
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.view.View
@@ -49,7 +50,7 @@ import java.io.File
 import kotlin.time.Duration
 
 inline fun <reified T : Activity> Context.launchActivity(
-    options: android.os.Bundle? = null, extras: Intent.() -> Unit = {}
+    options: Bundle? = null, extras: Intent.() -> Unit = {}
 ) {
     val intent = Intent(this, T::class.java)
     intent.extras()
@@ -214,16 +215,6 @@ fun ImageView.loadCachedAlbumImage(cachedPath: String?) {
         crossfade(true)
         placeholder(R.color.image_profile)
         error(R.color.image_profile)
-    }
-}
-
-fun getSongArt(albumId: String?): Any {
-    return if (!albumId.isNullOrEmpty() && albumId != "-1" && albumId != "0") {
-        ContentUris.withAppendedId(
-            "content://media/external/audio/albumart".toUri(), albumId.toLong()
-        )
-    } else {
-        R.drawable.cover_song
     }
 }
 
