@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemFolderBinding
@@ -13,9 +14,8 @@ import com.flatcode.littleplayer.utils.FastScrollableAdapter
 
 class FolderAdapter(
     private val context: Context,
-    private var folderList: ArrayList<Folder>,
     private val onItemClick: (String, String, View) -> Unit
-) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>(), FastScrollableAdapter {
+) : ListAdapter<Folder, FolderAdapter.FolderViewHolder>(FolderDiffCallback()), FastScrollableAdapter {
 
     class FolderViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -25,7 +25,7 @@ class FolderAdapter(
     }
 
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
-        val folder = folderList[position]
+        val folder = getItem(position)
         holder.binding.folderName.text = folder.name
         
         val context = holder.itemView.context
@@ -38,28 +38,18 @@ class FolderAdapter(
         }
     }
 
-    override fun getItemCount(): Int = folderList.size
-
     override fun getPopupText(position: Int): String {
-        val name = folderList.getOrNull(position)?.name ?: ""
+        val name = getItem(position).name ?: ""
         return if (name.isNotEmpty()) name.substring(0, 1).uppercase() else ""
     }
 
-    fun updateList(newList: ArrayList<Folder>, onComplete: (() -> Unit)? = null) {
-        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-            override fun getOldListSize(): Int = folderList.size
-            override fun getNewListSize(): Int = newList.size
+    private class FolderDiffCallback : DiffUtil.ItemCallback<Folder>() {
+        override fun areItemsTheSame(oldItem: Folder, newItem: Folder): Boolean {
+            return oldItem.path == newItem.path
+        }
 
-            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return folderList[oldItemPosition].path == newList[newItemPosition].path
-            }
-
-            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return folderList[oldItemPosition] == newList[newItemPosition]
-            }
-        })
-        folderList = newList
-        diffResult.dispatchUpdatesTo(this)
-        onComplete?.invoke()
+        override fun areContentsTheSame(oldItem: Folder, newItem: Folder): Boolean {
+            return oldItem == newItem
+        }
     }
 }

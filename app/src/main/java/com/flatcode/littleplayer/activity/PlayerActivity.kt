@@ -38,12 +38,16 @@ import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
+import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
+import com.flatcode.littleplayer.utils.onProgressChanged
+import com.flatcode.littleplayer.utils.setGradientBackground
+import com.flatcode.littleplayer.utils.setSolidBackground
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
@@ -100,22 +104,20 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun updatePlayerUIColors(color: Int) {
         val brightColor = color.ensureBrightColor()
         val colorStateList = ColorStateList.valueOf(brightColor)
-        val backgroundColorStateList = ColorStateList.valueOf("#66FFFFFF".toColorInt()) // 40% White for better visibility
+        val backgroundColorStateList =
+            ColorStateList.valueOf("#66FFFFFF".toColorInt()) // 40% White for better visibility
 
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
         binding.seekBar.secondaryProgressTintList = colorStateList
         binding.seekBar.progressBackgroundTintList = backgroundColorStateList
 
-        val background = binding.playPauseBtn.background.mutate()
-        if (background is GradientDrawable) {
-            if (currentMode == DATA.MODE_BASIC) {
-                background.colors =
-                    intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
-            } else {
-                background.colors = intArrayOf(brightColor, brightColor)
-            }
-            binding.playPauseBtn.background = background
+        if (currentMode == DATA.MODE_BASIC) {
+            binding.playPauseBtn.setGradientBackground(
+                getLibraryColor("mc_track"), getLibraryColor("mc_tick")
+            )
+        } else {
+            binding.playPauseBtn.setSolidBackground(brightColor)
         }
 
         binding.waveformSeekBar.waveProgressColor = brightColor
@@ -140,28 +142,17 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             nowPlayerViewModel.setThemeColorMode(DATA.MODE_WHITE)
         }
 
-        binding.seekBar.setOnSeekBarChangeListener(
-            object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(
-                    seekBar: SeekBar?,
-                    progress: Int,
-                    fromUser: Boolean,
-                ) {
-                    if ((mediaController != null) && fromUser) {
-                        mediaController?.seekTo(progress.toLong() * 1000)
-                        val duration = mediaController?.duration ?: 0L
-                        if (duration > 0) {
-                            val progressPercentage =
-                                ((progress.toFloat() * 1000f) / duration.toFloat()) * 100f
-                            binding.waveformSeekBar.progress = progressPercentage
-                        }
-                    }
+        binding.seekBar.onProgressChanged { progress, fromUser ->
+            if ((mediaController != null) && fromUser) {
+                mediaController?.seekTo(progress.toLong() * 1000)
+                val duration = mediaController?.duration ?: 0L
+                if (duration > 0) {
+                    val progressPercentage =
+                        ((progress.toFloat() * 1000f) / duration.toFloat()) * 100f
+                    binding.waveformSeekBar.progress = progressPercentage
                 }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-            },
-        )
+            }
+        }
 
         binding.repeat.setOnClickListener {
             mediaController?.let { controller ->
@@ -253,32 +244,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         val model = getSongImageModel(song.albumId, song.path, song.cachedImagePath)
 
-        val request =
-            ImageRequest.Builder(this).data(model).allowHardware(enable = false).target { result ->
-                    val bitmap = if (result is BitmapDrawable) {
-                        result.bitmap
-                    } else {
-                        val width = if (result.intrinsicWidth > 0) result.intrinsicWidth else 200
-                        val height = if (result.intrinsicHeight > 0) result.intrinsicHeight else 200
-                        val bmp = createBitmap(width, height)
-                        val canvas = Canvas(bmp)
-                        result.setBounds(0, 0, canvas.width, canvas.height)
-                        result.draw(canvas)
-                        bmp
-                    }
+        extractPalette(model) { palette ->
+            currentDominantColor = palette.extractVibrantColor()
 
-                    Palette.from(bitmap).generate { palette ->
-                        currentDominantColor = palette.extractVibrantColor()
+            binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
+            nowPlayerViewModel.updateThemeColor(currentDominantColor)
 
-                        binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
-                        nowPlayerViewModel.updateThemeColor(currentDominantColor)
-
-                        if (currentMode == DATA.MODE_PALETTE) {
-                            applyCurrentModeColors()
-                        }
-                    }
-                }.build()
-        imageLoader.enqueue(request)
+            if (currentMode == DATA.MODE_PALETTE) {
+                applyCurrentModeColors()
+            }
+        }
     }
 
     private fun animateTextChange(textView: TextView, newText: String) {

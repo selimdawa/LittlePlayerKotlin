@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemArtistBinding
@@ -14,9 +15,8 @@ import com.flatcode.littleplayer.utils.FastScrollableAdapter
 
 class ArtistAdapter(
     private val context: Context,
-    private var artistList: ArrayList<Artist>,
     private val onItemClick: (String, View) -> Unit,
-) : RecyclerView.Adapter<ArtistAdapter.ArtistViewHolder>(), FastScrollableAdapter {
+) : ListAdapter<Artist, ArtistAdapter.ArtistViewHolder>(ArtistDiffCallback()), FastScrollableAdapter {
 
     class ArtistViewHolder(val binding: ItemArtistBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -26,7 +26,7 @@ class ArtistAdapter(
     }
 
     override fun onBindViewHolder(holder: ArtistViewHolder, position: Int) {
-        val artist = artistList[position]
+        val artist = getItem(position)
         holder.binding.artistName.text = artist.name
         
         val context = holder.itemView.context
@@ -38,32 +38,18 @@ class ArtistAdapter(
         }
     }
 
-    override fun getItemCount(): Int = artistList.size
-
     override fun getPopupText(position: Int): String {
-        val artistName = artistList.getOrNull(position)?.name ?: ""
+        val artistName = getItem(position).name ?: ""
         return if (artistName.isNotEmpty()) artistName.substring(0, 1).uppercase() else ""
     }
 
-    fun updateList(newList: ArrayList<Artist>, onComplete: (() -> Unit)? = null) {
-        val diffResult = DiffUtil.calculateDiff(
-            object : DiffUtil.Callback() {
-                override fun getOldListSize(): Int = artistList.size
-                override fun getNewListSize(): Int = newList.size
+    private class ArtistDiffCallback : DiffUtil.ItemCallback<Artist>() {
+        override fun areItemsTheSame(oldItem: Artist, newItem: Artist): Boolean {
+            return oldItem.name == newItem.name
+        }
 
-                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return artistList[oldItemPosition].name == newList[newItemPosition].name
-                }
-
-                override fun areContentsTheSame(
-                    oldItemPosition: Int, newItemPosition: Int,
-                ): Boolean {
-                    return artistList[oldItemPosition] == newList[newItemPosition]
-                }
-            },
-        )
-        artistList = newList
-        diffResult.dispatchUpdatesTo(this)
-        onComplete?.invoke()
+        override fun areContentsTheSame(oldItem: Artist, newItem: Artist): Boolean {
+            return oldItem == newItem
+        }
     }
 }

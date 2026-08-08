@@ -52,13 +52,12 @@ class FoldersFragment : Fragment() {
                 viewModel.folderFiles.collect { folderList ->
                     binding.emptyState.isVisible = folderList.isEmpty()
                     if (folderList.isNotEmpty()) {
-                        val arrayListFolders = ArrayList(folderList)
                         if (adapter == null) {
                             setupAdapter()
                         }
-                        adapter?.updateList(arrayListFolders)
+                        adapter?.submitList(folderList)
                     } else {
-                        adapter?.updateList(ArrayList())
+                        adapter?.submitList(emptyList())
                     }
                 }
             }
@@ -75,8 +74,11 @@ class FoldersFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = FolderAdapter(requireContext(), ArrayList()) { folderName, folderPath, _ ->
-                val intent = Intent(requireContext(), com.flatcode.littleplayer.activity.FolderDetailsActivity::class.java).apply {
+            adapter = FolderAdapter(requireContext()) { folderName, folderPath, _ ->
+                val intent = Intent(
+                    requireContext(),
+                    com.flatcode.littleplayer.activity.FolderDetailsActivity::class.java
+                ).apply {
                     putExtra("FOLDER_NAME", folderName)
                     putExtra("FOLDER_PATH", folderPath)
                 }

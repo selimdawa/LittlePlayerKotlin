@@ -98,6 +98,7 @@ class SortSongsBottomSheet(
 
     override fun onStart() {
         super.onStart()
+        dialog?.setCanceledOnTouchOutside(false)
         dialog?.window?.apply {
             findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
                 transparent

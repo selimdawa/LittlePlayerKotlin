@@ -53,13 +53,12 @@ class ArtistsFragment : Fragment() {
                 viewModel.artistFiles.collect { artistList ->
                     binding.emptyState.isVisible = artistList.isEmpty()
                     if (artistList.isNotEmpty()) {
-                        val arrayListArtists = ArrayList(artistList)
                         if (adapter == null) {
                             setupAdapter()
                         }
-                        adapter?.updateList(arrayListArtists)
+                        adapter?.submitList(artistList)
                     } else {
-                        adapter?.updateList(ArrayList())
+                        adapter?.submitList(emptyList())
                     }
                 }
             }
@@ -76,8 +75,11 @@ class ArtistsFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = ArtistAdapter(requireContext(), ArrayList()) { artistName, _ ->
-                val intent = Intent(requireContext(), com.flatcode.littleplayer.activity.ArtistDetailsActivity::class.java).apply {
+            adapter = ArtistAdapter(requireContext()) { artistName, _ ->
+                val intent = Intent(
+                    requireContext(),
+                    com.flatcode.littleplayer.activity.ArtistDetailsActivity::class.java
+                ).apply {
                     putExtra("ARTIST_NAME", artistName)
                 }
                 startActivity(intent)

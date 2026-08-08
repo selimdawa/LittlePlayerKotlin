@@ -2,14 +2,13 @@ package com.flatcode.littleplayer.fragment
 
 import android.os.Bundle
 import android.R.color.transparent
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.DialogSleepTimerBinding
 import com.flatcode.littleplayer.databinding.DialogSleepTimerCustomBinding
+import com.flatcode.littleplayer.utils.showKeyboard
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.R as MaterialR
@@ -59,18 +58,16 @@ class SleepTimerBottomSheet(
     private fun showCustomTimeDialog() {
         val context = requireContext()
         val dialogBinding = DialogSleepTimerCustomBinding.inflate(LayoutInflater.from(context))
-        val dialog =
-            MaterialAlertDialogBuilder(context).setView(dialogBinding.root).setCancelable(true)
-                .create()
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setView(dialogBinding.root)
+            .create()
+
+        dialog.setCanceledOnTouchOutside(false)
 
         dialog.setOnShowListener {
             dialog.window?.setBackgroundDrawableResource(transparent)
             dialogBinding.editText.requestFocus()
-            val imm =
-                context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(
-                dialogBinding.editText, InputMethodManager.SHOW_IMPLICIT
-            )
+            dialogBinding.editText.showKeyboard()
         }
 
         dialogBinding.btnOk.setOnClickListener {
@@ -98,6 +95,7 @@ class SleepTimerBottomSheet(
 
     override fun onStart() {
         super.onStart()
+        dialog?.setCanceledOnTouchOutside(false)
         dialog?.window?.apply {
             findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
                 transparent

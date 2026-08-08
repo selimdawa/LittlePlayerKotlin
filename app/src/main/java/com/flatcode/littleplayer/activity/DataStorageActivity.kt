@@ -1,32 +1,29 @@
 package com.flatcode.littleplayer.activity
 
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
-import androidx.palette.graphics.Palette
-import coil.imageLoader
 import coil.load
-import coil.request.ImageRequest
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityDataStorageBinding
 import com.flatcode.littleplayer.databinding.ItemThemePreviewBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
+import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractVibrantColor
+import com.flatcode.littleplayer.utils.formatAsSize
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
+import com.flatcode.littleplayer.utils.setGradientBackground
+import com.flatcode.littleplayer.utils.setSolidBackground
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.viewmodel.DataStorageViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Locale
 
 @UnstableApi
 @AndroidEntryPoint
@@ -43,23 +40,12 @@ class DataStorageActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         initToolbar(getString(R.string.data_storage))
-        extractPaletteColor()
+        extractPalette(R.drawable.image_1) { palette ->
+            currentDominantColor = palette.extractVibrantColor()
+            updatePreview()
+        }
         setupListeners()
         observeViewModel()
-    }
-
-    private fun extractPaletteColor() {
-        val request = ImageRequest.Builder(this).data(R.drawable.image_1).allowHardware(false)
-            .target { result ->
-                val bitmap = (result as? BitmapDrawable)?.bitmap
-                bitmap?.let {
-                    Palette.from(it).generate { palette ->
-                        currentDominantColor = palette.extractVibrantColor()
-                        updatePreview(viewModel.themeColorMode.value)
-                    }
-                }
-            }.build()
-        imageLoader.enqueue(request)
     }
 
     private fun setupListeners() {
@@ -91,35 +77,28 @@ class DataStorageActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.bottomPlayerThemeEnabled.collectWithLifecycle(this) { enabled ->
             binding.switchBottomPlayerTheme.isChecked = enabled
-            updatePreview(viewModel.themeColorMode.value)
+            updatePreview()
         }
 
         viewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
         }
 
-        viewModel.themeColorMode.collectWithLifecycle(this) { mode ->
-            updatePreview(mode)
+        viewModel.themeColorMode.collectWithLifecycle(this) {
+            updatePreview()
         }
 
         dataViewModel.cacheSize.collectWithLifecycle(this) { size ->
-            val sizeMb = size.toDouble() / (1024 * 1024)
-            binding.tvCacheSize.text = String.format(Locale.getDefault(), "%.2f MB", sizeMb)
+            binding.tvCacheSize.text = size.formatAsSize()
         }
     }
 
-    private fun updatePreview(mode: Int) {
+    private fun updatePreview() {
         val imageRes = R.drawable.image_1
 
         // Song 1: Basic (Default Gradient)
         setupThemeItem(
-            binding.itemBasic,
-            getString(R.string.basic),
-            imageRes,
-            40,
-            DATA.MODE_BASIC,
-            null,
-            mode == DATA.MODE_BASIC
+            binding.itemBasic, getString(R.string.basic), imageRes, 40, DATA.MODE_BASIC, null
         )
 
         // Song 2: Palette (Solid Color from Image)
@@ -129,19 +108,12 @@ class DataStorageActivity : AppCompatActivity() {
             imageRes,
             60,
             DATA.MODE_PALETTE,
-            currentDominantColor,
-            mode == DATA.MODE_PALETTE
+            currentDominantColor
         )
 
         // Song 3: White (Solid White)
         setupThemeItem(
-            binding.itemWhite,
-            getString(R.string.white),
-            imageRes,
-            20,
-            DATA.MODE_WHITE,
-            Color.WHITE,
-            mode == DATA.MODE_WHITE
+            binding.itemWhite, getString(R.string.white), imageRes, 20, DATA.MODE_WHITE, Color.WHITE
         )
     }
 
@@ -151,25 +123,16 @@ class DataStorageActivity : AppCompatActivity() {
         imageSource: Any?,
         progress: Int,
         mode: Int,
-        targetColor: Int?,
-        isSelected: Boolean
+        targetColor: Int?
     ) {
         itemBinding.tvThemeLabel.text = label
 
-        itemBinding.name.text = "Blinding Lights"
-        @Suppress("SpellCheckingInspection") itemBinding.artist.text = "The Weeknd"
+        itemBinding.name.text = getString(R.string.blinding_lights)
+        itemBinding.artist.text = getString(R.string.the_weeknd)
         itemBinding.miniProgressBar.progress = progress
 
         val track = getLibraryColor("mc_track")
         val tick = getLibraryColor("mc_tick")
-
-        val background = itemBinding.bottomPlayerContainer.background.mutate() as? LayerDrawable
-        val bgShape = background?.getDrawable(0) as? GradientDrawable
-
-        val albumArtBG =
-            (itemBinding.albumArtContainer.background.mutate() as? LayerDrawable)?.getDrawable(0) as? GradientDrawable
-
-        val playBtnBG = itemBinding.playPauseBtn.background.mutate() as? GradientDrawable
 
         val colorToApply = when (mode) {
             DATA.MODE_PALETTE -> targetColor?.ensureBrightColor()
@@ -178,15 +141,13 @@ class DataStorageActivity : AppCompatActivity() {
         }
 
         if (colorToApply != null) {
-            val colors = intArrayOf(colorToApply, colorToApply)
-            bgShape?.colors = colors
-            albumArtBG?.colors = colors
-            playBtnBG?.colors = colors
+            itemBinding.bottomPlayerContainer.setSolidBackground(colorToApply)
+            itemBinding.albumArtContainer.setSolidBackground(colorToApply)
+            itemBinding.playPauseBtn.setSolidBackground(colorToApply)
         } else {
-            val colors = intArrayOf(track, tick)
-            bgShape?.colors = colors
-            albumArtBG?.colors = colors
-            playBtnBG?.colors = colors
+            itemBinding.bottomPlayerContainer.setGradientBackground(track, tick)
+            itemBinding.albumArtContainer.setGradientBackground(track, tick)
+            itemBinding.playPauseBtn.setGradientBackground(track, tick)
         }
 
         itemBinding.albumArt.load(imageSource ?: R.drawable.ic_music) {

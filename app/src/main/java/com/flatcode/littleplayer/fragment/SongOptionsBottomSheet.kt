@@ -87,6 +87,8 @@ class SongOptionsBottomSheet(
             .setView(view)
             .create()
 
+        alertDialog.setCanceledOnTouchOutside(false)
+
         val tvMessage = view.findViewById<TextView>(R.id.dialogMessage)
         val btnRemove = view.findViewById<MaterialButton>(R.id.btnRemove)
         val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
@@ -123,6 +125,7 @@ class SongOptionsBottomSheet(
 
     override fun onStart() {
         super.onStart()
+        dialog?.setCanceledOnTouchOutside(false)
         dialog?.window?.apply {
             findViewById<View>(MaterialR.id.design_bottom_sheet)?.setBackgroundResource(
                 transparent

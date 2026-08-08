@@ -5,17 +5,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityOptionsCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.core.app.ActivityOptionsCompat
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.AlbumDetailsActivity
 import com.flatcode.littleplayer.adapter.AlbumAdapter
 import com.flatcode.littleplayer.databinding.FragmentAlbumsBinding
@@ -64,22 +62,22 @@ class AlbumsFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.albumFiles.collect { albumList ->
                     val currentSortOrder = viewModel.albumsSortOrder.value
-                    val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
+                    val shouldScrollToTop =
+                        (lastSortOrder != null && lastSortOrder != currentSortOrder)
                     lastSortOrder = currentSortOrder
 
                     binding.emptyState.isVisible = albumList.isEmpty()
                     if (albumList.isNotEmpty()) {
-                        val arrayListAlbums = ArrayList(albumList)
                         if (adapter == null) {
                             setupAdapter()
                         }
-                        adapter?.updateList(arrayListAlbums) {
+                        adapter?.submitList(albumList) {
                             if (shouldScrollToTop) {
                                 binding.recyclerView.scrollToPosition(0)
                             }
                         }
                     } else {
-                        adapter?.updateList(ArrayList())
+                        adapter?.submitList(emptyList())
                     }
                 }
             }
@@ -96,7 +94,7 @@ class AlbumsFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = AlbumAdapter(requireContext(), ArrayList()) { albumName, view ->
+            adapter = AlbumAdapter(requireContext()) { albumName, view ->
                 val intent = Intent(requireContext(), AlbumDetailsActivity::class.java).apply {
                     putExtra("ALBUM_NAME", albumName)
                 }

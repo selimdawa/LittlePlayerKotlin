@@ -16,9 +16,11 @@ import com.flatcode.littleplayer.databinding.ActivitySettingsBinding
 import com.flatcode.littleplayer.databinding.DialogAboutBinding
 import com.flatcode.littleplayer.fragment.SleepTimerBottomSheet
 import com.flatcode.littleplayer.service.MusicService
+import com.flatcode.littleplayer.utils.appVersionName
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.launchActivity
+import com.flatcode.littleplayer.utils.showDialog
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.SettingsViewModel
@@ -107,22 +109,19 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showPrivacyDialog() {
-        MaterialAlertDialogBuilder(this).setTitle(R.string.privacy_policy_title)
-            .setMessage(R.string.privacy_policy_content).show()
+        showDialog(R.string.privacy_policy_title, R.string.privacy_policy_content)
     }
 
     private fun showAboutDialog() {
         val aboutBinding = DialogAboutBinding.inflate(layoutInflater)
+        aboutBinding.tvVersion.text = getString(R.string.version_format, appVersionName)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(aboutBinding.root)
+            .setPositiveButton(R.string.ok, null)
+            .create()
 
-        try {
-            val pInfo = packageManager.getPackageInfo(packageName, 0)
-            val version = pInfo.versionName
-            aboutBinding.tvVersion.text = getString(R.string.version_format, version)
-        } catch (_: Exception) {
-            aboutBinding.tvVersion.text = getString(R.string.version_format, "1.0.0")
-        }
-
-        MaterialAlertDialogBuilder(this).setView(aboutBinding.root).show()
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.show()
     }
 
     private fun showSleepTimerDialog() {
