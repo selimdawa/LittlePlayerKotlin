@@ -18,6 +18,7 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -36,6 +37,8 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.ensureBrightColor
+import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongImageModel
@@ -95,12 +98,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updatePlayerUIColors(color: Int) {
-        val colorStateList = ColorStateList.valueOf(color)
+        val brightColor = color.ensureBrightColor()
+        val colorStateList = ColorStateList.valueOf(brightColor)
+        val backgroundColorStateList = ColorStateList.valueOf("#66FFFFFF".toColorInt()) // 40% White for better visibility
 
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
         binding.seekBar.secondaryProgressTintList = colorStateList
-        binding.seekBar.progressBackgroundTintList = colorStateList
+        binding.seekBar.progressBackgroundTintList = backgroundColorStateList
 
         val background = binding.playPauseBtn.background.mutate()
         if (background is GradientDrawable) {
@@ -108,12 +113,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 background.colors =
                     intArrayOf(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
             } else {
-                background.colors = intArrayOf(color, color)
+                background.colors = intArrayOf(brightColor, brightColor)
             }
             binding.playPauseBtn.background = background
         }
 
-        binding.waveformSeekBar.waveProgressColor = color
+        binding.waveformSeekBar.waveProgressColor = brightColor
+        binding.waveformSeekBar.waveBackgroundColor = "#4DFFFFFF".toColorInt() // 30% White
 
         binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC) 4 else 1
         binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE) 4 else 1
@@ -262,9 +268,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     }
 
                     Palette.from(bitmap).generate { palette ->
-                        val dominantColor = palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
-                        currentDominantColor = palette?.getVibrantColor(dominantColor)
-                            ?: palette?.getLightVibrantColor(dominantColor) ?: dominantColor
+                        currentDominantColor = palette.extractVibrantColor()
 
                         binding.paletteColor.setCardBackgroundColor(currentDominantColor)
                         nowPlayerViewModel.updateThemeColor(currentDominantColor)
@@ -417,12 +421,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                                 }
 
                                 Palette.from(bitmap).generate { palette ->
-                                    val dominantColor =
-                                        palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
-                                    currentDominantColor = palette?.getVibrantColor(dominantColor)
-                                        ?: palette?.getLightVibrantColor(dominantColor)
-                                                ?: dominantColor
-
+                                    currentDominantColor = palette.extractVibrantColor()
                                     performSkipAndSlideIn(toNext, inX)
                                 }
                             }.build()

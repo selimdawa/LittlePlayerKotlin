@@ -1,6 +1,10 @@
 package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,27 +20,25 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.palette.graphics.Palette
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.ensureBrightColor
+import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
-import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
-import androidx.palette.graphics.Palette
-import coil.imageLoader
-import coil.request.ImageRequest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -95,11 +97,12 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                                 MediaItem.Builder().setUri(item.path?.toUri())
                                     .setMediaId(item.id ?: "").setMediaMetadata(
                                         MediaMetadata.Builder().setTitle(item.title)
-                                            .setArtist(item.artist)
-                                            .setExtras(
+                                            .setArtist(item.artist).setExtras(
                                                 Bundle().apply {
                                                     putString("ALBUM_ID", item.albumId)
-                                                    putString("CACHED_IMAGE_PATH", item.cachedImagePath)
+                                                    putString(
+                                                        "CACHED_IMAGE_PATH", item.cachedImagePath
+                                                    )
                                                 },
                                             ).build(),
                                     ).build()
@@ -116,8 +119,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                             val mediaItem = MediaItem.Builder().setUri(song.path?.toUri())
                                 .setMediaId(song.id ?: "").setMediaMetadata(
                                     MediaMetadata.Builder().setTitle(song.title)
-                                        .setArtist(song.artist)
-                                        .setExtras(
+                                        .setArtist(song.artist).setExtras(
                                             Bundle().apply {
                                                 putString("ALBUM_ID", song.albumId)
                                                 putString("CACHED_IMAGE_PATH", song.cachedImagePath)
@@ -180,8 +182,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
             gradient?.let {
                 if (enabled) {
+                    val brightColor = color.ensureBrightColor()
                     val targetColor = when (mode) {
-                        DATA.MODE_PALETTE -> color
+                        DATA.MODE_PALETTE -> brightColor
                         DATA.MODE_WHITE -> Color.WHITE
                         else -> null
                     }
@@ -230,17 +233,12 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 binding.artist.text = artist
 
                 // Extract Palette Color
-                val request = ImageRequest.Builder(requireContext())
-                    .data(cachedPath ?: path)
-                    .allowHardware(enable = false)
-                    .target { result ->
+                val request = ImageRequest.Builder(requireContext()).data(cachedPath ?: path)
+                    .allowHardware(enable = false).target { result ->
                         val bitmap = (result as? BitmapDrawable)?.bitmap
                         bitmap?.let { b ->
                             Palette.from(b).generate { palette ->
-                                val color = palette?.getVibrantColor(Color.GRAY)
-                                    ?: palette?.getLightVibrantColor(Color.GRAY)
-                                    ?: palette?.getDominantColor(Color.GRAY)
-                                    ?: Color.GRAY
+                                val color = palette.extractVibrantColor()
                                 viewModel.updateThemeColor(color)
                             }
                         }
@@ -256,21 +254,17 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
                 // Extract Palette Color if missing
                 if (viewModel.currentThemeColor.value == null) {
-                    val request = ImageRequest.Builder(requireContext())
-                        .data(it.cachedImagePath ?: it.path)
-                        .allowHardware(enable = false)
-                        .target { result ->
-                            val bitmap = (result as? BitmapDrawable)?.bitmap
-                            bitmap?.let { b ->
-                                Palette.from(b).generate { palette ->
-                                    val color = palette?.getVibrantColor(Color.GRAY)
-                                        ?: palette?.getLightVibrantColor(Color.GRAY)
-                                        ?: palette?.getDominantColor(Color.GRAY)
-                                        ?: Color.GRAY
-                                    viewModel.updateThemeColor(color)
+                    val request =
+                        ImageRequest.Builder(requireContext()).data(it.cachedImagePath ?: it.path)
+                            .allowHardware(enable = false).target { result ->
+                                val bitmap = (result as? BitmapDrawable)?.bitmap
+                                bitmap?.let { b ->
+                                    Palette.from(b).generate { palette ->
+                                        val color = palette.extractVibrantColor()
+                                        viewModel.updateThemeColor(color)
+                                    }
                                 }
-                            }
-                        }.build()
+                            }.build()
                     requireContext().imageLoader.enqueue(request)
                 }
             }

@@ -18,6 +18,8 @@ import com.flatcode.littleplayer.databinding.ActivityDataStorageBinding
 import com.flatcode.littleplayer.databinding.ItemThemePreviewBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.ensureBrightColor
+import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.snackbar
@@ -52,10 +54,7 @@ class DataStorageActivity : AppCompatActivity() {
                 val bitmap = (result as? BitmapDrawable)?.bitmap
                 bitmap?.let {
                     Palette.from(it).generate { palette ->
-                        currentDominantColor =
-                            palette?.getVibrantColor(Color.GRAY) ?: palette?.getLightVibrantColor(
-                                Color.GRAY
-                            ) ?: palette?.getDominantColor(Color.GRAY) ?: Color.GRAY
+                        currentDominantColor = palette.extractVibrantColor()
                         updatePreview(viewModel.themeColorMode.value)
                     }
                 }
@@ -164,19 +163,16 @@ class DataStorageActivity : AppCompatActivity() {
         val track = getLibraryColor("mc_track")
         val tick = getLibraryColor("mc_tick")
 
-        // 1. تلوين الحاوية الأساسية (LayerDrawable)
         val background = itemBinding.bottomPlayerContainer.background.mutate() as? LayerDrawable
         val bgShape = background?.getDrawable(0) as? GradientDrawable
 
-        // 2. تلوين إطار الصورة (LayerDrawable)
         val albumArtBG =
             (itemBinding.albumArtContainer.background.mutate() as? LayerDrawable)?.getDrawable(0) as? GradientDrawable
 
-        // 3. تلوين زر التشغيل (GradientDrawable)
         val playBtnBG = itemBinding.playPauseBtn.background.mutate() as? GradientDrawable
 
         val colorToApply = when (mode) {
-            DATA.MODE_PALETTE -> targetColor
+            DATA.MODE_PALETTE -> targetColor?.ensureBrightColor()
             DATA.MODE_WHITE -> Color.WHITE
             else -> null
         }

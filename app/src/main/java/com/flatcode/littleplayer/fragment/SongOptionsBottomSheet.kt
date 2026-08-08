@@ -11,13 +11,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import com.flatcode.littleplayer.databinding.DialogSongOptionsBinding
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.requestDeletion
+import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.flatcode.littleplayer.R
 import com.google.android.material.R as MaterialR
 
 class SongOptionsBottomSheet(
-    private val song: MusicFiles, private val onDeleteClick: (MusicFiles) -> Unit
+    private val song: MusicFiles,
+    private val onDeleteClick: (MusicFiles) -> Unit,
+    private val onRemoveFromPlaylistClick: ((MusicFiles) -> Unit)? = null
 ) : BottomSheetDialogFragment() {
 
     private var _binding: DialogSongOptionsBinding? = null
@@ -61,6 +67,41 @@ class SongOptionsBottomSheet(
                 confirmDeletion()
             }
         }
+
+        if (onRemoveFromPlaylistClick != null) {
+            binding.optionRemove.visible()
+            binding.optionRemove.setOnClickListener {
+                showRemoveFromPlaylistConfirmation()
+            }
+        } else {
+            binding.optionRemove.gone()
+        }
+    }
+
+    private fun showRemoveFromPlaylistConfirmation() {
+        val view = layoutInflater.inflate(R.layout.dialog_confirm_remove, null)
+        val alertDialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(view)
+            .create()
+
+        val tvMessage = view.findViewById<android.widget.TextView>(R.id.dialogMessage)
+        val btnRemove = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnRemove)
+        val btnCancel = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+
+        tvMessage.text = getString(R.string.remove_song_from_playlist_message, song.title)
+
+        btnRemove.setOnClickListener {
+            onRemoveFromPlaylistClick?.invoke(song)
+            alertDialog.dismiss()
+            dismiss()
+        }
+
+        btnCancel.setOnClickListener {
+            alertDialog.dismiss()
+        }
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        alertDialog.show()
     }
 
     private fun confirmDeletion() {
