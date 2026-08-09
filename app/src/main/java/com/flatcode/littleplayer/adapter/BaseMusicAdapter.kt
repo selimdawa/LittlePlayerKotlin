@@ -61,8 +61,10 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
     }
 
     protected fun ItemMusicBinding.applyTheme(context: Context, songPath: String?) {
-        if ((songPath == playingPath) && isPlaying) {
+        if (songPath == playingPath) {
             wave.visible()
+            wave.start()
+
             val trackColor = if (listItemThemeEnabled) {
                 when (currentThemeMode) {
                     DATA.MODE_PALETTE -> currentThemeColor.ensureBrightColor()

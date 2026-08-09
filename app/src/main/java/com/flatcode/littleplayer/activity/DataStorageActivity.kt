@@ -61,6 +61,10 @@ class DataStorageActivity : AppCompatActivity() {
             viewModel.setListItemThemeEnabled(isChecked)
         }
 
+        binding.switchMarquee.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setMarqueeEnabled(isChecked)
+        }
+
         binding.itemBasic.root.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_BASIC)
         }
@@ -90,6 +94,11 @@ class DataStorageActivity : AppCompatActivity() {
 
         viewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
             binding.switchListTheme.isChecked = enabled
+            updatePreview()
+        }
+
+        viewModel.marqueeEnabled.collectWithLifecycle(this) { enabled ->
+            binding.switchMarquee.isChecked = enabled
             updatePreview()
         }
 
@@ -152,6 +161,7 @@ class DataStorageActivity : AppCompatActivity() {
         itemBinding.tvThemeLabel.text = label
 
         itemBinding.playerContent.name.text = getString(R.string.blinding_lights)
+        itemBinding.playerContent.name.isSelected = viewModel.marqueeEnabled.value
         itemBinding.playerContent.artist.text = getString(R.string.the_weeknd)
         itemBinding.playerContent.miniProgressBar.progress = progress
 

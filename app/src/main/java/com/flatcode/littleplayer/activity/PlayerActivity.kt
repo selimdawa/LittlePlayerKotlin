@@ -213,6 +213,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             }
         }
 
+        nowPlayerViewModel.marqueeEnabled.collectWithLifecycle(this) { enabled ->
+            binding.songName.isSelected = enabled
+        }
+
         viewModel.currentSong.collectWithLifecycle(this) { song ->
             song?.let {
                 updateSongUI(it)

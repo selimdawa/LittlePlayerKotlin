@@ -32,6 +32,7 @@ object DATA {
     const val LIST_ITEM_THEME = "LIST_ITEM_THEME"
     const val THEME_EXTRACTED_COLOR = "THEME_EXTRACTED_COLOR"
     const val SHOW_SONG_TOAST = "SHOW_SONG_TOAST"
+    const val MARQUEE_ENABLED = "MARQUEE_ENABLED"
 
     const val MODE_BASIC = 0
     const val MODE_PALETTE = 1

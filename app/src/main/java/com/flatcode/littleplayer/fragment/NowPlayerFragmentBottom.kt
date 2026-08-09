@@ -166,12 +166,16 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             viewModel.bottomPlayerThemeEnabled,
             viewModel.themeColorMode,
             viewModel.currentThemeColor,
-        ) { enabled, mode, color ->
-            Triple(enabled, mode, color)
-        }.collectWithLifecycle(viewLifecycleOwner) { (enabled, mode, color) ->
+            viewModel.marqueeEnabled,
+        ) { enabled, mode, color, marquee ->
+            Quadruple(enabled, mode, color, marquee)
+        }.collectWithLifecycle(viewLifecycleOwner) { (enabled, mode, color, marquee) ->
             updateThemeColors(enabled, mode, color ?: Color.WHITE)
+            binding.playerContent.name.isSelected = marquee
         }
     }
+
+    private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
     private fun updateThemeColors(enabled: Boolean, mode: Int, color: Int) {
         val track = requireContext().getLibraryColor("mc_track")

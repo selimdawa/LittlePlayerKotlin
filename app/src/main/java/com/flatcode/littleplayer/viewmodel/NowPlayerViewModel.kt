@@ -36,11 +36,14 @@ class NowPlayerViewModel @Inject constructor(
     private val _themeColorMode = MutableStateFlow(DATA.MODE_BASIC)
     val themeColorMode: StateFlow<Int> = _themeColorMode.asStateFlow()
 
-    private val _bottomPlayerThemeEnabled = MutableStateFlow(false)
+    private val _bottomPlayerThemeEnabled = MutableStateFlow(true)
     val bottomPlayerThemeEnabled: StateFlow<Boolean> = _bottomPlayerThemeEnabled.asStateFlow()
 
-    private val _listItemThemeEnabled = MutableStateFlow(false)
+    private val _listItemThemeEnabled = MutableStateFlow(true)
     val listItemThemeEnabled: StateFlow<Boolean> = _listItemThemeEnabled.asStateFlow()
+
+    private val _marqueeEnabled = MutableStateFlow(true)
+    val marqueeEnabled: StateFlow<Boolean> = _marqueeEnabled.asStateFlow()
 
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
@@ -52,6 +55,7 @@ class NowPlayerViewModel @Inject constructor(
     private val bottomPlayerThemeKey = booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
     private val listItemThemeKey = booleanPreferencesKey(DATA.LIST_ITEM_THEME)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
+    private val marqueeEnabledKey = booleanPreferencesKey(DATA.MARQUEE_ENABLED)
 
     init {
         restoreSession()
@@ -74,8 +78,9 @@ class NowPlayerViewModel @Inject constructor(
             
             dataStore.data.collect { preferences ->
                 _themeColorMode.value = preferences[themeColorModeKey] ?: DATA.MODE_BASIC
-                _bottomPlayerThemeEnabled.value = preferences[bottomPlayerThemeKey] ?: false
-                _listItemThemeEnabled.value = preferences[listItemThemeKey] ?: false
+                _bottomPlayerThemeEnabled.value = preferences[bottomPlayerThemeKey] ?: true
+                _listItemThemeEnabled.value = preferences[listItemThemeKey] ?: true
+                _marqueeEnabled.value = preferences[marqueeEnabledKey] ?: true
                 _currentThemeColor.value = preferences[themeExtractedColorKey]
 
                 if (_currentPlayingSong.value == null) {
@@ -132,6 +137,15 @@ class NowPlayerViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[listItemThemeKey] = enabled
+            }
+        }
+    }
+
+    fun setMarqueeEnabled(enabled: Boolean) {
+        _marqueeEnabled.value = enabled
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[marqueeEnabledKey] = enabled
             }
         }
     }

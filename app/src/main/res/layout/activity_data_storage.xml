@@ -21,7 +21,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Bottom Player Theme Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -58,7 +57,7 @@
                     android:id="@+id/switchBottomPlayerTheme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="false"
+                    android:checked="true"
                     android:splitTrack="false"
                     android:thumb="@drawable/switch_thumb_custom"
                     app:showText="false"
@@ -91,11 +90,9 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="16dp"
                 android:background="?attr/colorSurfaceVariant"
                 android:paddingHorizontal="16dp" />
 
-            <!-- List Item Theme Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -131,7 +128,7 @@
                     android:id="@+id/switchListTheme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="false"
+                    android:checked="true"
                     android:splitTrack="false"
                     android:thumb="@drawable/switch_thumb_custom"
                     app:showText="false"
@@ -164,11 +161,61 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="16dp"
                 android:background="?attr/colorSurfaceVariant"
                 android:paddingHorizontal="16dp" />
 
-            <!-- Cache & History Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/marquee_scrolling"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/marquee_scrolling_desc"
+                        android:textColor="@color/gray"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchMarquee"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:splitTrack="false"
+                    android:thumb="@drawable/switch_thumb_custom"
+                    app:showText="false"
+                    app:switchMinWidth="48dp"
+                    app:thumbTint="?attr/mc_track"
+                    app:track="@drawable/switch_track_custom"
+                    app:trackTint="@null" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorSurfaceVariant"
+                android:paddingHorizontal="16dp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -198,9 +245,6 @@
                         android:id="@+id/btnClearCache"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
@@ -247,9 +291,6 @@
                         android:id="@+id/btnClearHistory"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="16dp">
