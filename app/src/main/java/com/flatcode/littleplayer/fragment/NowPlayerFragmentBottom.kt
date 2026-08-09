@@ -74,11 +74,11 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     }
 
     private fun setupListeners() {
-        binding.cardBottomPlayer.setOnClickListener {
-            requireContext().openPlayer(-1, binding.albumArt)
+        binding.playerContent.cardBottomPlayer.setOnClickListener {
+            requireContext().openPlayer(-1, binding.playerContent.albumArt)
         }
 
-        binding.nextBtn.setOnClickListener {
+        binding.playerContent.nextBtn.setOnClickListener {
             mediaController?.let { controller ->
                 val count = controller.mediaItemCount
                 if (count > 0) {
@@ -91,7 +91,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             }
         }
 
-        binding.playPauseBtn.setOnClickListener {
+        binding.playerContent.playPauseBtn.setOnClickListener {
             mediaController?.let { controller ->
                 if (controller.currentMediaItem == null) {
                     val song = viewModel.currentPlayingSong.value
@@ -152,9 +152,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
             song?.let {
-                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
-                binding.name.text = it.safeTitle
-                binding.artist.text = it.safeArtist
+                binding.playerContent.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.playerContent.name.text = it.safeTitle
+                binding.playerContent.artist.text = it.safeArtist
             }
         }
 
@@ -205,9 +205,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             }
         }
 
-        applyTo(binding.playPauseBtn)
-        applyTo(binding.albumArtContainer)
-        applyTo(binding.bottomPlayerContainer)
+        applyTo(binding.playerContent.playPauseBtn)
+        applyTo(binding.playerContent.albumArtContainer)
+        applyTo(binding.playerContent.bottomPlayerContainer)
     }
 
     private fun updateUiFromPlayer(player: Player) {
@@ -233,9 +233,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
             if (lastLoadedPath != path) {
                 lastLoadedPath = path
-                binding.albumArt.loadSongImage(albumId, path, cachedPath)
-                binding.name.text = title
-                binding.artist.text = artist
+                binding.playerContent.albumArt.loadSongImage(albumId, path, cachedPath)
+                binding.playerContent.name.text = title
+                binding.playerContent.artist.text = artist
 
                 // Extract Palette Color
                 val model = getSongImageModel(albumId, path, cachedPath)
@@ -248,9 +248,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         } else {
             val song = viewModel.currentPlayingSong.value
             song?.let {
-                binding.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
-                binding.name.text = it.safeTitle
-                binding.artist.text = it.safeArtist
+                binding.playerContent.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.playerContent.name.text = it.safeTitle
+                binding.playerContent.artist.text = it.safeArtist
 
                 // Extract Palette Color if missing
                 if (viewModel.currentThemeColor.value == null) {
@@ -267,7 +267,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     }
 
     private fun updatePlayPauseAnimation(isPlaying: Boolean) {
-        binding.playPauseView.setPlaying(isPlaying)
+        binding.playerContent.playPauseView.setPlaying(isPlaying)
     }
 
     override fun onStart() {
@@ -313,7 +313,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                         if (duration > 0) {
                             val currentPosition = controller.currentPosition
                             val progress = ((currentPosition * 100) / duration).toInt()
-                            binding.miniProgressBar.progress = progress
+                            binding.playerContent.miniProgressBar.progress = progress
                         }
                     }
                 }

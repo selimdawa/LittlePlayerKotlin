@@ -151,9 +151,9 @@ class DataStorageActivity : AppCompatActivity() {
     ) {
         itemBinding.tvThemeLabel.text = label
 
-        itemBinding.name.text = getString(R.string.blinding_lights)
-        itemBinding.artist.text = getString(R.string.the_weeknd)
-        itemBinding.miniProgressBar.progress = progress
+        itemBinding.playerContent.name.text = getString(R.string.blinding_lights)
+        itemBinding.playerContent.artist.text = getString(R.string.the_weeknd)
+        itemBinding.playerContent.miniProgressBar.progress = progress
 
         val track = getLibraryColor("mc_track")
         val tick = getLibraryColor("mc_tick")
@@ -165,16 +165,16 @@ class DataStorageActivity : AppCompatActivity() {
         }
 
         if (colorToApply != null) {
-            itemBinding.bottomPlayerContainer.setSolidBackground(colorToApply)
-            itemBinding.albumArtContainer.setSolidBackground(colorToApply)
-            itemBinding.playPauseBtn.setSolidBackground(colorToApply)
+            itemBinding.playerContent.bottomPlayerContainer.setSolidBackground(colorToApply)
+            itemBinding.playerContent.albumArtContainer.setSolidBackground(colorToApply)
+            itemBinding.playerContent.playPauseBtn.setSolidBackground(colorToApply)
         } else {
-            itemBinding.bottomPlayerContainer.setGradientBackground(track, tick)
-            itemBinding.albumArtContainer.setGradientBackground(track, tick)
-            itemBinding.playPauseBtn.setGradientBackground(track, tick)
+            itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(track, tick)
+            itemBinding.playerContent.albumArtContainer.setGradientBackground(track, tick)
+            itemBinding.playerContent.playPauseBtn.setGradientBackground(track, tick)
         }
 
-        itemBinding.albumArt.load(imageSource ?: R.drawable.ic_music) {
+        itemBinding.playerContent.albumArt.load(imageSource ?: R.drawable.ic_music) {
             crossfade(true)
             placeholder(R.drawable.ic_music)
             error(R.drawable.ic_music)
