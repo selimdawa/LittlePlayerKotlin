@@ -33,9 +33,11 @@ import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
+import com.flatcode.littleplayer.utils.getDefaultArtBytes
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -79,6 +81,7 @@ class MusicService : MediaSessionService(), Player.Listener {
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
     private val songIdKey = stringPreferencesKey(DATA.SONG_ID)
+    private val durationKey = stringPreferencesKey(DATA.DURATION)
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
     private val showSongToastKey = booleanPreferencesKey(DATA.SHOW_SONG_TOAST)
@@ -89,6 +92,16 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     override fun onCreate() {
         super.onCreate()
+        MultiColorManager.applyTheme(this)
+
+        serviceScope.launch {
+            MultiColorManager.currentThemeId.collect {
+                MultiColorManager.applyTheme(this@MusicService)
+                exoPlayer?.let { player ->
+                    loadArtForCurrentItem(player, forceDefaultRefresh = true)
+                }
+            }
+        }
 
         basePlayer = ExoPlayer.Builder(this).build().apply {
             addListener(this@MusicService)
@@ -109,6 +122,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                 return when (command) {
                     COMMAND_SEEK_TO_NEXT, COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
                     COMMAND_SEEK_TO_PREVIOUS, COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> mediaItemCount > 0
+
                     else -> super.isCommandAvailable(command)
                 }
             }
@@ -195,6 +209,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     player.shuffleModeEnabled = state?.shuffleModeEnabled ?: false
                     player.repeatMode = state?.repeatMode ?: Player.REPEAT_MODE_ALL
                     player.prepare()
+                    loadArtForCurrentItem(player)
                 }
             } else if (state != null) {
                 exoPlayer?.let { player ->
@@ -299,6 +314,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         val artist = metadata.artist?.toString() ?: DATA.UNKNOWN
         val album = metadata.albumTitle?.toString() ?: DATA.UNKNOWN
         val albumId = metadata.extras?.getString("ALBUM_ID")
+        val duration = player.duration.let { if (it > 0) it.toString() else null }
         val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
         val path = currentMediaItem.localConfiguration?.uri?.path ?: ""
         val currentIndex = player.currentMediaItemIndex
@@ -314,7 +330,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     artist = artist,
                     album = album,
                     albumId = albumId,
-                    duration = null,
+                    duration = duration,
                     path = path
                 )
             )
@@ -334,6 +350,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                 preferences[artistNameKey] = artist
                 preferences[songNameKey] = title
                 preferences[songIdKey] = songId
+                preferences[durationKey] = duration ?: ""
                 preferences[albumIdKey] = albumId ?: ""
                 preferences[cachedImagePathKey] = cachedPath ?: ""
                 preferences[intPreferencesKey(DATA.LAST_POSITION)] = currentIndex
@@ -366,7 +383,8 @@ class MusicService : MediaSessionService(), Player.Listener {
 
             val stopButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                 .setSessionCommand(customCommandStop)
-                .setDisplayName(getString(R.string.stop)).setCustomIconResId(R.drawable.ic_close).build()
+                .setDisplayName(getString(R.string.stop)).setCustomIconResId(R.drawable.ic_close)
+                .build()
 
             mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton, stopButton))
         }
@@ -385,15 +403,13 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
-        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) return
 
         exoPlayer?.let {
             position = it.currentMediaItemIndex
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) {
-                loadArtForCurrentItem(it)
-                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && !it.playWhenReady) {
-                    it.play()
-                }
+            loadArtForCurrentItem(it)
+
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && !it.playWhenReady) {
+                it.play()
             }
 
             val currentId = it.currentMediaItem?.mediaId
@@ -403,15 +419,13 @@ class MusicService : MediaSessionService(), Player.Listener {
                 }
             }
 
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
-                mediaItem?.mediaMetadata?.title?.let { title ->
-                    serviceScope.launch {
-                        val showToast = dataStore.data.map { preferences ->
-                            preferences[showSongToastKey] ?: false
-                        }.first()
-                        if (showToast) {
-                            Toast.makeText(this@MusicService, title, Toast.LENGTH_SHORT).show()
-                        }
+            mediaItem?.mediaMetadata?.title?.let { title ->
+                serviceScope.launch {
+                    val showToast = dataStore.data.map { preferences ->
+                        preferences[showSongToastKey] ?: false
+                    }.first()
+                    if (showToast) {
+                        Toast.makeText(this@MusicService, title, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -420,23 +434,35 @@ class MusicService : MediaSessionService(), Player.Listener {
         updateNotificationLayout()
     }
 
-    private fun loadArtForCurrentItem(player: Player) {
+    private fun loadArtForCurrentItem(player: Player, forceDefaultRefresh: Boolean = false) {
         val currentMediaItem = player.currentMediaItem ?: return
-        if (currentMediaItem.mediaMetadata.artworkData != null) return
+        val extras = currentMediaItem.mediaMetadata.extras ?: Bundle.EMPTY
+        val isCurrentlyDefault = extras.getBoolean("IS_DEFAULT_ART", false)
+
+        if (currentMediaItem.mediaMetadata.artworkData != null && !forceDefaultRefresh) return
+        if (forceDefaultRefresh && !isCurrentlyDefault) return
+
         val path = currentMediaItem.localConfiguration?.uri?.path ?: return
-        val cachedPath = currentMediaItem.mediaMetadata.extras?.getString("CACHED_IMAGE_PATH")
+        val cachedPath = extras.getString("CACHED_IMAGE_PATH")
 
         serviceScope.launch(Dispatchers.IO) {
-            val artBytes = if (!cachedPath.isNullOrEmpty()) {
+            val realArtBytes = if (!cachedPath.isNullOrEmpty()) {
                 val file = File(cachedPath)
                 if (file.exists()) file.readBytes() else getAlbumArtBytes(path)
             } else {
                 getAlbumArtBytes(path)
             }
 
-            if (artBytes != null) {
+            val isDefault = realArtBytes == null
+            val artBytes = realArtBytes ?: getDefaultArtBytes(this@MusicService)
+
+            if (artBytes != null && artBytes.isNotEmpty()) {
                 val updatedMetadata = currentMediaItem.mediaMetadata.buildUpon()
-                    .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER).build()
+                    .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                    .setExtras(Bundle(extras).apply {
+                        putBoolean("IS_DEFAULT_ART", isDefault)
+                    })
+                    .build()
 
                 launch(Dispatchers.Main) {
                     if (player.currentMediaItem?.mediaId == currentMediaItem.mediaId) {
@@ -456,9 +482,13 @@ class MusicService : MediaSessionService(), Player.Listener {
                 Player.EVENT_MEDIA_ITEM_TRANSITION,
                 Player.EVENT_REPEAT_MODE_CHANGED,
                 Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
-                Player.EVENT_PLAY_WHEN_READY_CHANGED
+                Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                Player.EVENT_PLAYBACK_STATE_CHANGED
             )
         ) {
+            if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) && player.playbackState == Player.STATE_READY) {
+                loadArtForCurrentItem(player)
+            }
             updateNotificationLayout()
             if (events.containsAny(
                     Player.EVENT_REPEAT_MODE_CHANGED,
@@ -511,6 +541,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                         val title = currentMediaItem.mediaMetadata.title?.toString() ?: ""
                         val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: ""
                         val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
+                        val duration = session.player.duration.let { if (it > 0) it.toString() else null }
                         val path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
 
                         serviceScope.launch {
@@ -522,7 +553,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                                         title = title,
                                         artist = artist,
                                         album = album,
-                                        duration = null,
+                                        duration = duration,
                                         path = path
                                     )
                                 )
@@ -533,7 +564,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                                         title = title,
                                         artist = artist,
                                         album = album,
-                                        duration = null,
+                                        duration = duration,
                                         path = path
                                     )
                                 )
@@ -615,7 +646,13 @@ class MusicService : MediaSessionService(), Player.Listener {
                 COMMAND_SET_PRESET -> {
                     currentPreset = args.getString("PRESET") ?: "Custom"
                     if (currentPreset == "Custom") {
-                        System.arraycopy(customBandLevels, 0, currentBandLevels, 0, customBandLevels.size)
+                        System.arraycopy(
+                            customBandLevels,
+                            0,
+                            currentBandLevels,
+                            0,
+                            customBandLevels.size
+                        )
                         applyEqualizerSettings()
                     }
                     saveEqualizerSettings()

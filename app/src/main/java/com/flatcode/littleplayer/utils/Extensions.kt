@@ -79,12 +79,15 @@ inline fun <reified T : Activity> Context.launchActivity(
     startActivity(intent, options)
 }
 
-fun Context.getColorFromAttr(@AttrRes attr: Int): Int {
+fun Context.getColorFromAttr(@AttrRes attr: Int, fallback: Int = Color.WHITE): Int {
     val typedValue = TypedValue()
     if (theme.resolveAttribute(attr, typedValue, true)) {
         return typedValue.data
     }
-    return Color.WHITE
+    if (applicationContext.theme.resolveAttribute(attr, typedValue, true)) {
+        return typedValue.data
+    }
+    return fallback
 }
 
 fun Long.formatAsSize(): String {
@@ -116,12 +119,21 @@ fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
 }
 
 fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
-    val request = ImageRequest.Builder(this).data(data).allowHardware(false).target { result ->
+    val request = ImageRequest.Builder(this)
+        .data(data)
+        .allowHardware(false)
+        .listener(
+            onError = { _, _ -> onPaletteGenerated(null) },
+            onCancel = { onPaletteGenerated(null) }
+        )
+        .target { result ->
             val bitmap = (result as? BitmapDrawable)?.bitmap
-            bitmap?.let {
-                Palette.from(it).generate { palette ->
+            if (bitmap != null) {
+                Palette.from(bitmap).generate { palette ->
                     onPaletteGenerated(palette)
                 }
+            } else {
+                onPaletteGenerated(null)
             }
         }.build()
     imageLoader.enqueue(request)
@@ -198,7 +210,32 @@ fun Context.getLibraryColor(attrName: String): Int {
         id = resources.getIdentifier(attrName, "attr", "android")
     }
 
-    return if (id != 0) getColorFromAttr(id) else Color.WHITE
+    val fallback = if (attrName == "mc_track") Color.parseColor("#6200EE") else Color.parseColor("#3700B3")
+    val color = if (id != 0) getColorFromAttr(id, Color.TRANSPARENT) else Color.TRANSPARENT
+    
+    if (color != Color.TRANSPARENT && color != 0) return color
+    
+    return try {
+        val theme = io.selimdawa.multicolors.MultiColorManager.getCurrentTheme(this)
+        when (theme) {
+            is io.selimdawa.multicolors.MultiColorTheme.Gradient -> {
+                if (attrName == "mc_track") theme.colors.first()
+                else if (attrName == "mc_tick") theme.colors.last()
+                else fallback
+            }
+            is io.selimdawa.multicolors.MultiColorTheme.Xml -> {
+                val typedValue = TypedValue()
+                val tempTheme = resources.newTheme()
+                tempTheme.applyStyle(theme.styleRes, true)
+                if (tempTheme.resolveAttribute(id, typedValue, true)) {
+                    typedValue.data
+                } else fallback
+            }
+            else -> fallback
+        }
+    } catch (e: Exception) {
+        fallback
+    }
 }
 
 fun <T> Flow<T>.collectWithLifecycle(
@@ -216,6 +253,7 @@ fun <T> Flow<T>.collectWithLifecycle(
 interface PlaybackAnimatable {
     fun updatePlaybackState(path: String?, isPlaying: Boolean)
     fun updateThemeState(mode: Int, color: Int)
+    fun updateListThemeState(enabled: Boolean)
 }
 
 @UnstableApi
@@ -253,6 +291,9 @@ fun LifecycleOwner.observePlaybackSync(
         adapterProvider()?.updateThemeState(
             nowPlayerViewModel.themeColorMode.value, color ?: Color.WHITE
         )
+    }
+    nowPlayerViewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
+        adapterProvider()?.updateListThemeState(enabled)
     }
 }
 
@@ -437,6 +478,37 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
     }
 }
 
+fun getDefaultArtBytes(context: Context): ByteArray? {
+    return try {
+        val size = 512
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+
+        // The context (MusicService) already has MultiColorManager.applyTheme(this) called
+        val backgroundColor = context.getLibraryColor("mc_track")
+        canvas.drawColor(backgroundColor)
+
+        // Load the stylized disc icon using AppCompatResources
+        val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+            context, R.drawable.ic_default_album_art
+        )
+        if (drawable != null) {
+            drawable.setBounds(0, 0, size, size)
+            drawable.draw(canvas)
+        }
+
+        val stream = java.io.ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+        val byteArray = stream.toByteArray()
+        stream.close()
+        bitmap.recycle()
+        byteArray
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
 fun Int.ensureBrightColor(): Int {
     val hsv = FloatArray(3)
     Color.colorToHSV(this, hsv)
@@ -446,8 +518,8 @@ fun Int.ensureBrightColor(): Int {
     return Color.HSVToColor(hsv)
 }
 
-fun Palette?.extractVibrantColor(): Int {
-    val dominantColor = this?.getDominantColor(Color.GRAY) ?: Color.GRAY
+fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
+    val dominantColor = this?.getDominantColor(defaultColor) ?: defaultColor
     return this?.getLightVibrantColor(Color.TRANSPARENT)
         .takeIf { it != Color.TRANSPARENT && it != 0 } ?: this?.getVibrantColor(Color.TRANSPARENT)
         .takeIf { it != Color.TRANSPARENT && it != 0 }
