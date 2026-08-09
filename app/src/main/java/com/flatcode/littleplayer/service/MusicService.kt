@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -55,7 +56,8 @@ class MusicService : MediaSessionService(), Player.Listener {
     @Inject
     lateinit var repository: MusicRoomRepository
 
-    var exoPlayer: ExoPlayer? = null
+    private var basePlayer: ExoPlayer? = null
+    var exoPlayer: Player? = null
     private var mediaSession: MediaSession? = null
 
     var position = -1
@@ -88,9 +90,62 @@ class MusicService : MediaSessionService(), Player.Listener {
     override fun onCreate() {
         super.onCreate()
 
-        exoPlayer = ExoPlayer.Builder(this).build().apply {
+        basePlayer = ExoPlayer.Builder(this).build().apply {
             addListener(this@MusicService)
             repeatMode = Player.REPEAT_MODE_ALL
+        }
+
+        exoPlayer = object : ForwardingPlayer(basePlayer!!) {
+            override fun getAvailableCommands(): Player.Commands {
+                return super.getAvailableCommands().buildUpon()
+                    .add(COMMAND_SEEK_TO_NEXT)
+                    .add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                    .add(COMMAND_SEEK_TO_PREVIOUS)
+                    .add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                    .build()
+            }
+
+            override fun isCommandAvailable(command: Int): Boolean {
+                return when (command) {
+                    COMMAND_SEEK_TO_NEXT, COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                    COMMAND_SEEK_TO_PREVIOUS, COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> mediaItemCount > 0
+                    else -> super.isCommandAvailable(command)
+                }
+            }
+
+            override fun hasNextMediaItem(): Boolean = mediaItemCount > 0
+            override fun hasPreviousMediaItem(): Boolean = mediaItemCount > 0
+
+            override fun getNextMediaItemIndex(): Int {
+                val count = mediaItemCount
+                if (count <= 0) return -1
+                return (currentMediaItemIndex + 1) % count
+            }
+
+            override fun getPreviousMediaItemIndex(): Int {
+                val count = mediaItemCount
+                if (count <= 0) return -1
+                return (currentMediaItemIndex - 1 + count) % count
+            }
+
+            override fun seekToNextMediaItem() {
+                val next = getNextMediaItemIndex()
+                if (next != -1) {
+                    seekToDefaultPosition(next)
+                    if (!playWhenReady) play()
+                }
+            }
+
+            override fun seekToPreviousMediaItem() {
+                val prev = getPreviousMediaItemIndex()
+                if (prev != -1) {
+                    seekToDefaultPosition(prev)
+                    if (!playWhenReady) play()
+                }
+            }
+
+            override fun seekToNext() = seekToNextMediaItem()
+            override fun seekToPrevious() = seekToPreviousMediaItem()
         }
 
         exoPlayer?.let { player ->
@@ -98,7 +153,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                 MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
 
             loadEqualizerSettings()
-            initAudioEffects(player.audioSessionId)
+            initAudioEffects(basePlayer?.audioSessionId ?: -1)
             loadPlaybackStateAndQueue()
         }
     }
@@ -514,7 +569,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     startSleepTimer(minutes)
                 }
 
-                MusicService.COMMAND_SAVE_EQ_SETTINGS -> {
+                COMMAND_SAVE_EQ_SETTINGS -> {
                     saveEqualizerSettings()
                 }
 

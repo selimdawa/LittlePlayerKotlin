@@ -2,7 +2,6 @@ package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
@@ -31,6 +30,8 @@ import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.getLibraryColor
+import com.flatcode.littleplayer.utils.extractPalette
+import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -79,9 +80,13 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
         binding.nextBtn.setOnClickListener {
             mediaController?.let { controller ->
-                controller.seekToNext()
-                if (!controller.playWhenReady) {
-                    controller.play()
+                val count = controller.mediaItemCount
+                if (count > 0) {
+                    val nextIndex = (controller.currentMediaItemIndex + 1) % count
+                    controller.seekToDefaultPosition(nextIndex)
+                    if (!controller.playWhenReady) {
+                        controller.play()
+                    }
                 }
             }
         }
@@ -233,17 +238,11 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 binding.artist.text = artist
 
                 // Extract Palette Color
-                val request = ImageRequest.Builder(requireContext()).data(cachedPath ?: path)
-                    .allowHardware(enable = false).target { result ->
-                        val bitmap = (result as? BitmapDrawable)?.bitmap
-                        bitmap?.let { b ->
-                            Palette.from(b).generate { palette ->
-                                val color = palette.extractVibrantColor()
-                                viewModel.updateThemeColor(color)
-                            }
-                        }
-                    }.build()
-                requireContext().imageLoader.enqueue(request)
+                val model = getSongImageModel(albumId, path, cachedPath)
+                requireContext().extractPalette(model) { palette ->
+                    val color = palette.extractVibrantColor()
+                    viewModel.updateThemeColor(color)
+                }
             }
         } else {
             val song = viewModel.currentPlayingSong.value
@@ -254,18 +253,11 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
                 // Extract Palette Color if missing
                 if (viewModel.currentThemeColor.value == null) {
-                    val request =
-                        ImageRequest.Builder(requireContext()).data(it.cachedImagePath ?: it.path)
-                            .allowHardware(enable = false).target { result ->
-                                val bitmap = (result as? BitmapDrawable)?.bitmap
-                                bitmap?.let { b ->
-                                    Palette.from(b).generate { palette ->
-                                        val color = palette.extractVibrantColor()
-                                        viewModel.updateThemeColor(color)
-                                    }
-                                }
-                            }.build()
-                    requireContext().imageLoader.enqueue(request)
+                    val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath)
+                    requireContext().extractPalette(model) { palette ->
+                        val color = palette.extractVibrantColor()
+                        viewModel.updateThemeColor(color)
+                    }
                 }
             }
         }

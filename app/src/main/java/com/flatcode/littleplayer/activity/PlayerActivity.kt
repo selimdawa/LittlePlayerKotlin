@@ -6,14 +6,12 @@ import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -321,9 +319,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             return
         }
         mediaController?.let { controller ->
-            controller.seekToPreviousMediaItem()
-            if (!controller.playWhenReady) {
-                controller.play()
+            val count = controller.mediaItemCount
+            if (count > 0) {
+                val prevIndex = (controller.currentMediaItemIndex - 1 + count) % count
+                controller.seekToDefaultPosition(prevIndex)
+                if (!controller.playWhenReady) {
+                    controller.play()
+                }
             }
         }
     }
@@ -334,9 +336,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             return
         }
         mediaController?.let { controller ->
-            controller.seekToNextMediaItem()
-            if (!controller.playWhenReady) {
-                controller.play()
+            val count = controller.mediaItemCount
+            if (count > 0) {
+                val nextIndex = (controller.currentMediaItemIndex + 1) % count
+                controller.seekToDefaultPosition(nextIndex)
+                if (!controller.playWhenReady) {
+                    controller.play()
+                }
             }
         }
     }
@@ -345,22 +351,15 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (isAnimating || (mediaController == null)) return
 
         val controller = mediaController!!
-        val hasNext =
-            if (toNext) controller.hasNextMediaItem() else controller.hasPreviousMediaItem()
-
-        if (!hasNext) {
-            if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
-            return
-        }
+        val itemCount = controller.mediaItemCount
+        if (itemCount <= 0) return
 
         isAnimating = true
-        val nextIndex =
-            if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
+        val nextIndex = if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
 
         val nextSong =
             if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
 
-        // Update UI info immediately if we have it
         nextSong?.let {
             binding.songName.text = it.title ?: DATA.UNKNOWN
             binding.songArtist.text = it.artist ?: DATA.UNKNOWN
@@ -560,11 +559,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             val uri = song.path?.toUri() ?: "".toUri()
             val metadata =
                 MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist).setExtras(
-                        Bundle().apply {
-                            putString("ALBUM_ID", song.albumId)
-                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                        },
-                    ).build()
+                    Bundle().apply {
+                        putString("ALBUM_ID", song.albumId)
+                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                    },
+                ).build()
             MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                 .build()
         }
@@ -588,11 +587,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             val uri = song.path?.toUri() ?: "".toUri()
             val metadata =
                 MediaMetadata.Builder().setTitle(song.title).setArtist(song.artist).setExtras(
-                        Bundle().apply {
-                            putString("ALBUM_ID", song.albumId)
-                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                        },
-                    ).build()
+                    Bundle().apply {
+                        putString("ALBUM_ID", song.albumId)
+                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                    },
+                ).build()
             MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(song.id ?: "")
                 .build()
         }
