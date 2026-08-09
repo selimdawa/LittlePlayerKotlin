@@ -10,5 +10,14 @@
     <color name="light_gray_icon">#CCCCCC</color>
     <color name="pure_black">#FF000000</color>
     <color name="link">#2196F3</color>
+
+    <!-- Syrian Flag Colors -->
+    <color name="syria_green">#007A3D</color>
+    <color name="syria_red">#CE1126</color>
+
+    <!-- Transparency Colors -->
     <color name="transparent">@android:color/transparent</color>
+    <color name="white_66">#66FFFFFF</color>
+    <color name="white_40">#40FFFFFF</color>
+    <color name="white_33">#33FFFFFF</color>
 </resources>

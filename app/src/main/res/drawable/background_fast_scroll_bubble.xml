@@ -2,8 +2,8 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="?attr/mc_track" />
     <corners
-        android:topLeftRadius="25dp"
-        android:topRightRadius="25dp"
-        android:bottomLeftRadius="25dp"
-        android:bottomRightRadius="4dp" />
+        android:topLeftRadius="@dimen/radius_25"
+        android:topRightRadius="@dimen/radius_25"
+        android:bottomLeftRadius="@dimen/radius_25"
+        android:bottomRightRadius="@dimen/radius_tiny" />
 </shape>

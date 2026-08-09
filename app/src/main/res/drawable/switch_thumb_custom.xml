@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:inset="3dp">
+    android:inset="@dimen/inset_tiny">
     <shape android:shape="oval">
         <solid android:color="?attr/mc_track" />
         <size
-            android:width="22dp"
-            android:height="22dp" />
+            android:width="@dimen/thumb_size"
+            android:height="@dimen/thumb_size" />
     </shape>
 </inset>

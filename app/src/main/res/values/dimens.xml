@@ -33,5 +33,21 @@
     <dimen name="text_size_title">20sp</dimen>
     <dimen name="text_size_content">15sp</dimen>
 
+    <dimen name="radius_small">8dp</dimen>
+    <dimen name="radius_medium">16dp</dimen>
     <dimen name="radius_large">24dp</dimen>
+    <dimen name="radius_tiny">4dp</dimen>
+    <dimen name="radius_default">10dp</dimen>
+    <dimen name="radius_circle">100dp</dimen>
+    <dimen name="radius_20">20dp</dimen>
+    <dimen name="radius_25">25dp</dimen>
+
+    <dimen name="thickness_small">2dp</dimen>
+    <dimen name="inset_small">2dp</dimen>
+    <dimen name="inset_tiny">3dp</dimen>
+
+    <dimen name="cover_size_preview">200dp</dimen>
+    <dimen name="icon_size_48">48dp</dimen>
+    <dimen name="thumb_size">22dp</dimen>
+    <dimen name="track_width">44dp</dimen>
 </resources>
