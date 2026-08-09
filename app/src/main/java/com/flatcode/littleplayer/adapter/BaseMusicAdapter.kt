@@ -22,6 +22,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
     protected var isPlaying: Boolean = false
     protected var currentThemeMode: Int = DATA.MODE_BASIC
     protected var currentThemeColor: Int = Color.WHITE
+    protected var listItemThemeEnabled: Boolean = false
 
     override fun updatePlaybackState(path: String?, isPlaying: Boolean) {
         val oldPath = this.playingPath
@@ -51,19 +52,43 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
         }
     }
 
+    override fun updateListThemeState(enabled: Boolean) {
+        val old = this.listItemThemeEnabled
+        this.listItemThemeEnabled = enabled
+        if (old != enabled) {
+            notifyItemRangeChanged(0, itemCount)
+        }
+    }
+
     protected fun ItemMusicBinding.applyTheme(context: Context, songPath: String?) {
         if ((songPath == playingPath) && isPlaying) {
             wave.visible()
-            val trackColor = when (currentThemeMode) {
-                DATA.MODE_PALETTE -> currentThemeColor.ensureBrightColor()
-                DATA.MODE_WHITE -> Color.WHITE
-                else -> context.getLibraryColor("mc_track")
+            val trackColor = if (listItemThemeEnabled) {
+                when (currentThemeMode) {
+                    DATA.MODE_PALETTE -> currentThemeColor.ensureBrightColor()
+                    DATA.MODE_WHITE -> Color.WHITE
+                    else -> context.getLibraryColor("mc_track")
+                }
+            } else {
+                context.getLibraryColor("mc_track")
             }
+
+            val closeColor = if (listItemThemeEnabled) {
+                when (currentThemeMode) {
+                    DATA.MODE_PALETTE -> trackColor
+                    DATA.MODE_WHITE -> Color.WHITE
+                    else -> context.getLibraryColor("mc_tick")
+                }
+            } else {
+                context.getLibraryColor("mc_tick")
+            }
+
             wave.startColor = trackColor
+            wave.closeColor = closeColor
             songName.setTextColor(trackColor)
         } else {
             wave.gone()
-            songName.setTextColor(context.getLibraryColor("colorError"))
+            songName.setTextColor(context.getLibraryColor("colorOnSurface"))
         }
     }
 }

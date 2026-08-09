@@ -75,7 +75,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private lateinit var amplituda: Amplituda
-    private var currentDominantColor: Int = Color.GRAY
+    private var currentDominantColor: Int = Color.BLACK // Will be initialized in onCreate
     private var currentMode: Int = DATA.MODE_BASIC
     private var isIntentProcessed = false
     private var isAnimating = false
@@ -93,6 +93,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         setContentView(binding.root)
 
         amplituda = Amplituda(this)
+        currentDominantColor = getLibraryColor("mc_track")
 
         getIntentMethod()
         setupListeners()
@@ -243,7 +244,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val model = getSongImageModel(song.albumId, song.path, song.cachedImagePath)
 
         extractPalette(model) { palette ->
-            currentDominantColor = palette.extractVibrantColor()
+            val defaultColor = getLibraryColor("mc_track")
+            currentDominantColor = palette.extractVibrantColor(defaultColor)
 
             binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
             nowPlayerViewModel.updateThemeColor(currentDominantColor)
@@ -377,8 +379,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     val request =
                         ImageRequest.Builder(this).data(model).allowHardware(enable = false)
                             .listener(
-                                onError = { _, _ -> performSkipAndSlideIn(toNext, inX) },
-                                onCancel = { performSkipAndSlideIn(toNext, inX) })
+                                onError = { _, _ ->
+                                    currentDominantColor = getLibraryColor("mc_track")
+                                    performSkipAndSlideIn(toNext, inX)
+                                },
+                                onCancel = {
+                                    currentDominantColor = getLibraryColor("mc_track")
+                                    performSkipAndSlideIn(toNext, inX)
+                                })
                             .target { result ->
                                 val bitmap = if (result is BitmapDrawable) {
                                     result.bitmap
@@ -395,12 +403,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                                 }
 
                                 Palette.from(bitmap).generate { palette ->
-                                    currentDominantColor = palette.extractVibrantColor()
+                                    val defaultColor = getLibraryColor("mc_track")
+                                    currentDominantColor = palette.extractVibrantColor(defaultColor)
                                     performSkipAndSlideIn(toNext, inX)
                                 }
                             }.build()
                     imageLoader.enqueue(request)
                 } else {
+                    currentDominantColor = getLibraryColor("mc_track")
                     performSkipAndSlideIn(toNext, inX)
                 }
             }.start()
@@ -461,6 +471,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     if (duration > 0) {
                         if (binding.seekBar.max != (duration.toInt() / 1000)) {
                             binding.seekBar.max = duration.toInt() / 1000
+                        }
+
+                        if (binding.durationTotal.text == "0:00" || binding.durationTotal.text == DATA.UNKNOWN) {
+                            binding.durationTotal.text = duration.milliseconds.formatAsTime()
                         }
 
                         binding.seekBar.progress = (currentPos / 1000).toInt()

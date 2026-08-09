@@ -39,6 +39,9 @@ class NowPlayerViewModel @Inject constructor(
     private val _bottomPlayerThemeEnabled = MutableStateFlow(false)
     val bottomPlayerThemeEnabled: StateFlow<Boolean> = _bottomPlayerThemeEnabled.asStateFlow()
 
+    private val _listItemThemeEnabled = MutableStateFlow(false)
+    val listItemThemeEnabled: StateFlow<Boolean> = _listItemThemeEnabled.asStateFlow()
+
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
@@ -47,6 +50,7 @@ class NowPlayerViewModel @Inject constructor(
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
     private val themeExtractedColorKey = intPreferencesKey(DATA.THEME_EXTRACTED_COLOR)
     private val bottomPlayerThemeKey = booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
+    private val listItemThemeKey = booleanPreferencesKey(DATA.LIST_ITEM_THEME)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
 
     init {
@@ -68,14 +72,12 @@ class NowPlayerViewModel @Inject constructor(
                 }
             }
             
-            // Collect everything in one place to avoid multiple suspending collectors
             dataStore.data.collect { preferences ->
-                // 1. Theme Settings
                 _themeColorMode.value = preferences[themeColorModeKey] ?: DATA.MODE_BASIC
                 _bottomPlayerThemeEnabled.value = preferences[bottomPlayerThemeKey] ?: false
+                _listItemThemeEnabled.value = preferences[listItemThemeKey] ?: false
                 _currentThemeColor.value = preferences[themeExtractedColorKey]
 
-                // 2. Song Recovery (if not already loaded from playback state)
                 if (_currentPlayingSong.value == null) {
                     val path = preferences[musicFileKey]
                     if (!path.isNullOrEmpty()) {
@@ -83,6 +85,7 @@ class NowPlayerViewModel @Inject constructor(
                             path = path,
                             artist = preferences[artistNameKey] ?: DATA.UNKNOWN,
                             title = preferences[songNameKey] ?: DATA.UNKNOWN,
+                            duration = preferences[stringPreferencesKey(DATA.DURATION)],
                             id = preferences[songIdKey],
                             albumId = preferences[albumIdKey],
                             cachedImagePath = preferences[cachedImagePathKey]
@@ -124,6 +127,15 @@ class NowPlayerViewModel @Inject constructor(
         }
     }
 
+    fun setListItemThemeEnabled(enabled: Boolean) {
+        _listItemThemeEnabled.value = enabled
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[listItemThemeKey] = enabled
+            }
+        }
+    }
+
     suspend fun getCurrentQueue(): List<MusicFiles> {
         return repository.loadCurrentQueue()
     }
@@ -136,6 +148,7 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[musicFileKey] = song.path ?: ""
                 preferences[artistNameKey] = song.artist ?: DATA.UNKNOWN
                 preferences[songNameKey] = song.title ?: DATA.UNKNOWN
+                preferences[stringPreferencesKey(DATA.DURATION)] = song.duration ?: ""
                 preferences[songIdKey] = song.id ?: ""
                 preferences[albumIdKey] = song.albumId ?: ""
                 preferences[cachedImagePathKey] = song.cachedImagePath ?: ""

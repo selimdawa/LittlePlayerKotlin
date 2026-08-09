@@ -95,6 +95,9 @@
     <string name="db_format">%1$s%2$ddB</string>
     <string name="bottom_player_theme_title">Bottom Player Theme</string>
     <string name="bottom_player_theme_desc">Enable theme coloring for the bottom player controls.</string>
+    <string name="list_theme_title">List Item Theme</string>
+    <string name="list_theme_desc">Enable theme coloring for music list items.</string>
+    <string name="list_item_preview">List Item Preview</string>
     <string name="live_preview">Live Preview</string>
     <string name="basic">Basic</string>
     <string name="palette">Palette</string>

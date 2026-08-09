@@ -9,8 +9,10 @@ import androidx.media3.common.util.UnstableApi
 import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityDataStorageBinding
+import com.flatcode.littleplayer.databinding.ItemListThemePreviewBinding
 import com.flatcode.littleplayer.databinding.ItemThemePreviewBinding
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.SimpleBlurTransformation
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPalette
@@ -32,7 +34,7 @@ class DataStorageActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDataStorageBinding
     private val viewModel: NowPlayerViewModel by viewModels()
     private val dataViewModel: DataStorageViewModel by viewModels()
-    private var currentDominantColor: Int = Color.GRAY
+    private var currentDominantColor: Int = Color.BLACK // Will be initialized in onCreate
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +42,10 @@ class DataStorageActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         initToolbar(getString(R.string.data_storage))
+        currentDominantColor = getLibraryColor("mc_track")
         extractPalette(R.drawable.image_1) { palette ->
-            currentDominantColor = palette.extractVibrantColor()
+            val defaultColor = getLibraryColor("mc_track")
+            currentDominantColor = palette.extractVibrantColor(defaultColor)
             updatePreview()
         }
         setupListeners()
@@ -51,6 +55,10 @@ class DataStorageActivity : AppCompatActivity() {
     private fun setupListeners() {
         binding.switchBottomPlayerTheme.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setBottomPlayerThemeEnabled(isChecked)
+        }
+
+        binding.switchListTheme.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setListItemThemeEnabled(isChecked)
         }
 
         binding.itemBasic.root.setOnClickListener {
@@ -80,6 +88,11 @@ class DataStorageActivity : AppCompatActivity() {
             updatePreview()
         }
 
+        viewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
+            binding.switchListTheme.isChecked = enabled
+            updatePreview()
+        }
+
         viewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
         }
@@ -96,12 +109,10 @@ class DataStorageActivity : AppCompatActivity() {
     private fun updatePreview() {
         val imageRes = R.drawable.image_1
 
-        // Song 1: Basic (Default Gradient)
+        // Bottom Player Previews
         setupThemeItem(
             binding.itemBasic, getString(R.string.basic), imageRes, 40, DATA.MODE_BASIC, null
         )
-
-        // Song 2: Palette (Solid Color from Image)
         setupThemeItem(
             binding.itemPalette,
             getString(R.string.palette),
@@ -110,10 +121,23 @@ class DataStorageActivity : AppCompatActivity() {
             DATA.MODE_PALETTE,
             currentDominantColor
         )
-
-        // Song 3: White (Solid White)
         setupThemeItem(
             binding.itemWhite, getString(R.string.white), imageRes, 20, DATA.MODE_WHITE, Color.WHITE
+        )
+
+        // List Item Previews
+        setupListItemThemeItem(
+            binding.itemListBasic, getString(R.string.basic), imageRes, DATA.MODE_BASIC, null
+        )
+        setupListItemThemeItem(
+            binding.itemListPalette,
+            getString(R.string.palette),
+            imageRes,
+            DATA.MODE_PALETTE,
+            currentDominantColor
+        )
+        setupListItemThemeItem(
+            binding.itemListWhite, getString(R.string.white), imageRes, DATA.MODE_WHITE, Color.WHITE
         )
     }
 
@@ -155,6 +179,52 @@ class DataStorageActivity : AppCompatActivity() {
             placeholder(R.drawable.ic_music)
             error(R.drawable.ic_music)
             size(200, 200)
+        }
+    }
+
+    private fun setupListItemThemeItem(
+        itemBinding: ItemListThemePreviewBinding,
+        label: String,
+        imageSource: Any?,
+        mode: Int,
+        targetColor: Int?
+    ) {
+        itemBinding.tvThemeLabel.text = label
+        itemBinding.songName.text = getString(R.string.blinding_lights)
+
+        val songDetailsText = getString(
+            R.string.song_details_format,
+            getString(R.string.the_weeknd),
+            "After Hours" // More realistic album name
+        )
+        itemBinding.songDetails.text = songDetailsText
+
+        val track = getLibraryColor("mc_track")
+        val tick = getLibraryColor("mc_tick")
+
+        val colorToApply = when (mode) {
+            DATA.MODE_PALETTE -> targetColor?.ensureBrightColor()
+            DATA.MODE_WHITE -> Color.WHITE
+            else -> null
+        }
+
+        val listColor = colorToApply ?: track
+        val listTick = colorToApply ?: tick
+
+        itemBinding.songName.setTextColor(listColor)
+        itemBinding.wave.startColor = listColor
+        itemBinding.wave.closeColor = listTick
+        itemBinding.wave.visibility = android.view.View.VISIBLE
+
+        itemBinding.image.load(imageSource ?: R.drawable.ic_music) {
+            crossfade(true)
+            placeholder(R.drawable.ic_music)
+            error(R.drawable.ic_music)
+        }
+
+        itemBinding.imageBlur.load(imageSource ?: R.drawable.ic_music) {
+            crossfade(true)
+            transformations(SimpleBlurTransformation(100f))
         }
     }
 }

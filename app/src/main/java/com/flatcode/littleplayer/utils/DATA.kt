@@ -23,11 +23,13 @@ object DATA {
     const val ARTIST_NAME = "ARTIST NAME"
     const val SONG_NAME = "SONG NAME"
     const val SONG_ID = "SONG_ID"
+    const val DURATION = "DURATION"
     const val ALBUM_ID = "ALBUM ID"
     const val CACHED_IMAGE_PATH = "CACHED_IMAGE_PATH"
     const val LAST_POSITION = "LAST_POSITION"
     const val THEME_COLOR_MODE = "THEME_COLOR_MODE"
     const val BOTTOM_PLAYER_THEME = "BOTTOM_PLAYER_THEME"
+    const val LIST_ITEM_THEME = "LIST_ITEM_THEME"
     const val THEME_EXTRACTED_COLOR = "THEME_EXTRACTED_COLOR"
     const val SHOW_SONG_TOAST = "SHOW_SONG_TOAST"
 

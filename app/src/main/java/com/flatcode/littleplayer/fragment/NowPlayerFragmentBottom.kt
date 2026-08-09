@@ -240,7 +240,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 // Extract Palette Color
                 val model = getSongImageModel(albumId, path, cachedPath)
                 requireContext().extractPalette(model) { palette ->
-                    val color = palette.extractVibrantColor()
+                    val defaultColor = requireContext().getLibraryColor("mc_track")
+                    val color = palette.extractVibrantColor(defaultColor)
                     viewModel.updateThemeColor(color)
                 }
             }
@@ -255,7 +256,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 if (viewModel.currentThemeColor.value == null) {
                     val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath)
                     requireContext().extractPalette(model) { palette ->
-                        val color = palette.extractVibrantColor()
+                        val defaultColor = requireContext().getLibraryColor("mc_track")
+                        val color = palette.extractVibrantColor(defaultColor)
                         viewModel.updateThemeColor(color)
                     }
                 }
