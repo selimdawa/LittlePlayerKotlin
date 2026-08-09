@@ -113,7 +113,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         if (currentMode == DATA.MODE_BASIC) {
             binding.playPauseBtn.setGradientBackground(
-                getLibraryColor("mc_track"), getLibraryColor("mc_tick")
+                getLibraryColor("mc_track"),
+                getLibraryColor("mc_tick"),
             )
         } else {
             binding.playPauseBtn.setSolidBackground(brightColor)
@@ -327,7 +328,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         mediaController?.let { controller ->
             val count = controller.mediaItemCount
             if (count > 0) {
-                val prevIndex = (controller.currentMediaItemIndex - 1 + count) % count
+                val prevIndex = ((controller.currentMediaItemIndex - 1) + count) % count
                 controller.seekToDefaultPosition(prevIndex)
                 if (!controller.playWhenReady) {
                     controller.play()
@@ -361,7 +362,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (itemCount <= 0) return
 
         isAnimating = true
-        val nextIndex = if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
+        val nextIndex =
+            if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
 
         val nextSong =
             if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
@@ -390,8 +392,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                                 onCancel = {
                                     currentDominantColor = getLibraryColor("mc_track")
                                     performSkipAndSlideIn(toNext, inX)
-                                })
-                            .target { result ->
+                                },
+                            ).target { result ->
                                 val bitmap = if (result is BitmapDrawable) {
                                     result.bitmap
                                 } else {

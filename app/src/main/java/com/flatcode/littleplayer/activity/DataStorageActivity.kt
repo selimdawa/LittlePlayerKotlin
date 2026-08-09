@@ -120,7 +120,12 @@ class DataStorageActivity : AppCompatActivity() {
 
         // Bottom Player Previews
         setupThemeItem(
-            binding.itemBasic, getString(R.string.basic), imageRes, 40, DATA.MODE_BASIC, null
+            binding.itemBasic,
+            getString(R.string.basic),
+            imageRes,
+            40,
+            DATA.MODE_BASIC,
+            null,
         )
         setupThemeItem(
             binding.itemPalette,
@@ -156,7 +161,7 @@ class DataStorageActivity : AppCompatActivity() {
         imageSource: Any?,
         progress: Int,
         mode: Int,
-        targetColor: Int?
+        targetColor: Int?,
     ) {
         itemBinding.tvThemeLabel.text = label
 
@@ -185,7 +190,7 @@ class DataStorageActivity : AppCompatActivity() {
         }
 
         itemBinding.playerContent.albumArt.load(imageSource ?: R.drawable.ic_music) {
-            crossfade(true)
+            crossfade(enable = true)
             placeholder(R.drawable.ic_music)
             error(R.drawable.ic_music)
             size(200, 200)
@@ -233,7 +238,7 @@ class DataStorageActivity : AppCompatActivity() {
         }
 
         itemBinding.musicItem.imageBlur.load(imageSource ?: R.drawable.ic_music) {
-            crossfade(true)
+            crossfade(enable = true)
             transformations(SimpleBlurTransformation(100f))
         }
     }

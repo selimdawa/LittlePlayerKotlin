@@ -22,33 +22,26 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.SeekBar
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
+import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.palette.graphics.Palette
@@ -59,7 +52,6 @@ import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
-import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -69,10 +61,10 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 inline fun <reified T : Activity> Context.launchActivity(
-    options: Bundle? = null, extras: Intent.() -> Unit = {}
+    options: Bundle? = null,
+    extras: Intent.() -> Unit = {},
 ) {
     val intent = Intent(this, T::class.java)
     intent.extras()
@@ -103,7 +95,9 @@ val Context.appVersionName: String
     }
 
 fun View.setGradientBackground(
-    @ColorInt startColor: Int, @ColorInt endColor: Int, layerIndex: Int = 0
+    @ColorInt startColor: Int,
+    @ColorInt endColor: Int,
+    layerIndex: Int = 0,
 ) {
     val background = background?.mutate()
     val shape = if (background is LayerDrawable) {
@@ -119,14 +113,10 @@ fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
 }
 
 fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
-    val request = ImageRequest.Builder(this)
-        .data(data)
-        .allowHardware(false)
-        .listener(
+    val request = ImageRequest.Builder(this).data(data).allowHardware(enable = false).listener(
             onError = { _, _ -> onPaletteGenerated(null) },
-            onCancel = { onPaletteGenerated(null) }
-        )
-        .target { result ->
+            onCancel = { onPaletteGenerated(null) },
+        ).target { result ->
             val bitmap = (result as? BitmapDrawable)?.bitmap
             if (bitmap != null) {
                 Palette.from(bitmap).generate { palette ->
@@ -140,67 +130,29 @@ fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
 }
 
 fun SeekBar.onProgressChanged(action: (progress: Int, fromUser: Boolean) -> Unit) {
-    setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-        override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-            action(progress, fromUser)
-        }
+    setOnSeekBarChangeListener(
+        object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                action(progress, fromUser)
+            }
 
-        override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-        override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-    })
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        },
+    )
 }
 
-fun Context.showDialog(title: Int, message: Int, positiveButton: Int = android.R.string.ok) {
+fun Context.showDialog(
+    title: Int,
+    message: Int,
+    positiveButton: Int = android.R.string.ok,
+) {
     val dialog = MaterialAlertDialogBuilder(this).setTitle(title).setMessage(message)
         .setPositiveButton(positiveButton, null).create()
 
     dialog.setCanceledOnTouchOutside(false)
     dialog.show()
 }
-
-fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, message, duration).show()
-}
-
-fun Context.toast(@StringRes message: Int, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, message, duration).show()
-}
-
-val Int.dp: Int
-    get() = (this * android.content.res.Resources.getSystem().displayMetrics.density).toInt()
-
-val Int.px: Int
-    get() = (this / android.content.res.Resources.getSystem().displayMetrics.density).toInt()
-
-fun View.setMargins(left: Int? = null, top: Int? = null, right: Int? = null, bottom: Int? = null) {
-    updateLayoutParams<ViewGroup.MarginLayoutParams> {
-        left?.let { leftMargin = it }
-        top?.let { topMargin = it }
-        right?.let { rightMargin = it }
-        bottom?.let { bottomMargin = it }
-    }
-}
-
-fun Activity.hideKeyboard() {
-    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    currentFocus?.let { imm.hideSoftInputFromWindow(it.windowToken, 0) }
-}
-
-fun Context.getColorCompat(@ColorRes colorRes: Int) = ContextCompat.getColor(this, colorRes)
-
-fun MusicFiles.toMediaItem(): MediaItem {
-    val uri = path?.toUri() ?: "".toUri()
-    val metadata =
-        MediaMetadata.Builder().setTitle(title).setArtist(artist).setExtras(Bundle().apply {
-                putString("ALBUM_ID", albumId)
-                putString("CACHED_IMAGE_PATH", cachedImagePath)
-            }).build()
-    return MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).setMediaId(id ?: "").build()
-}
-
-fun List<MusicFiles>.toMediaItems(): List<MediaItem> = map { it.toMediaItem() }
-
-fun Int.toDuration(): Duration = this.toLong().milliseconds
 
 @SuppressLint("DiscouragedApi")
 fun Context.getLibraryColor(attrName: String): Int {
@@ -210,19 +162,21 @@ fun Context.getLibraryColor(attrName: String): Int {
         id = resources.getIdentifier(attrName, "attr", "android")
     }
 
-    val fallback = if (attrName == "mc_track") Color.parseColor("#6200EE") else Color.parseColor("#3700B3")
+    val fallback = if (attrName == "mc_track") "#6200EE".toColorInt() else "#3700B3".toColorInt()
     val color = if (id != 0) getColorFromAttr(id, Color.TRANSPARENT) else Color.TRANSPARENT
-    
-    if (color != Color.TRANSPARENT && color != 0) return color
-    
+
+    if (color != Color.TRANSPARENT) return color
+
     return try {
-        val theme = io.selimdawa.multicolors.MultiColorManager.getCurrentTheme(this)
-        when (theme) {
+        when (val theme = io.selimdawa.multicolors.MultiColorManager.getCurrentTheme(this)) {
             is io.selimdawa.multicolors.MultiColorTheme.Gradient -> {
-                if (attrName == "mc_track") theme.colors.first()
-                else if (attrName == "mc_tick") theme.colors.last()
-                else fallback
+                when (attrName) {
+                    "mc_track" -> theme.colors.first()
+                    "mc_tick" -> theme.colors.last()
+                    else -> fallback
+                }
             }
+
             is io.selimdawa.multicolors.MultiColorTheme.Xml -> {
                 val typedValue = TypedValue()
                 val tempTheme = resources.newTheme()
@@ -231,9 +185,8 @@ fun Context.getLibraryColor(attrName: String): Int {
                     typedValue.data
                 } else fallback
             }
-            else -> fallback
         }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         fallback
     }
 }
@@ -241,7 +194,7 @@ fun Context.getLibraryColor(attrName: String): Int {
 fun <T> Flow<T>.collectWithLifecycle(
     lifecycleOwner: LifecycleOwner,
     state: Lifecycle.State = Lifecycle.State.STARTED,
-    action: suspend (T) -> Unit
+    action: suspend (T) -> Unit,
 ) {
     lifecycleOwner.lifecycleScope.launch {
         lifecycleOwner.repeatOnLifecycle(state) {
@@ -260,7 +213,9 @@ interface PlaybackAnimatable {
 fun Context.openPlayer(position: Int, transitionView: View? = null) {
     val options = transitionView?.let {
         ActivityOptionsCompat.makeSceneTransitionAnimation(
-            this.getAppCompatActivity() ?: return@let null, it, "song_image"
+            this.getAppCompatActivity() ?: return@let null,
+            it,
+            "song_image",
         ).toBundle()
     }
     launchActivity<PlayerActivity>(options) {
@@ -271,7 +226,7 @@ fun Context.openPlayer(position: Int, transitionView: View? = null) {
 fun LifecycleOwner.observePlaybackSync(
     nowPlayerViewModel: NowPlayerViewModel,
     viewBindingRoot: View? = null,
-    adapterProvider: () -> PlaybackAnimatable?
+    adapterProvider: () -> PlaybackAnimatable?,
 ) {
     nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
         viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
@@ -279,17 +234,20 @@ fun LifecycleOwner.observePlaybackSync(
     }
     nowPlayerViewModel.isPlaying.collectWithLifecycle(this) { isPlaying ->
         adapterProvider()?.updatePlaybackState(
-            nowPlayerViewModel.currentPlayingSong.value?.path, isPlaying
+            nowPlayerViewModel.currentPlayingSong.value?.path,
+            isPlaying,
         )
     }
     nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { mode ->
         adapterProvider()?.updateThemeState(
-            mode, nowPlayerViewModel.currentThemeColor.value ?: Color.WHITE
+            mode,
+            nowPlayerViewModel.currentThemeColor.value ?: Color.WHITE,
         )
     }
     nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
         adapterProvider()?.updateThemeState(
-            nowPlayerViewModel.themeColorMode.value, color ?: Color.WHITE
+            nowPlayerViewModel.themeColorMode.value,
+            color ?: Color.WHITE,
         )
     }
     nowPlayerViewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
@@ -331,12 +289,12 @@ fun ImageView.loadSongImage(
     albumId: String?,
     path: String? = null,
     cachedPath: String? = null,
-    fallback: Int = R.drawable.ic_cover_song
+    fallback: Int = R.drawable.ic_cover_song,
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, fallback)
 
     load(model) {
-        crossfade(true)
+        crossfade(enable = true)
         placeholder(R.color.image_profile)
         error(fallback)
     }
@@ -364,22 +322,20 @@ fun ImageView.loadSongImageBlur(
     level: Int,
     path: String? = null,
     cachedPath: String? = null,
-    fallback: Int = R.drawable.ic_cover_song
+    fallback: Int = R.drawable.ic_cover_song,
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, fallback)
     val actualFallback =
         if (fallback == R.drawable.ic_cover_song) R.drawable.ic_cover_song_blur else fallback
 
     load(model) {
-        crossfade(true)
+        crossfade(enable = true)
         placeholder(R.color.image_profile)
         error(actualFallback)
-        allowHardware(false)
-        if (model is Int) {
-            if (model == R.drawable.ic_cover_song) {
-                target { _ ->
-                    this@loadSongImageBlur.load(R.drawable.ic_cover_song_blur)
-                }
+        allowHardware(enable = false)
+        if ((model is Int) && (model == R.drawable.ic_cover_song)) {
+            target { _ ->
+                this@loadSongImageBlur.load(R.drawable.ic_cover_song_blur)
             }
         }
         transformations(SimpleBlurTransformation(level.toFloat()))
@@ -399,23 +355,29 @@ fun getSongImageModel(
     albumId: String?,
     path: String? = null,
     cachedPath: String? = null,
-    fallback: Int = R.drawable.ic_cover_song
+    fallback: Int = R.drawable.ic_cover_song,
 ): Any {
     if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
 
-    val artBytes = if (!path.isNullOrEmpty()) getAlbumArtBytes(path) else null
-    if (artBytes != null) return artBytes
+    if (!path.isNullOrEmpty()) {
+        getAlbumArtBytes(path)?.let { return it }
+    }
 
-    if (!albumId.isNullOrEmpty() && albumId != "-1" && albumId != "0") {
+    if ((!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
-            "content://media/external/audio/albumart".toUri(), albumId.toLong()
+            "content://media/external/audio/albumart".toUri(),
+            albumId.toLong(),
         )
     }
 
     return fallback
 }
 
-fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -> Unit) {
+fun Player.togglePlayPause(
+    button: ImageView,
+    onPause: () -> Unit,
+    onStart: () -> Unit,
+) {
     if (isPlaying) {
         button.setImageResource(R.drawable.ic_play)
         pause()
@@ -428,7 +390,9 @@ fun Player.togglePlayPause(button: ImageView, onPause: () -> Unit, onStart: () -
 }
 
 fun Fragment.requestDeletion(
-    uri: Uri, launcher: ActivityLauncher, onSuccess: () -> Unit
+    uri: Uri,
+    launcher: ActivityLauncher,
+    onSuccess: () -> Unit,
 ) {
     val resolver: ContentResolver = requireContext().contentResolver
     try {
@@ -441,7 +405,7 @@ fun Fragment.requestDeletion(
             onSuccess()
         }
     } catch (e: Exception) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && e is RecoverableSecurityException) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) && (e is RecoverableSecurityException)) {
             val request =
                 IntentSenderRequest.Builder(e.userAction.actionIntent.intentSender).build()
             launcher.launch(request)
@@ -481,16 +445,16 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
 fun getDefaultArtBytes(context: Context): ByteArray? {
     return try {
         val size = 512
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(size, size)
         val canvas = android.graphics.Canvas(bitmap)
 
         // The context (MusicService) already has MultiColorManager.applyTheme(this) called
         val backgroundColor = context.getLibraryColor("mc_track")
         canvas.drawColor(backgroundColor)
 
-        // Load the stylized disc icon using AppCompatResources
         val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
-            context, R.drawable.ic_default_album_art
+            context,
+            R.drawable.ic_default_album_art,
         )
         if (drawable != null) {
             drawable.setBounds(0, 0, size, size)
@@ -521,9 +485,10 @@ fun Int.ensureBrightColor(): Int {
 fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
     val dominantColor = this?.getDominantColor(defaultColor) ?: defaultColor
     return this?.getLightVibrantColor(Color.TRANSPARENT)
-        .takeIf { it != Color.TRANSPARENT && it != 0 } ?: this?.getVibrantColor(Color.TRANSPARENT)
-        .takeIf { it != Color.TRANSPARENT && it != 0 }
-    ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT && it != 0 }
+        .takeIf { it != Color.TRANSPARENT } ?: this?.getVibrantColor(
+        Color.TRANSPARENT,
+    ).takeIf { it != Color.TRANSPARENT }
+    ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
     ?: dominantColor
 }
 
@@ -544,7 +509,7 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
     override suspend fun transform(input: Bitmap, size: coil.size.Size): Bitmap {
         val scaleFactor = 8
         val w = (input.width / scaleFactor).coerceAtLeast(1)
-        val h = (input.height / scaleFactor).toInt().coerceAtLeast(1)
+        val h = (input.height / scaleFactor).coerceAtLeast(1)
         val small = input.scale(w, h, true)
         val r = (radius / scaleFactor).toInt().coerceAtLeast(1)
         val pix = IntArray(w * h)
@@ -578,7 +543,7 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
             }
             pix[y * w + x] = (0xff shl 24) or (rs / c shl 16) or (gs / c shl 8) or (bs / c)
         }
-        val output = createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val output = createBitmap(w, h)
         output.setPixels(pix, 0, w, 0, 0, w, h)
         return output.scale(input.width, input.height, true)
     }

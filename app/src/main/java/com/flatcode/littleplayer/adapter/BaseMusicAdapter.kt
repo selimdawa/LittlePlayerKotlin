@@ -15,7 +15,7 @@ import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.visible
 
 abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
-    diffCallback: DiffUtil.ItemCallback<MusicFiles>
+    diffCallback: DiffUtil.ItemCallback<MusicFiles>,
 ) : ListAdapter<MusicFiles, VH>(diffCallback), PlaybackAnimatable {
 
     protected var playingPath: String? = null
@@ -47,7 +47,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
         this.currentThemeMode = mode
         this.currentThemeColor = color
 
-        if (oldMode != mode || oldColor != color) {
+        if ((oldMode != mode) || (oldColor != color)) {
             notifyItemRangeChanged(0, itemCount)
         }
     }

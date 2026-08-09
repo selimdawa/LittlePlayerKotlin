@@ -21,13 +21,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NowPlayerViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>, private val repository: MusicRepository
+    private val dataStore: DataStore<Preferences>,
+    private val repository: MusicRepository,
 ) : ViewModel() {
 
     private val _currentPlayingSong = MutableStateFlow<MusicFiles?>(null)
     val currentPlayingSong: StateFlow<MusicFiles?> = _currentPlayingSong.asStateFlow()
 
-    private val _isPlaying = MutableStateFlow(false)
+    private val _isPlaying = MutableStateFlow(value = false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private val _currentThemeColor = MutableStateFlow<Int?>(null)
@@ -69,11 +70,8 @@ class NowPlayerViewModel @Inject constructor(
             }
 
             val playbackState = repository.getPlaybackStateSync()
-            if (playbackState != null && !playbackState.currentSongId.isNullOrEmpty()) {
-                val songInQueue = queue.find { it.id == playbackState.currentSongId }
-                if (songInQueue != null) {
-                    _currentPlayingSong.value = songInQueue
-                }
+            if ((playbackState != null) && (!playbackState.currentSongId.isNullOrEmpty())) {
+                _currentPlayingSong.value = queue.find { it.id == playbackState.currentSongId }
             }
             
             dataStore.data.collect { preferences ->
