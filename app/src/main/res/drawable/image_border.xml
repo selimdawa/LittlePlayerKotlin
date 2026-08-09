@@ -10,6 +10,7 @@
             <corners android:radius="@dimen/radius_small" />
         </shape>
     </item>
+
     <item
         android:bottom="@dimen/inset_small"
         android:left="@dimen/inset_small"

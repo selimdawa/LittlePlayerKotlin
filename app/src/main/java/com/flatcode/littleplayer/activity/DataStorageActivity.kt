@@ -43,7 +43,7 @@ class DataStorageActivity : AppCompatActivity() {
 
         initToolbar(getString(R.string.data_storage))
         currentDominantColor = getLibraryColor("mc_track")
-        extractPalette(R.drawable.image_1) { palette ->
+        extractPalette(R.drawable.ic_image_preview) { palette ->
             val defaultColor = getLibraryColor("mc_track")
             currentDominantColor = palette.extractVibrantColor(defaultColor)
             updatePreview()
@@ -116,7 +116,7 @@ class DataStorageActivity : AppCompatActivity() {
     }
 
     private fun updatePreview() {
-        val imageRes = R.drawable.image_1
+        val imageRes = R.drawable.ic_image_preview
 
         // Bottom Player Previews
         setupThemeItem(
