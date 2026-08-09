@@ -76,15 +76,15 @@
 
                 <include
                     android:id="@+id/itemBasic"
-                    layout="@layout/item_theme_preview" />
+                    layout="@layout/item_now_player_preview" />
 
                 <include
                     android:id="@+id/itemPalette"
-                    layout="@layout/item_theme_preview" />
+                    layout="@layout/item_now_player_preview" />
 
                 <include
                     android:id="@+id/itemWhite"
-                    layout="@layout/item_theme_preview" />
+                    layout="@layout/item_now_player_preview" />
 
             </LinearLayout>
 
@@ -149,15 +149,15 @@
 
                 <include
                     android:id="@+id/itemListBasic"
-                    layout="@layout/item_list_theme_preview" />
+                    layout="@layout/item_music_preview" />
 
                 <include
                     android:id="@+id/itemListPalette"
-                    layout="@layout/item_list_theme_preview" />
+                    layout="@layout/item_music_preview" />
 
                 <include
                     android:id="@+id/itemListWhite"
-                    layout="@layout/item_list_theme_preview" />
+                    layout="@layout/item_music_preview" />
 
             </LinearLayout>
 

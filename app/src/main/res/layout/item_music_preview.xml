@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvThemeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="8dp"
+        android:paddingHorizontal="10dp"
+        android:text="@string/basic"
+        android:textColor="?attr/colorError"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <include
+        android:id="@+id/musicItem"
+        layout="@layout/item_music" />
+
+</LinearLayout>

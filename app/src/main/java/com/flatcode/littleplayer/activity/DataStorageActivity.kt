@@ -9,8 +9,8 @@ import androidx.media3.common.util.UnstableApi
 import coil.load
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityDataStorageBinding
-import com.flatcode.littleplayer.databinding.ItemListThemePreviewBinding
-import com.flatcode.littleplayer.databinding.ItemThemePreviewBinding
+import com.flatcode.littleplayer.databinding.ItemMusicPreviewBinding
+import com.flatcode.littleplayer.databinding.ItemNowPlayerPreviewBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.SimpleBlurTransformation
 import com.flatcode.littleplayer.utils.collectWithLifecycle
@@ -142,7 +142,7 @@ class DataStorageActivity : AppCompatActivity() {
     }
 
     private fun setupThemeItem(
-        itemBinding: ItemThemePreviewBinding,
+        itemBinding: ItemNowPlayerPreviewBinding,
         label: String,
         imageSource: Any?,
         progress: Int,
@@ -183,21 +183,21 @@ class DataStorageActivity : AppCompatActivity() {
     }
 
     private fun setupListItemThemeItem(
-        itemBinding: ItemListThemePreviewBinding,
+        itemBinding: ItemMusicPreviewBinding,
         label: String,
         imageSource: Any?,
         mode: Int,
         targetColor: Int?
     ) {
         itemBinding.tvThemeLabel.text = label
-        itemBinding.songName.text = getString(R.string.blinding_lights)
+        itemBinding.musicItem.songName.text = getString(R.string.blinding_lights)
 
         val songDetailsText = getString(
             R.string.song_details_format,
             getString(R.string.the_weeknd),
             "After Hours" // More realistic album name
         )
-        itemBinding.songDetails.text = songDetailsText
+        itemBinding.musicItem.songDetails.text = songDetailsText
 
         val track = getLibraryColor("mc_track")
         val tick = getLibraryColor("mc_tick")
@@ -211,18 +211,18 @@ class DataStorageActivity : AppCompatActivity() {
         val listColor = colorToApply ?: track
         val listTick = colorToApply ?: tick
 
-        itemBinding.songName.setTextColor(listColor)
-        itemBinding.wave.startColor = listColor
-        itemBinding.wave.closeColor = listTick
-        itemBinding.wave.visibility = android.view.View.VISIBLE
+        itemBinding.musicItem.songName.setTextColor(listColor)
+        itemBinding.musicItem.wave.startColor = listColor
+        itemBinding.musicItem.wave.closeColor = listTick
+        itemBinding.musicItem.wave.visibility = android.view.View.VISIBLE
 
-        itemBinding.image.load(imageSource ?: R.drawable.ic_music) {
+        itemBinding.musicItem.image.load(imageSource ?: R.drawable.ic_music) {
             crossfade(true)
             placeholder(R.drawable.ic_music)
             error(R.drawable.ic_music)
         }
 
-        itemBinding.imageBlur.load(imageSource ?: R.drawable.ic_music) {
+        itemBinding.musicItem.imageBlur.load(imageSource ?: R.drawable.ic_music) {
             crossfade(true)
             transformations(SimpleBlurTransformation(100f))
         }

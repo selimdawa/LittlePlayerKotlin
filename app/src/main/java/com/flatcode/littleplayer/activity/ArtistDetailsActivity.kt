@@ -5,12 +5,13 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.util.UnstableApi
-import com.flatcode.littleplayer.adapter.ArtistDetailsAdapter
+import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.observePlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.ArtistDetailsViewModel
+import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,8 +22,9 @@ class ArtistDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityArtistDetailsBinding
     private val context: Context = this@ArtistDetailsActivity
     private val viewModel: ArtistDetailsViewModel by viewModels()
+    private val musicViewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
-    private var adapter: ArtistDetailsAdapter? = null
+    private var adapter: MusicAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,10 +41,16 @@ class ArtistDetailsActivity : AppCompatActivity() {
         viewModel.songs.collectWithLifecycle(this) { songList ->
             if (songList.isNotEmpty()) {
                 if (adapter == null) {
-                    adapter = ArtistDetailsAdapter(context) { _, position ->
-                        viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                        openPlayer(position)
-                    }
+                    adapter = MusicAdapter(
+                        context,
+                        onItemClick = { _, position, view ->
+                            viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                            openPlayer(position, view)
+                        },
+                        onDeleteClick = { song ->
+                            musicViewModel.deleteSong(song)
+                        }
+                    )
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songList)
