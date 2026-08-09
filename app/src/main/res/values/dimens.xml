@@ -6,7 +6,6 @@
     <dimen name="dialog_item_text_size">16sp</dimen>
     <dimen name="dialog_item_padding">12dp</dimen>
     <dimen name="icon_size_small">24dp</dimen>
-    <dimen name="tab_margin_large">20dp</dimen>
     <dimen name="tab_margin_small">10dp</dimen>
     <dimen name="tab_padding_horizontal">15dp</dimen>
     <dimen name="tab_height">42dp</dimen>
