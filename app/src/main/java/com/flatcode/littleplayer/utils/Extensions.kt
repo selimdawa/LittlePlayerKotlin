@@ -331,7 +331,7 @@ fun ImageView.loadSongImage(
     albumId: String?,
     path: String? = null,
     cachedPath: String? = null,
-    fallback: Int = R.drawable.cover_song
+    fallback: Int = R.drawable.ic_cover_song
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, fallback)
 
@@ -343,7 +343,7 @@ fun ImageView.loadSongImage(
 }
 
 fun ImageView.loadSongImageByPath(
-    path: String?, cachedPath: String? = null, fallback: Int = R.drawable.cover_song
+    path: String?, cachedPath: String? = null, fallback: Int = R.drawable.ic_cover_song
 ) {
     val model: Any = if (!cachedPath.isNullOrEmpty()) {
         File(cachedPath)
@@ -364,11 +364,11 @@ fun ImageView.loadSongImageBlur(
     level: Int,
     path: String? = null,
     cachedPath: String? = null,
-    fallback: Int = R.drawable.cover_song
+    fallback: Int = R.drawable.ic_cover_song
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, fallback)
     val actualFallback =
-        if (fallback == R.drawable.cover_song) R.drawable.cover_song_blur else fallback
+        if (fallback == R.drawable.ic_cover_song) R.drawable.ic_cover_song_blur else fallback
 
     load(model) {
         crossfade(true)
@@ -376,9 +376,9 @@ fun ImageView.loadSongImageBlur(
         error(actualFallback)
         allowHardware(false)
         if (model is Int) {
-            if (model == R.drawable.cover_song) {
+            if (model == R.drawable.ic_cover_song) {
                 target { _ ->
-                    this@loadSongImageBlur.load(R.drawable.cover_song_blur)
+                    this@loadSongImageBlur.load(R.drawable.ic_cover_song_blur)
                 }
             }
         }
@@ -399,7 +399,7 @@ fun getSongImageModel(
     albumId: String?,
     path: String? = null,
     cachedPath: String? = null,
-    fallback: Int = R.drawable.cover_song
+    fallback: Int = R.drawable.ic_cover_song
 ): Any {
     if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
 
