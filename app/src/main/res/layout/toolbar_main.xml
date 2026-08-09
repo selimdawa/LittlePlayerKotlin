@@ -7,25 +7,25 @@
     android:background="?attr/colorOnBackground"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="10dp"
+    android:paddingStart="@dimen/spacing_10"
     android:paddingTop="10sp"
-    android:paddingEnd="10dp">
+    android:paddingEnd="@dimen/spacing_10">
 
     <io.selimdawa.multicolors.MultiColorButton
-        android:layout_width="30dp"
-        android:layout_height="30dp" />
+        android:layout_width="@dimen/spacing_30"
+        android:layout_height="@dimen/spacing_30" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/search_bar"
         android:layout_width="0dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
+        android:layout_height="@dimen/spacing_xlarge"
+        android:layout_marginStart="@dimen/spacing_12"
+        android:layout_marginEnd="@dimen/spacing_12"
         android:layout_weight="1"
         app:cardBackgroundColor="@android:color/transparent"
-        app:cardCornerRadius="8dp"
+        app:cardCornerRadius="@dimen/radius_small"
         app:strokeColor="@color/gray"
-        app:strokeWidth="1dp">
+        app:strokeWidth="@dimen/spacing_1">
 
         <LinearLayout
             android:id="@+id/search_container"
@@ -36,11 +36,11 @@
             android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="12dp">
+            android:paddingStart="@dimen/spacing_12">
 
             <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="@dimen/spacing_20"
+                android:layout_height="@dimen/spacing_20"
                 android:contentDescription="@null"
                 android:src="@drawable/abc_ic_search_api_material"
                 app:tint="@color/gray" />
@@ -49,8 +49,8 @@
                 android:id="@+id/search_text_switcher"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="16dp" />
+                android:layout_marginStart="@dimen/spacing_8"
+                android:layout_marginEnd="@dimen/spacing_medium" />
 
         </LinearLayout>
 
@@ -58,8 +58,8 @@
 
     <ImageView
         android:id="@+id/settings"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="@dimen/spacing_24"
+        android:layout_height="@dimen/spacing_24"
         android:layout_gravity="center"
         android:background="@android:color/transparent"
         android:clickable="true"

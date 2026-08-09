@@ -33,7 +33,7 @@
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="@dimen/spacing_1"
         android:layout_marginVertical="@dimen/spacing_medium"
         android:background="?attr/colorOutlineVariant" />
 

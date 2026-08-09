@@ -16,7 +16,7 @@
         android:layout_below="@id/customToolbar"
         android:fadeScrollbars="true"
         android:scrollbarDefaultDelayBeforeFade="500"
-        android:scrollbarSize="4dp"
+        android:scrollbarSize="@dimen/spacing_tiny"
         android:scrollbarThumbVertical="@drawable/fast_scrollbar_thumb"
         android:scrollbars="vertical">
 
@@ -33,7 +33,7 @@
                 android:background="@color/transparent"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingVertical="4dp">
+                android:paddingVertical="@dimen/spacing_tiny">
 
                 <ImageView
                     android:id="@+id/ivNightMode"
@@ -47,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/spacing_medium"
                     android:layout_weight="1"
-                    android:text="Night Mode"
+                    android:text="@string/night_mode"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="@dimen/text_size_body" />
 
@@ -58,7 +58,7 @@
                     android:splitTrack="false"
                     android:thumb="@drawable/switch_thumb_custom"
                     app:showText="false"
-                    app:switchMinWidth="48dp"
+                    app:switchMinWidth="@dimen/icon_size_48"
                     app:thumbTint="?attr/mc_track"
                     app:track="@drawable/switch_track_custom"
                     app:trackTint="@null" />

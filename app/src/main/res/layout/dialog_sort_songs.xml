@@ -3,20 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
+    android:layout_margin="@dimen/spacing_10"
     android:background="@drawable/dialog_card_background"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="@dimen/spacing_20">
 
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:paddingBottom="16dp"
+        android:paddingBottom="@dimen/spacing_medium"
         android:text="@string/sort_songs"
         android:textColor="?attr/colorError"
-        android:textSize="18sp"
+        android:textSize="@dimen/text_size_18"
         android:textStyle="bold" />
 
     <LinearLayout
@@ -28,7 +28,7 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:paddingVertical="@dimen/spacing_12">
 
         <TextView
             android:id="@+id/textByDate"
@@ -37,12 +37,12 @@
             android:layout_weight="1"
             android:text="@string/by_adding_time"
             android:textColor="?attr/colorError"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size_16" />
 
         <ImageView
             android:id="@+id/checkByDate"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/spacing_24"
+            android:layout_height="@dimen/spacing_24"
             android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
@@ -59,7 +59,7 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:paddingVertical="@dimen/spacing_12">
 
         <TextView
             android:id="@+id/textByName"
@@ -68,12 +68,12 @@
             android:layout_weight="1"
             android:text="@string/by_name"
             android:textColor="?attr/colorError"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size_16" />
 
         <ImageView
             android:id="@+id/checkByName"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/spacing_24"
+            android:layout_height="@dimen/spacing_24"
             android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
@@ -90,7 +90,7 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:paddingVertical="@dimen/spacing_12">
 
         <TextView
             android:id="@+id/textByPlayCount"
@@ -99,12 +99,12 @@
             android:layout_weight="1"
             android:text="@string/by_play_count"
             android:textColor="?attr/colorError"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size_16" />
 
         <ImageView
             android:id="@+id/checkByPlayCount"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/spacing_24"
+            android:layout_height="@dimen/spacing_24"
             android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
@@ -121,7 +121,7 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:paddingVertical="@dimen/spacing_12">
 
         <TextView
             android:id="@+id/textByReleaseDate"
@@ -130,12 +130,12 @@
             android:layout_weight="1"
             android:text="@string/by_release_date"
             android:textColor="?attr/colorError"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size_16" />
 
         <ImageView
             android:id="@+id/checkByReleaseDate"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/spacing_24"
+            android:layout_height="@dimen/spacing_24"
             android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"
@@ -152,7 +152,7 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingVertical="12dp">
+        android:paddingVertical="@dimen/spacing_12">
 
         <TextView
             android:id="@+id/textBySize"
@@ -161,12 +161,12 @@
             android:layout_weight="1"
             android:text="@string/by_size"
             android:textColor="?attr/colorError"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size_16" />
 
         <ImageView
             android:id="@+id/checkBySize"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/spacing_24"
+            android:layout_height="@dimen/spacing_24"
             android:contentDescription="@null"
             android:src="@drawable/ic_check"
             android:visibility="gone"

@@ -9,15 +9,15 @@
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:paddingHorizontal="8dp">
+        android:paddingHorizontal="@dimen/spacing_8">
 
         <ImageView
             android:id="@+id/back"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="@dimen/icon_size_48"
+            android:layout_height="@dimen/icon_size_48"
             android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="12dp"
+            android:padding="@dimen/spacing_12"
             android:src="@drawable/ic_navigate_before"
             app:tint="?attr/mc_track" />
 
@@ -27,7 +27,7 @@
             android:layout_centerInParent="true"
             android:text="@string/equalizer"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="20sp"
+            android:textSize="@dimen/text_size_20"
             android:textStyle="bold" />
 
         <androidx.appcompat.widget.SwitchCompat
@@ -40,7 +40,7 @@
             android:splitTrack="false"
             android:thumb="@drawable/switch_thumb_custom"
             app:showText="false"
-            app:switchMinWidth="48dp"
+            app:switchMinWidth="@dimen/icon_size_48"
             app:thumbTint="?attr/mc_track"
             app:track="@drawable/switch_track_custom"
             app:trackTint="@null" />
@@ -58,7 +58,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/spacing_medium">
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -73,26 +73,26 @@
 
                     <LinearLayout
                         android:id="@+id/btnPresetCustom"
-                        android:layout_width="80dp"
+                        android:layout_width="@dimen/spacing_80"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="@dimen/spacing_8">
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardCustom"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/icon_size_48"
+                            android:layout_height="@dimen/icon_size_48"
                             app:cardBackgroundColor="?attr/mc_track"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/spacing_12"
+                            app:cardElevation="@dimen/spacing_0"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
                                 android:id="@+id/icCustom"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="@dimen/spacing_24"
+                                android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_eq_presets"
                                 app:tint="@color/white" />
@@ -103,35 +103,35 @@
                             android:id="@+id/textCustom"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="@dimen/spacing_8"
                             android:text="@string/custom"
                             android:textColor="?attr/colorOnSurface"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_size_12" />
 
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/btnPresetPop"
-                        android:layout_width="80dp"
+                        android:layout_width="@dimen/spacing_80"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="@dimen/spacing_8">
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardPop"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/icon_size_48"
+                            android:layout_height="@dimen/icon_size_48"
                             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/spacing_12"
+                            app:cardElevation="@dimen/spacing_0"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
                                 android:id="@+id/icPop"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="@dimen/spacing_24"
+                                android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_music"
                                 app:tint="?attr/mc_track" />
@@ -142,34 +142,34 @@
                             android:id="@+id/textPop"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="@dimen/spacing_8"
                             android:text="@string/pop"
                             android:textColor="@color/gray"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_size_12" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/btnPresetRock"
-                        android:layout_width="80dp"
+                        android:layout_width="@dimen/spacing_80"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="@dimen/spacing_8">
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardRock"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/icon_size_48"
+                            android:layout_height="@dimen/icon_size_48"
                             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/spacing_12"
+                            app:cardElevation="@dimen/spacing_0"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
                                 android:id="@+id/icRock"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="@dimen/spacing_24"
+                                android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_music"
                                 app:tint="?attr/mc_track" />
@@ -180,35 +180,35 @@
                             android:id="@+id/textRock"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="@dimen/spacing_8"
                             android:text="@string/rock"
                             android:textColor="@color/gray"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_size_12" />
 
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/btnPresetJazz"
-                        android:layout_width="80dp"
+                        android:layout_width="@dimen/spacing_80"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="@dimen/spacing_8">
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardJazz"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/icon_size_48"
+                            android:layout_height="@dimen/icon_size_48"
                             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/spacing_12"
+                            app:cardElevation="@dimen/spacing_0"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
                                 android:id="@+id/icJazz"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="@dimen/spacing_24"
+                                android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
@@ -220,35 +220,35 @@
                             android:id="@+id/textJazz"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="@dimen/spacing_8"
                             android:text="@string/jazz"
                             android:textColor="@color/gray"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_size_12" />
 
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/btnPresetClassical"
-                        android:layout_width="80dp"
+                        android:layout_width="@dimen/spacing_80"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="@dimen/spacing_8">
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardClassical"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/icon_size_48"
+                            android:layout_height="@dimen/icon_size_48"
                             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/spacing_12"
+                            app:cardElevation="@dimen/spacing_0"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
                                 android:id="@+id/icClassical"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="@dimen/spacing_24"
+                                android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
@@ -260,35 +260,35 @@
                             android:id="@+id/textClassical"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="@dimen/spacing_8"
                             android:text="@string/classical"
                             android:textColor="@color/gray"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_size_12" />
 
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/btnPresetDance"
-                        android:layout_width="80dp"
+                        android:layout_width="@dimen/spacing_80"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="@dimen/spacing_8">
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardDance"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/icon_size_48"
+                            android:layout_height="@dimen/icon_size_48"
                             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/spacing_12"
+                            app:cardElevation="@dimen/spacing_0"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
                                 android:id="@+id/icDance"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="@dimen/spacing_24"
+                                android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
@@ -300,35 +300,35 @@
                             android:id="@+id/textDance"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="@dimen/spacing_8"
                             android:text="@string/dance"
                             android:textColor="@color/gray"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_size_12" />
 
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/btnPresetFlat"
-                        android:layout_width="80dp"
+                        android:layout_width="@dimen/spacing_80"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="@dimen/spacing_8">
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardFlat"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/icon_size_48"
+                            android:layout_height="@dimen/icon_size_48"
                             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/spacing_12"
+                            app:cardElevation="@dimen/spacing_0"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
                                 android:id="@+id/icFlat"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="@dimen/spacing_24"
+                                android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_music"
@@ -340,10 +340,10 @@
                             android:id="@+id/textFlat"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="@dimen/spacing_8"
                             android:text="@string/flat"
                             android:textColor="@color/gray"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_size_12" />
 
                     </LinearLayout>
 
@@ -354,17 +354,17 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/spacing_24"
                 android:text="@string/manual_adjustment"
                 android:textColor="?attr/mc_track"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_size_14"
                 android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/eqContainer"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:layout_marginTop="16dp"
+                android:layout_height="@dimen/spacing_300"
+                android:layout_marginTop="@dimen/spacing_medium"
                 android:gravity="center"
                 android:orientation="horizontal">
 
@@ -373,16 +373,16 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="@dimen/spacing_xlarge"
                 android:text="@string/enhance_sounds"
                 android:textColor="?attr/mc_track"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_size_14"
                 android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/spacing_medium"
                 android:baselineAligned="false"
                 android:gravity="center"
                 android:orientation="horizontal">
@@ -393,21 +393,21 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingHorizontal="16dp">
+                    android:paddingHorizontal="@dimen/spacing_medium">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="@dimen/spacing_12"
                         android:text="@string/bass"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_size_14"
                         android:textStyle="bold" />
 
                     <com.flatcode.littleplayer.utils.KnobView
                         android:id="@+id/bassKnob"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp" />
+                        android:layout_width="@dimen/spacing_80"
+                        android:layout_height="@dimen/spacing_80" />
 
                 </LinearLayout>
 
@@ -417,21 +417,21 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingHorizontal="16dp">
+                    android:paddingHorizontal="@dimen/spacing_medium">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="@dimen/spacing_12"
                         android:text="@string/virtualizer"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_size_14"
                         android:textStyle="bold" />
 
                     <com.flatcode.littleplayer.utils.KnobView
                         android:id="@+id/virtualizerKnob"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp" />
+                        android:layout_width="@dimen/spacing_80"
+                        android:layout_height="@dimen/spacing_80" />
 
                 </LinearLayout>
 

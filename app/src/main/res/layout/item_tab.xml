@@ -19,7 +19,7 @@
         android:paddingHorizontal="@dimen/tab_padding_horizontal"
         android:textAllCaps="false"
         android:textColor="@color/color_tab_text_selector"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_size_14"
         android:textStyle="bold" />
 
 </FrameLayout>

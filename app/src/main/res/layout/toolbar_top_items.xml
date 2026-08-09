@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/colorOnBackground"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="8dp">
+    android:paddingHorizontal="@dimen/spacing_medium"
+    android:paddingVertical="@dimen/spacing_8">
 
     <LinearLayout
         android:id="@+id/leftControls"
@@ -18,14 +18,14 @@
 
         <ImageView
             android:id="@+id/btnShuffle"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="16dp"
+            android:layout_width="@dimen/spacing_xlarge"
+            android:layout_height="@dimen/spacing_xlarge"
+            android:layout_marginEnd="@dimen/spacing_medium"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="@null"
             android:focusable="true"
-            android:padding="4dp"
+            android:padding="@dimen/spacing_tiny"
             android:src="@drawable/ic_shuffle"
             app:tint="?attr/mc_track" />
 
@@ -36,7 +36,7 @@
             android:gravity="center"
             android:text="@string/shuffle_playback"
             android:textColor="?attr/mc_track"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_size_14"
             android:textStyle="bold" />
 
     </LinearLayout>
@@ -51,27 +51,27 @@
 
         <ImageView
             android:id="@+id/btnFilterSort"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="@dimen/spacing_xlarge"
+            android:layout_height="@dimen/spacing_xlarge"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="@null"
             android:focusable="true"
-            android:padding="4dp"
+            android:padding="@dimen/spacing_tiny"
             android:src="@drawable/ic_sort"
             android:visibility="gone"
             app:tint="?attr/mc_track" />
 
         <ImageView
             android:id="@+id/btnAdd"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="@dimen/spacing_xlarge"
+            android:layout_height="@dimen/spacing_xlarge"
+            android:layout_marginStart="@dimen/spacing_8"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="@null"
             android:focusable="true"
-            android:padding="4dp"
+            android:padding="@dimen/spacing_tiny"
             android:src="@drawable/ic_add"
             android:visibility="gone"
             app:tint="?attr/mc_track" />

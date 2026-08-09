@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="60dp"
+    android:layout_width="@dimen/spacing_60"
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:paddingHorizontal="4dp">
+    android:paddingHorizontal="@dimen/spacing_tiny">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -13,13 +13,13 @@
 
         <SeekBar
             android:id="@+id/sbBandLevel"
-            android:layout_width="200dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/cover_size_preview"
+            android:layout_height="@dimen/spacing_60"
             android:layout_gravity="center"
-            android:maxHeight="8dp"
-            android:minHeight="8dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:maxHeight="@dimen/spacing_8"
+            android:minHeight="@dimen/spacing_8"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium"
             android:progressTint="?attr/mc_track"
             android:rotation="-90"
             android:splitTrack="false"
@@ -32,17 +32,17 @@
         android:id="@+id/tvBandLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/spacing_8"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="12sp"
+        android:textSize="@dimen/text_size_12"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvBandLevel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="0dB"
+        android:layout_marginTop="@dimen/spacing_2"
+        android:text="@string/zero_db"
         android:textColor="@color/gray"
         android:textSize="10sp" />
 

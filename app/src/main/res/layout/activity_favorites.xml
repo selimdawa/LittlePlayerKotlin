@@ -16,13 +16,13 @@
         android:layout_height="match_parent"
         android:layout_below="@id/customToolbar"
         android:clipToPadding="false"
-        android:paddingTop="10dp"
-        android:paddingBottom="90dp"
+        android:paddingTop="@dimen/spacing_10"
+        android:paddingBottom="@dimen/spacing_90"
         android:scrollbars="vertical"
         android:fadeScrollbars="true"
         android:scrollbarDefaultDelayBeforeFade="500"
         android:scrollbarThumbVertical="@drawable/fast_scrollbar_thumb"
-        android:scrollbarSize="4dp"
+        android:scrollbarSize="@dimen/spacing_tiny"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_music" />
 
@@ -33,7 +33,7 @@
         android:layout_centerInParent="true"
         android:text="@string/no_items_found"
         android:textColor="@color/gray"
-        android:textSize="16sp"
+        android:textSize="@dimen/text_size_16"
         android:visibility="gone" />
 
     <include

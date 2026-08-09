@@ -68,7 +68,7 @@
                     android:splitTrack="false"
                     android:thumb="@drawable/switch_thumb_custom"
                     app:showText="false"
-                    app:switchMinWidth="48dp"
+                    app:switchMinWidth="@dimen/icon_size_48"
                     app:thumbTint="?attr/mc_track"
                     app:track="@drawable/switch_track_custom"
                     app:trackTint="@null" />

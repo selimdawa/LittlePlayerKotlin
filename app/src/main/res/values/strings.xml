@@ -5,6 +5,9 @@
     <string name="zero_zero">0:00</string>
     <string name="song_title">Song Title</string>
     <string name="artist_name">Artist Name</string>
+    <string name="zero_mb">0 MB</string>
+    <string name="zero_db">0dB</string>
+    <string name="night_mode">Night Mode</string>
     <string name="next_song">Next Song</string>
     <string name="songs">Songs</string>
     <string name="_12_songs_storage_emulated_0_music_songs">12 songs | /storage/emulated/0/Music/Songs/</string>

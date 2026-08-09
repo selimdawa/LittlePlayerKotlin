@@ -8,12 +8,12 @@
         android:id="@+id/tvThemeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginBottom="8dp"
-        android:paddingHorizontal="10dp"
+        android:layout_marginStart="@dimen/spacing_tiny"
+        android:layout_marginBottom="@dimen/spacing_8"
+        android:paddingHorizontal="@dimen/spacing_10"
         android:text="@string/basic"
         android:textColor="?attr/colorError"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_size_14"
         android:textStyle="bold" />
 
     <include

@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardBackgroundColor="@android:color/transparent"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="0dp"
-    app:strokeWidth="0dp">
+    app:cardCornerRadius="@dimen/spacing_medium"
+    app:cardElevation="@dimen/spacing_0"
+    app:strokeWidth="@dimen/spacing_0">
 
     <LinearLayout
         android:id="@+id/bottomPlayerContainer"
@@ -20,7 +20,7 @@
             android:id="@+id/miniProgressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="2dp"
+            android:layout_height="@dimen/spacing_2"
             android:max="100"
             android:progress="0"
             android:progressBackgroundTint="?attr/colorError"
@@ -31,20 +31,20 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingTop="11dp"
-            android:paddingBottom="8dp">
+            android:paddingTop="@dimen/spacing_11"
+            android:paddingBottom="@dimen/spacing_8">
 
             <FrameLayout
                 android:id="@+id/albumArtContainer"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_marginStart="8dp"
+                android:layout_width="@dimen/spacing_56"
+                android:layout_height="@dimen/spacing_56"
+                android:layout_marginStart="@dimen/spacing_8"
                 android:background="@drawable/image_border">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/albumArt"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="@dimen/spacing_52"
+                    android:layout_height="@dimen/spacing_52"
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:scaleType="centerCrop"
@@ -57,8 +57,8 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
+                android:layout_marginStart="@dimen/spacing_12"
+                android:layout_marginEnd="@dimen/spacing_12"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -75,38 +75,38 @@
                     android:singleLine="true"
                     android:text="@string/song_title"
                     android:textColor="?attr/colorError"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_size_16"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/artist"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="@dimen/spacing_2"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/artist_name"
                     android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_size_14" />
 
             </LinearLayout>
 
             <FrameLayout
                 android:id="@+id/playPauseBtn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
+                android:layout_width="@dimen/spacing_40"
+                android:layout_height="@dimen/spacing_40"
+                android:layout_marginEnd="@dimen/spacing_8"
                 android:background="@drawable/ic_gradient_border"
                 android:clickable="true"
                 android:focusable="true">
 
                 <com.flatcode.littleplayer.utils.PlayPauseView
                     android:id="@+id/playPauseView"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="@dimen/spacing_40"
+                    android:layout_height="@dimen/spacing_40"
                     android:layout_gravity="center"
                     android:foregroundTint="?attr/colorError"
-                    android:padding="12dp" />
+                    android:padding="@dimen/spacing_12" />
 
             </FrameLayout>
 
@@ -114,12 +114,12 @@
                 android:id="@+id/nextBtn"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="@dimen/spacing_8"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:contentDescription="@string/next_song"
                 android:focusable="true"
-                android:padding="6dp"
+                android:padding="@dimen/spacing_6"
                 android:src="@drawable/ic_skip_next"
                 app:tint="?attr/colorError" />
 
