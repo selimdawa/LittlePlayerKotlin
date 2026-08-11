@@ -92,15 +92,39 @@ class MusicWidgetProvider : AppWidgetProvider() {
             }
 
             if (imagePath != null) {
-                val bitmap = BitmapFactory.decodeFile(imagePath)
-                if (bitmap != null) views.setImageViewBitmap(R.id.widgetBackground, bitmap)
-                else views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
+                try {
+                    val options = BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                    }
+                    BitmapFactory.decodeFile(imagePath, options)
+                    options.inSampleSize = calculateInSampleSize(options, 512, 512)
+                    options.inJustDecodeBounds = false
+                    val bitmap = BitmapFactory.decodeFile(imagePath, options)
+                    
+                    if (bitmap != null) views.setImageViewBitmap(R.id.widgetBackground, bitmap)
+                    else views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
+                } catch (e: Exception) {
+                    views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
+                }
             } else {
                 views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
             }
 
             setupButtons(context, views)
             appWidgetManager.updateAppWidget(componentName, views)
+        }
+
+        private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+            val (height: Int, width: Int) = options.outHeight to options.outWidth
+            var inSampleSize = 1
+            if (height > reqHeight || width > reqWidth) {
+                val halfHeight: Int = height / 2
+                val halfWidth: Int = width / 2
+                while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                    inSampleSize *= 2
+                }
+            }
+            return inSampleSize
         }
     }
 }

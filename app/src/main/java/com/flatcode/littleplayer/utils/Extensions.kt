@@ -59,6 +59,16 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import coil.ImageLoader
+import coil.decode.DataSource
+import coil.decode.ImageSource
+import coil.fetch.FetchResult
+import coil.fetch.Fetcher
+import coil.fetch.SourceResult
+import coil.request.Options
+import okio.buffer
+import okio.source
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.util.Locale
 import kotlin.time.Duration
@@ -423,12 +433,17 @@ fun getSongImageModel(
     cachedPath: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
 ): Any {
-    if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
-
+    // 1. Try Song Path (Embedded Art) - Prioritize for "Song Image" as requested by user
+    // We return the File object. Coil will use our custom AudioArtFetcher to extract the art.
     if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path)?.let { return it }
+        val file = File(path)
+        if (file.exists()) return file
     }
 
+    // 2. Try Cached Path (might be per-album)
+    if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
+
+    // 3. Try Album ID (MediaStore) - THIS IS THE ALBUM IMAGE
     if ((!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(),
@@ -437,6 +452,30 @@ fun getSongImageModel(
     }
 
     return fallback
+}
+
+class AudioArtFetcher(private val file: File, private val context: Context) : Fetcher {
+    override suspend fun fetch(): FetchResult? {
+        val art = getAlbumArtBytes(file.absolutePath) ?: return null
+        return SourceResult(
+            source = ImageSource(
+                source = ByteArrayInputStream(art).source().buffer(),
+                context = context
+            ),
+            mimeType = "image/jpeg",
+            dataSource = DataSource.DISK
+        )
+    }
+
+    class Factory(private val context: Context) : Fetcher.Factory<File> {
+        override fun create(data: File, options: Options, imageLoader: ImageLoader): Fetcher? {
+            val ext = data.extension.lowercase()
+            if (ext == "mp3" || ext == "m4a" || ext == "wav" || ext == "flac" || ext == "ogg") {
+                return AudioArtFetcher(data, context)
+            }
+            return null
+        }
+    }
 }
 
 fun Player.togglePlayPause(

@@ -39,13 +39,18 @@ class MusicAdapter(
         val songDetailsText = context.getString(R.string.song_details_format, artist, album)
         holder.binding.songDetails.text = songDetailsText
 
+        // Pre-fetch check: using cachedImagePath or MediaStore URI via loadSongImage
         holder.binding.image.loadSongImage(
             currentFile.albumId, currentFile.path, currentFile.cachedImagePath
         )
+
+        // Re-enabled blur with optimized loading
+        holder.binding.imageBlur.visibility = View.VISIBLE
         holder.binding.imageBlur.loadSongImageBlur(
-            currentFile.albumId, 100, currentFile.path, currentFile.cachedImagePath
+            currentFile.albumId, 25, currentFile.path, currentFile.cachedImagePath
         )
 
+        // Apply theme is also a potential bottleneck if it does complex calculations
         holder.binding.applyTheme(context, currentFile.path)
 
         holder.itemView.setOnClickListener {
@@ -76,7 +81,12 @@ class MusicAdapter(
         }
 
         override fun areContentsTheSame(oldItem: MusicFiles, newItem: MusicFiles): Boolean {
-            return oldItem == newItem
+            // Only compare fields that affect the list UI to improve performance
+            return oldItem.title == newItem.title &&
+                    oldItem.artist == newItem.artist &&
+                    oldItem.album == newItem.album &&
+                    oldItem.path == newItem.path &&
+                    oldItem.cachedImagePath == newItem.cachedImagePath
         }
     }
 }

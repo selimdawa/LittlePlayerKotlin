@@ -104,7 +104,11 @@ class SongsFragment : Fragment() {
                 bindToPlaybackSync(viewLifecycleOwner, nowPlayerViewModel, binding.root)
             }
         }
-        binding.recyclerView.adapter = musicAdapter
+        binding.recyclerView.apply {
+            adapter = musicAdapter
+            setHasFixedSize(true)
+            setItemViewCacheSize(20)
+        }
     }
 
     override fun onDestroyView() {

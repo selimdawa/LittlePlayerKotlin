@@ -120,11 +120,11 @@ class MusicRepository @Inject constructor(
             }
 
             val sortedDbSongs = when (sortOrder) {
-                DATA.SORT_BY_NAME -> filteredDbSongs.sortedBy { it.title.lowercase() }
-                DATA.SORT_BY_DATE -> filteredDbSongs.sortedByDescending { it.dateAdded }
-                DATA.SORT_BY_PLAY_COUNT -> filteredDbSongs.sortedByDescending { it.playCount }
-                DATA.SORT_BY_SIZE -> filteredDbSongs.sortedByDescending { it.size }
-                DATA.SORT_BY_RELEASE_DATE -> filteredDbSongs.sortedByDescending { it.year }
+                DATA.SORT_BY_NAME -> filteredDbSongs.sortedWith(compareBy({ it.title.lowercase() }, { it.id }))
+                DATA.SORT_BY_DATE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.dateAdded }.thenBy { it.title })
+                DATA.SORT_BY_PLAY_COUNT -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.playCount }.thenBy { it.title })
+                DATA.SORT_BY_SIZE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.size }.thenBy { it.title })
+                DATA.SORT_BY_RELEASE_DATE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.year }.thenBy { it.title })
                 else -> filteredDbSongs
             }
 
@@ -210,11 +210,11 @@ class MusicRepository @Inject constructor(
                     }
 
                     when (sortOrder) {
-                        DATA.SORT_BY_NAME -> tempAudioList.sortBy { it.title?.lowercase() }
-                        DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortByDescending { it.playCount }
-                        DATA.SORT_BY_DATE -> tempAudioList.sortByDescending { it.dateAdded }
-                        DATA.SORT_BY_SIZE -> tempAudioList.sortByDescending { it.size }
-                        DATA.SORT_BY_RELEASE_DATE -> tempAudioList.sortByDescending { it.year }
+                        DATA.SORT_BY_NAME -> tempAudioList.sortWith(compareBy({ it.title?.lowercase() }, { it.id }))
+                        DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.playCount }.thenBy { it.title })
+                        DATA.SORT_BY_DATE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.dateAdded }.thenBy { it.title })
+                        DATA.SORT_BY_SIZE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.size }.thenBy { it.title })
+                        DATA.SORT_BY_RELEASE_DATE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.year }.thenBy { it.title })
                     }
 
                     if (tempAudioList.isNotEmpty()) {

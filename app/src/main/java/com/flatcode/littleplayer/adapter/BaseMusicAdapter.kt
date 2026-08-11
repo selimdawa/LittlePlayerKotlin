@@ -63,9 +63,12 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
     }
 
     protected fun ItemMusicBinding.applyTheme(context: Context, songPath: String?) {
-        if (songPath == playingPath) {
-            wave.visible()
-            wave.start()
+        val isCurrentlyPlaying = songPath == playingPath
+        if (isCurrentlyPlaying) {
+            if (wave.visibility != android.view.View.VISIBLE) {
+                wave.visible()
+                wave.start()
+            }
 
             val trackColor = if (listItemThemeEnabled) {
                 when (currentThemeMode) {
@@ -91,8 +94,10 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
             wave.closeColor = closeColor
             songName.setTextColor(trackColor)
         } else {
-            wave.gone()
-            wave.stop()
+            if (wave.visibility != android.view.View.GONE) {
+                wave.gone()
+                wave.stop()
+            }
             songName.setTextColor(context.getLibraryColor("colorOnSurface"))
         }
     }
