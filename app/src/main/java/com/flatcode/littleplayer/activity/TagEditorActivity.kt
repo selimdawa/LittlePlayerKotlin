@@ -2,7 +2,9 @@ package com.flatcode.littleplayer.activity
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,7 +49,13 @@ class TagEditorActivity : AppCompatActivity() {
         binding = ActivityTagEditorBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        song = intent.getParcelableExtra(DATA.SONG)
+        song = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(DATA.SONG, MusicFiles::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(DATA.SONG)
+        }
+
         if (song == null) {
             finish()
             return
@@ -103,6 +111,9 @@ class TagEditorActivity : AppCompatActivity() {
                     }
 
                     audioFile.commit()
+                    MediaScannerConnection.scanFile(
+                        this@TagEditorActivity, arrayOf(path), null, null
+                    )
                     true
                 } catch (e: Exception) {
                     e.printStackTrace()
