@@ -22,6 +22,7 @@ import androidx.media3.session.SessionToken
 import androidx.palette.graphics.Palette
 import coil.imageLoader
 import coil.request.ImageRequest
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
@@ -271,7 +272,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     }
 
     private fun updatePlayPauseAnimation(isPlaying: Boolean) {
-        binding.playerContent.playPauseView.setPlaying(isPlaying)
+        val icon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+        binding.playerContent.playPause.setImageResource(icon)
     }
 
     override fun onStart() {

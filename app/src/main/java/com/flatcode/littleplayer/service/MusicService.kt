@@ -370,7 +370,7 @@ class MusicService : MediaSessionService(), Player.Listener {
             val cycleIcon = when {
                 player.shuffleModeEnabled -> R.drawable.ic_shuffle_on
                 player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                else -> R.drawable.ic_repeat_on
+                else -> R.drawable.ic_repeat
             }
 
             val favoriteButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)

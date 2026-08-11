@@ -680,7 +680,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val cycleIcon = when {
             player.shuffleModeEnabled -> R.drawable.ic_shuffle_on
             player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-            else -> R.drawable.ic_repeat_on
+            else -> R.drawable.ic_repeat
         }
         binding.repeat.setImageResource(cycleIcon)
     }

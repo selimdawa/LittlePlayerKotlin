@@ -42,7 +42,7 @@
                 android:layout_width="@dimen/spacing_20"
                 android:layout_height="@dimen/spacing_20"
                 android:contentDescription="@null"
-                android:src="@drawable/abc_ic_search_api_material"
+                android:src="@drawable/ic_search"
                 app:tint="@color/gray" />
 
             <TextSwitcher
@@ -64,7 +64,7 @@
         android:background="@android:color/transparent"
         android:clickable="true"
         android:focusable="true"
-        android:src="@drawable/ic_settings"
+        android:src="@drawable/settings"
         app:tint="?attr/colorError" />
 
 </LinearLayout>

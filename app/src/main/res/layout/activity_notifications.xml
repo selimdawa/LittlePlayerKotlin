@@ -38,9 +38,9 @@
                     app:tint="?attr/mc_track" />
 
                 <LinearLayout
+                    android:layout_marginHorizontal="16dp"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/spacing_medium"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -87,10 +87,11 @@
                 <ImageView
                     android:layout_width="@dimen/icon_size_medium"
                     android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/ic_settings"
+                    android:src="@drawable/settings"
                     app:tint="?attr/mc_track" />
 
                 <LinearLayout
+                    android:layout_marginHorizontal="16dp"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/spacing_medium"

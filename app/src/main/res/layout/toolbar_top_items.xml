@@ -26,7 +26,7 @@
             android:contentDescription="@null"
             android:focusable="true"
             android:padding="@dimen/spacing_tiny"
-            android:src="@drawable/ic_shuffle"
+            android:src="@drawable/ic_shuffle_on"
             app:tint="?attr/mc_track" />
 
         <TextView

@@ -94,7 +94,7 @@
                                 android:layout_width="@dimen/spacing_24"
                                 android:layout_height="@dimen/spacing_24"
                                 android:layout_gravity="center"
-                                android:src="@drawable/ic_eq_presets"
+                                android:src="@drawable/ic_equalizer_custom"
                                 app:tint="@color/white" />
 
                         </com.google.android.material.card.MaterialCardView>

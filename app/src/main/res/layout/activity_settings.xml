@@ -77,7 +77,7 @@
                 <ImageView
                     android:layout_width="@dimen/icon_size_medium"
                     android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/ic_headset"
+                    android:src="@drawable/ic_equalizer"
                     app:tint="?attr/mc_track" />
 
                 <TextView
@@ -140,7 +140,7 @@
                 <ImageView
                     android:layout_width="@dimen/icon_size_medium"
                     android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/ic_database"
+                    android:src="@drawable/data_storage"
                     app:tint="?attr/mc_track" />
 
                 <TextView
@@ -172,7 +172,7 @@
                 <ImageView
                     android:layout_width="@dimen/icon_size_medium"
                     android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/ic_lock"
+                    android:src="@drawable/privacy"
                     app:tint="?attr/mc_track" />
 
                 <TextView
@@ -204,7 +204,7 @@
                 <ImageView
                     android:layout_width="@dimen/icon_size_medium"
                     android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/ic_info"
+                    android:src="@drawable/about"
                     app:tint="?attr/mc_track" />
 
                 <TextView
@@ -246,7 +246,7 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size_large"
                         android:layout_height="@dimen/icon_size_large"
-                        android:src="@drawable/ic_timer"
+                        android:src="@drawable/song_timer"
                         app:tint="?attr/mc_track" />
 
                     <LinearLayout
