@@ -128,4 +128,10 @@
     <string name="english">الإنجليزية</string>
     <string name="spanish">الإسبانية</string>
     <string name="arabic">العربية</string>
+    <string name="playback_channel_name">تشغيل الموسيقى</string>
+    <string name="playback_channel_desc">إشعار تشغيل الموسيقى الحالي</string>
+    <string name="enter_valid_minutes">أدخل دقائق صالحة</string>
+    <string name="enter_minutes">أدخل الدقائق</string>
+    <string name="share_song">مشاركة الأغنية</string>
+    <string name="unknown">غير معروف</string>
 </resources>

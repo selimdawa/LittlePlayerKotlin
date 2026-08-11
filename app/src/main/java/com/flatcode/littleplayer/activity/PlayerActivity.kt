@@ -239,8 +239,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updateSongUI(song: MusicFiles) {
-        animateTextChange(binding.songName, song.title ?: DATA.UNKNOWN)
-        animateTextChange(binding.songArtist, song.artist ?: DATA.UNKNOWN)
+        animateTextChange(binding.songName, song.title ?: getString(R.string.unknown))
+        animateTextChange(binding.songArtist, song.artist ?: getString(R.string.unknown))
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
@@ -369,8 +369,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
 
         nextSong?.let {
-            binding.songName.text = it.title ?: DATA.UNKNOWN
-            binding.songArtist.text = it.artist ?: DATA.UNKNOWN
+            binding.songName.text = it.title ?: getString(R.string.unknown)
+            binding.songArtist.text = it.artist ?: getString(R.string.unknown)
         }
 
         val width = binding.card.width.toFloat()

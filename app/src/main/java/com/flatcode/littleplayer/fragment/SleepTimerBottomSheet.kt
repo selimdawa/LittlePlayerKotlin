@@ -80,10 +80,10 @@ class SleepTimerBottomSheet(
                     dialog.dismiss()
                     dismiss()
                 } else {
-                    dialogBinding.inputLayout.error = "Enter valid minutes"
+                    dialogBinding.inputLayout.error = getString(R.string.enter_valid_minutes)
                 }
             } else {
-                dialogBinding.inputLayout.error = "Enter minutes"
+                dialogBinding.inputLayout.error = getString(R.string.enter_minutes)
             }
         }
 

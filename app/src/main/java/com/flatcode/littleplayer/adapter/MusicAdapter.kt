@@ -33,9 +33,9 @@ class MusicAdapter(
         val currentFile = getItem(position)
 
         holder.binding.songName.text = currentFile.title
-        val songDetailsText = context.getString(
-            R.string.song_details_format, currentFile.safeArtist, currentFile.album ?: DATA.UNKNOWN
-        )
+        val artist = if (currentFile.safeArtist == DATA.UNKNOWN) context.getString(R.string.unknown) else currentFile.safeArtist
+        val album = if (currentFile.safeAlbum == DATA.UNKNOWN) context.getString(R.string.unknown) else currentFile.safeAlbum
+        val songDetailsText = context.getString(R.string.song_details_format, artist, album)
         holder.binding.songDetails.text = songDetailsText
 
         holder.binding.image.loadSongImage(

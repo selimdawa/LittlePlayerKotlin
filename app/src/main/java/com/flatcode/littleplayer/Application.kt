@@ -43,8 +43,10 @@ class Application : Application(), ImageLoaderFactory {
             getSystemService(NotificationManager::class.java)?.apply {
                 createNotificationChannel(
                     NotificationChannel(
-                        PLAYBACK_CHANNEL_ID, "Music Playback", NotificationManager.IMPORTANCE_LOW
-                    ).apply { description = "Ongoing music playback notification" })
+                        PLAYBACK_CHANNEL_ID,
+                        getString(R.string.playback_channel_name),
+                        NotificationManager.IMPORTANCE_LOW
+                    ).apply { description = getString(R.string.playback_channel_desc) })
             }
         }
     }

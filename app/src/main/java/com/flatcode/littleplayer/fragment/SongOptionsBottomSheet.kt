@@ -120,7 +120,7 @@ class SongOptionsBottomSheet(
             putExtra(Intent.EXTRA_STREAM, Uri.parse(song.path))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        startActivity(Intent.createChooser(shareIntent, "Share Song"))
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_song)))
     }
 
     override fun onStart() {

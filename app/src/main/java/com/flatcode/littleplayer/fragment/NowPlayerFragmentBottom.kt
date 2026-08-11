@@ -218,8 +218,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun updateUiFromPlayer(player: Player) {
         val currentMediaItem = player.currentMediaItem
         if (currentMediaItem != null) {
-            val title = currentMediaItem.mediaMetadata.title?.toString() ?: DATA.UNKNOWN
-            val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: DATA.UNKNOWN
+            val title = currentMediaItem.mediaMetadata.title?.toString() ?: getString(R.string.unknown)
+            val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: getString(R.string.unknown)
             val id = currentMediaItem.mediaId
             val path = currentMediaItem.localConfiguration?.uri?.path
             val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")

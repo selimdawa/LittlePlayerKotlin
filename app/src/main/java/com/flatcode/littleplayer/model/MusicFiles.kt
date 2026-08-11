@@ -29,6 +29,9 @@ data class MusicFiles(
     val safeArtist: String
         get() = artist ?: DATA.UNKNOWN
 
+    val safeAlbum: String
+        get() = album ?: DATA.UNKNOWN
+
     val durationLong: Long
         get() = duration?.toLongOrNull() ?: 0L
 

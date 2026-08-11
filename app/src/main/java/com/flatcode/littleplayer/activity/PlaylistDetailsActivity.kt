@@ -47,7 +47,7 @@ class PlaylistDetailsActivity : AppCompatActivity() {
         binding = ActivityPlaylistDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        currentPlaylistName = intent.getStringExtra("PLAYLIST_NAME") ?: "Playlist"
+        currentPlaylistName = intent.getStringExtra("PLAYLIST_NAME") ?: getString(R.string.playlist)
         setupUI()
 
         viewModel.loadSongs(currentPlaylistName)

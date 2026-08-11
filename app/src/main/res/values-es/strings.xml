@@ -124,4 +124,10 @@
     <string name="english">Inglés</string>
     <string name="spanish">Español</string>
     <string name="arabic">Árabe</string>
+    <string name="playback_channel_name">Reproducción de música</string>
+    <string name="playback_channel_desc">Notificación de reproducción de música en curso</string>
+    <string name="enter_valid_minutes">Ingrese minutos válidos</string>
+    <string name="enter_minutes">Ingrese los minutos</string>
+    <string name="share_song">Compartir canción</string>
+    <string name="unknown">Desconocido</string>
 </resources>
