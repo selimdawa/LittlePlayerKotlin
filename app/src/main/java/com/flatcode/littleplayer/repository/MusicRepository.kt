@@ -18,7 +18,6 @@ import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
-import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
@@ -387,77 +386,6 @@ class MusicRepository @Inject constructor(
         if (songEntities.isNotEmpty()) {
             songDao.insertSongs(songEntities)
         }
-        syncPlaylistsWithMediaStore()
-    }
-
-    @Suppress("DEPRECATION")
-    suspend fun syncPlaylistsWithMediaStore() {
-        val playlistUri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI
-        val playlistProjection = arrayOf(
-            MediaStore.Audio.Playlists._ID, MediaStore.Audio.Playlists.NAME
-        )
-
-        context.contentResolver.query(playlistUri, playlistProjection, null, null, null)
-            ?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID)
-                val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.NAME)
-
-                while (cursor.moveToNext()) {
-                    val playlistId = cursor.getLong(idColumn)
-                    val playlistName = cursor.getString(nameColumn) ?: continue
-
-                    syncPlaylistMembers(playlistId, playlistName)
-                }
-            }
-    }
-
-    @Suppress("DEPRECATION")
-    private suspend fun syncPlaylistMembers(playlistId: Long, playlistName: String) {
-        val membersUri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId)
-        val membersProjection = arrayOf(
-            MediaStore.Audio.Playlists.Members.AUDIO_ID,
-            MediaStore.Audio.Playlists.Members.TITLE,
-            MediaStore.Audio.Playlists.Members.ARTIST,
-            MediaStore.Audio.Playlists.Members.DATA,
-            MediaStore.Audio.Playlists.Members.ALBUM_ID
-        )
-
-        context.contentResolver.query(membersUri, membersProjection, null, null, null)
-            ?.use { cursor ->
-                val audioIdColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.AUDIO_ID)
-                val titleColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.TITLE)
-                val artistColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ARTIST)
-                val pathColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.DATA)
-                val albumIdColumn =
-                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ALBUM_ID)
-
-                val playlistItems = mutableListOf<PlaylistEntity>()
-                while (cursor.moveToNext()) {
-                    val songId = cursor.getString(audioIdColumn)
-                    val title = cursor.getString(titleColumn) ?: DATA.UNKNOWN
-                    val artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN
-                    val path = cursor.getString(pathColumn) ?: ""
-                    val albumId = cursor.getString(albumIdColumn)
-
-                    playlistItems.add(
-                        PlaylistEntity(
-                            playlistName = playlistName,
-                            songId = songId,
-                            title = title,
-                            artist = artist,
-                            path = path,
-                            albumId = albumId
-                        )
-                    )
-                }
-                if (playlistItems.isNotEmpty()) {
-                    musicDao.insertToPlaylist(playlistItems)
-                }
-            }
     }
 
     suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {

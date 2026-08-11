@@ -25,8 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PlaylistsViewModel @Inject constructor(
-    private val repository: MusicRoomRepository,
-    private val musicRepository: MusicRepository
+    private val repository: MusicRoomRepository, private val musicRepository: MusicRepository
 ) : ViewModel() {
 
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
@@ -47,8 +46,7 @@ class PlaylistsViewModel @Inject constructor(
             }
         }
 
-        @OptIn(ExperimentalCoroutinesApi::class)
-        viewModelScope.launch {
+        @OptIn(ExperimentalCoroutinesApi::class) viewModelScope.launch {
             combine(
                 repository.getAllPlaylistNames().flatMapLatest { names ->
                     if (names.isEmpty()) flowOf(emptyList())
@@ -58,8 +56,7 @@ class PlaylistsViewModel @Inject constructor(
                             Playlist(name, realSongs.size, realSongs.firstOrNull()?.path)
                         }
                     }) { it.toList() }
-                },
-                _playlistsSortOrder
+                }, _playlistsSortOrder
             ) { playlists, sortOrder ->
                 when (sortOrder) {
                     DATA.SORT_BY_NAME -> playlists.sortedBy { it.name.lowercase() }
@@ -99,12 +96,14 @@ class PlaylistsViewModel @Inject constructor(
     fun addToPlaylist(playlistName: String, song: MusicFiles) {
         viewModelScope.launch {
             repository.insertToPlaylist(
-                PlaylistEntity(
-                    playlistName = playlistName,
-                    songId = song.id ?: "",
-                    title = song.title ?: "",
-                    artist = song.artist ?: DATA.UNKNOWN,
-                    path = song.path ?: ""
+                listOf(
+                    PlaylistEntity(
+                        playlistName = playlistName,
+                        songId = song.id ?: "",
+                        title = song.title ?: "",
+                        artist = song.artist ?: DATA.UNKNOWN,
+                        path = song.path ?: ""
+                    )
                 )
             )
         }
@@ -113,12 +112,10 @@ class PlaylistsViewModel @Inject constructor(
     fun createPlaylist(name: String) {
         viewModelScope.launch {
             repository.insertToPlaylist(
-                PlaylistEntity(
-                    playlistName = name,
-                    songId = "",
-                    title = "",
-                    artist = "",
-                    path = ""
+                listOf(
+                    PlaylistEntity(
+                        playlistName = name, songId = "", title = "", artist = "", path = ""
+                    )
                 )
             )
         }
@@ -145,16 +142,15 @@ class PlaylistsViewModel @Inject constructor(
     fun getPlaylistsNotContainingSong(songId: String): Flow<List<String>> {
         return combine(
             repository.getAllPlaylistNames(),
-            if (songId.isEmpty()) flowOf(emptyList()) else repository.getPlaylistsContainingSong(songId)
+            if (songId.isEmpty()) flowOf(emptyList()) else repository.getPlaylistsContainingSong(
+                songId
+            )
         ) { allNames, containingNames ->
             allNames.filter { it !in containingNames }
         }
     }
 
     fun syncPlaylists() {
-        viewModelScope.launch {
-            musicRepository.syncPlaylistsWithMediaStore()
-        }
     }
 }
 

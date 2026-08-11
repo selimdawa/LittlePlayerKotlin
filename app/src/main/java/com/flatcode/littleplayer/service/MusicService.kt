@@ -3,7 +3,6 @@ package com.flatcode.littleplayer.service
 import android.content.Intent
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
-import android.media.audiofx.Virtualizer
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.widget.Toast
@@ -85,10 +84,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private var sleepTimer: CountDownTimer? = null
 
     private var equalizer: Equalizer? = null
-    @Suppress("DEPRECATION")
     private var bassBoost: BassBoost? = null
-    @Suppress("DEPRECATION")
-    private var virtualizer: Virtualizer? = null
     private var eqEnabled = false
     private var currentBandLevels = shortArrayOf(0, 0, 0, 0, 0)
     private var customBandLevels = shortArrayOf(0, 0, 0, 0, 0)
@@ -129,10 +125,14 @@ class MusicService : MediaLibraryService(), Player.Listener {
             }
         }
 
-        basePlayer = ExoPlayer.Builder(this).setAudioAttributes(
-                AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                    .setUsage(C.USAGE_MEDIA).build(), true
-            ).setHandleAudioBecomingNoisy(true).setWakeMode(C.WAKE_MODE_LOCAL).build().apply {
+        val audioAttributes = AudioAttributes.Builder()
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
+            .setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_AUTO)
+            .build()
+
+        basePlayer = ExoPlayer.Builder(this).setAudioAttributes(audioAttributes, true)
+            .setHandleAudioBecomingNoisy(true).setWakeMode(C.WAKE_MODE_LOCAL).build().apply {
                 addListener(this@MusicService)
                 repeatMode = Player.REPEAT_MODE_ALL
             }
@@ -140,7 +140,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         try {
             castPlayer = CastPlayer.Builder(this).setLocalPlayer(basePlayer!!).build()
             castPlayer?.addListener(this@MusicService)
-        } catch (ignored: Exception) {
+        } catch (_: Exception) {
         }
 
         val primaryPlayer = castPlayer ?: basePlayer!!
@@ -293,40 +293,53 @@ class MusicService : MediaLibraryService(), Player.Listener {
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun applyEqualizerSettings() {
         equalizer?.enabled = eqEnabled
         bassBoost?.enabled = eqEnabled
-        virtualizer?.enabled = eqEnabled
+
+        val behavior = if (eqEnabled && virtualizerStrength > 0) {
+            C.SPATIALIZATION_BEHAVIOR_AUTO
+        } else {
+            C.SPATIALIZATION_BEHAVIOR_NEVER
+        }
+
+        exoPlayer?.let { player ->
+            val currentAttrs = player.audioAttributes
+            if (currentAttrs.spatializationBehavior != behavior) {
+                player.setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(currentAttrs.contentType)
+                        .setFlags(currentAttrs.flags)
+                        .setUsage(currentAttrs.usage)
+                        .setSpatializationBehavior(behavior)
+                        .build(),
+                    false
+                )
+            }
+        }
 
         if (eqEnabled) {
             try {
                 bassBoost?.setStrength(bassStrength)
-                virtualizer?.setStrength(virtualizerStrength)
                 for (i in currentBandLevels.indices) {
                     equalizer?.setBandLevel(i.toShort(), currentBandLevels[i])
                 }
-            } catch (e: Exception) {
-                // Ignore
+            } catch (_: Exception) {
             }
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun initAudioEffects(sessionId: Int) {
         if (sessionId != -1) {
             try {
                 equalizer?.release()
                 bassBoost?.release()
-                virtualizer?.release()
 
                 equalizer = Equalizer(100, sessionId)
                 bassBoost = BassBoost(100, sessionId)
-                virtualizer = Virtualizer(100, sessionId)
 
                 applyEqualizerSettings()
-            } catch (e: Exception) {
-                // Ignore
+            } catch (_: Exception) {
             }
         }
     }
@@ -908,17 +921,14 @@ class MusicService : MediaLibraryService(), Player.Listener {
                                 }
                             }
                             equalizer?.setBandLevel(band, level)
-                        } catch (e: Exception) {
-                            // Ignored
+                        } catch (_: Exception) {
                         }
                 }
 
                 COMMAND_TOGGLE_EQ -> {
                     val enabled = args.getBoolean("ENABLED", false)
                     eqEnabled = enabled
-                    equalizer?.enabled = enabled
-                    bassBoost?.enabled = enabled
-                    virtualizer?.enabled = enabled
+                    applyEqualizerSettings()
                     saveEqualizerSettings()
                 }
 
@@ -932,7 +942,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 COMMAND_SET_VIRTUALIZER -> {
                     val strength = args.getShort("STRENGTH", 0)
                     virtualizerStrength = strength
-                    virtualizer?.setStrength(strength)
+                    applyEqualizerSettings()
                     saveEqualizerSettings()
                 }
 
@@ -1043,7 +1053,6 @@ class MusicService : MediaLibraryService(), Player.Listener {
         super.onDestroy()
         equalizer?.release()
         bassBoost?.release()
-        virtualizer?.release()
         castPlayer?.release()
         mediaSession?.run {
             player.release()
