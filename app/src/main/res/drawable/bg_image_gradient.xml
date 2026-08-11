@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Layer 0: Outer Soft Glow (Fog) -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/spacing_15" />
+            <gradient
+                android:type="radial"
+                android:gradientRadius="300dp"
+                android:centerX="50%"
+                android:centerY="50%"
+                android:startColor="#40FFFFFF"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <!-- Layer 1: Main Gradient Border -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/spacing_15" />
+            <gradient
+                android:angle="45"
+                android:endColor="?attr/mc_tick"
+                android:startColor="?attr/mc_track"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

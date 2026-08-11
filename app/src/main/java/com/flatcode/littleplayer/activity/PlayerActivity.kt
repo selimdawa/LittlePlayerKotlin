@@ -570,14 +570,29 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             if ((intentPosition != -1) && (!isIntentProcessed)) {
                 isIntentProcessed = true
                 intent.removeExtra(DATA.POSITION)
+
+                val checkAndPlay = {
+                    val currentItem = controller.currentMediaItem
+                    val targetSong = viewModel.listSongs.getOrNull(intentPosition)
+                    val isAlreadyPlaying = currentItem != null &&
+                            controller.currentMediaItemIndex == intentPosition &&
+                            currentItem.mediaId == targetSong?.id
+
+                    if (isAlreadyPlaying) {
+                        viewModel.updatePositionAndSong(intentPosition)
+                    } else {
+                        forcePlaySong(controller, intentPosition)
+                    }
+                }
+
                 if (viewModel.listSongs.isNotEmpty()) {
-                    forcePlaySong(controller, intentPosition)
+                    checkAndPlay()
                 } else {
                     lifecycleScope.launch {
                         while (viewModel.listSongs.isEmpty()) {
                             delay(30.milliseconds)
                         }
-                        forcePlaySong(controller, intentPosition)
+                        checkAndPlay()
                     }
                 }
             } else {
