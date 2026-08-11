@@ -19,9 +19,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import androidx.palette.graphics.Palette
-import coil.imageLoader
-import coil.request.ImageRequest
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.FragmentNowPlayerBottomBinding
 import com.flatcode.littleplayer.model.MusicFiles
@@ -29,9 +26,9 @@ import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
+import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.getLibraryColor
-import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.openPlayer
@@ -153,7 +150,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
             song?.let {
-                binding.playerContent.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.playerContent.albumArt.loadSongImage(
+                    it.albumId, it.path, it.cachedImagePath
+                )
                 binding.playerContent.name.text = it.safeTitle
                 binding.playerContent.artist.text = it.safeArtist
             }
@@ -176,7 +175,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         }
     }
 
-    private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+    private data class Quadruple<A, B, C, D>(
+        val first: A, val second: B, val third: C, val fourth: D
+    )
 
     private fun updateThemeColors(enabled: Boolean, mode: Int, color: Int) {
         val track = requireContext().getLibraryColor("mc_track")
@@ -218,8 +219,10 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun updateUiFromPlayer(player: Player) {
         val currentMediaItem = player.currentMediaItem
         if (currentMediaItem != null) {
-            val title = currentMediaItem.mediaMetadata.title?.toString() ?: getString(R.string.unknown)
-            val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: getString(R.string.unknown)
+            val title =
+                currentMediaItem.mediaMetadata.title?.toString() ?: getString(R.string.unknown)
+            val artist =
+                currentMediaItem.mediaMetadata.artist?.toString() ?: getString(R.string.unknown)
             val id = currentMediaItem.mediaId
             val path = currentMediaItem.localConfiguration?.uri?.path
             val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
@@ -253,7 +256,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         } else {
             val song = viewModel.currentPlayingSong.value
             song?.let {
-                binding.playerContent.albumArt.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.playerContent.albumArt.loadSongImage(
+                    it.albumId, it.path, it.cachedImagePath
+                )
                 binding.playerContent.name.text = it.safeTitle
                 binding.playerContent.artist.text = it.safeArtist
 

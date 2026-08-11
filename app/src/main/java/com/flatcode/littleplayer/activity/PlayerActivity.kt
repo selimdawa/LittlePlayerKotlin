@@ -48,6 +48,8 @@ import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.onProgressChanged
 import com.flatcode.littleplayer.utils.setGradientBackground
+import com.flatcode.littleplayer.utils.setHaloBackground
+import com.flatcode.littleplayer.utils.setHaloSolidBackground
 import com.flatcode.littleplayer.utils.setSolidBackground
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -117,12 +119,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.seekBar.progressBackgroundTintList = backgroundColorStateList
 
         if (currentMode == DATA.MODE_BASIC) {
-            binding.playPauseBtn.setGradientBackground(
+            binding.playPauseBtn.setHaloBackground(
                 getLibraryColor("mc_track"),
                 getLibraryColor("mc_tick"),
             )
         } else {
-            binding.playPauseBtn.setSolidBackground(brightColor)
+            binding.playPauseBtn.setHaloSolidBackground(brightColor)
         }
 
         binding.waveformSeekBar.waveProgressColor = brightColor

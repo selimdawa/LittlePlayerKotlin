@@ -116,24 +116,20 @@ fun View.setHaloBackground(
     if (background.numberOfLayers < 2) return
 
     val density = context.resources.displayMetrics.density
+    val r = (Color.red(startColor) + Color.red(endColor)) / 2
+    val g = (Color.green(startColor) + Color.green(endColor)) / 2
+    val b = (Color.blue(startColor) + Color.blue(endColor)) / 2
+    val haloColor = Color.argb(80, r, g, b)
 
-    // 1. Soft Blurry Layer (Layer 0)
+    // Layer 0: Outer Blur (Fades Out)
     (background.getDrawable(0) as? GradientDrawable)?.apply {
-        val blurColor = Color.argb(
-            60, // Very soft alpha for pure blur effect
-            (Color.red(startColor) + Color.red(endColor)) / 2,
-            (Color.green(startColor) + Color.green(endColor)) / 2,
-            (Color.blue(startColor) + Color.blue(endColor)) / 2
-        )
-        colors = intArrayOf(blurColor, Color.TRANSPARENT)
+        colors = intArrayOf(haloColor, Color.TRANSPARENT)
         gradientType = GradientDrawable.RADIAL_GRADIENT
-        gradientRadius = 45f * density
+        gradientRadius = 42f * density
     }
 
-    // 2. Main Border Ring (Layer 1)
-    (background.getDrawable(1) as? GradientDrawable)?.apply {
-        colors = intArrayOf(startColor, endColor)
-    }
+    // Layer 1: Main Border
+    (background.getDrawable(1) as? GradientDrawable)?.colors = intArrayOf(startColor, endColor)
 }
 
 fun View.setHaloSolidBackground(@ColorInt color: Int) {

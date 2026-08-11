@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. The Single External Blurry Layer -->
+    <!-- Starts right at the border (30dp radius) and spreads outwards -->
+    <item>
+        <shape
+            android:innerRadius="30dp"
+            android:shape="ring"
+            android:thickness="12dp"
+            android:useLevel="false">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="42dp"
+                android:startColor="#60FFFFFF"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <!-- 2. The Main Border -->
+    <item
+        android:bottom="10dp"
+        android:left="10dp"
+        android:right="10dp"
+        android:top="10dp">
+        <shape
+            android:innerRadius="28dp"
+            android:shape="ring"
+            android:thickness="@dimen/thickness_small"
+            android:useLevel="false">
+            <gradient
+                android:angle="45"
+                android:endColor="?attr/mc_tick"
+                android:startColor="?attr/mc_track"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>
