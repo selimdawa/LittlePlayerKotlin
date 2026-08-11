@@ -87,7 +87,13 @@ class MainActivity : AppCompatActivity() {
     private fun setupSearchSwitcher() {
         binding.toolbar.searchTextSwitcher.setFactory {
             TextView(this).apply {
+                layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                )
                 gravity = Gravity.START or Gravity.CENTER_VERTICAL
+                textAlignment = android.view.View.TEXT_ALIGNMENT_VIEW_START
+                textDirection = android.view.View.TEXT_DIRECTION_LOCALE
                 textSize = 14f
                 maxLines = 1
                 ellipsize = TruncateAt.END

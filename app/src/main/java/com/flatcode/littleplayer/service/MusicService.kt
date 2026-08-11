@@ -21,14 +21,10 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
-import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
-import androidx.media3.session.DefaultMediaNotificationProvider
-import androidx.core.app.NotificationCompat
-import androidx.core.graphics.drawable.IconCompat
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
@@ -38,8 +34,6 @@ import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getDefaultArtBytes
-import com.flatcode.littleplayer.utils.getResizedBitmap
-import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -172,91 +166,9 @@ class MusicService : MediaSessionService(), Player.Listener {
             mediaSession =
                 MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
 
-            setMediaNotificationProvider(CustomNotificationProvider())
-
             loadEqualizerSettings()
             initAudioEffects(basePlayer?.audioSessionId ?: -1)
             loadPlaybackStateAndQueue()
-        }
-    }
-
-    private inner class CustomNotificationProvider : DefaultMediaNotificationProvider(this@MusicService) {
-        override fun addNotificationActions(
-            mediaSession: MediaSession,
-            mediaButtons: ImmutableList<CommandButton>,
-            builder: NotificationCompat.Builder,
-            actionFactory: MediaNotification.ActionFactory
-        ): IntArray {
-            val compactViewIndices = IntArray(3) { -1 }
-            var hasCustomCompactViewIndices = false
-
-            for (i in mediaButtons.indices) {
-                val commandButton = mediaButtons[i]
-                var iconRes = commandButton.iconResId
-                
-                // Force match icons with PlayerActivity for standard actions
-                if (commandButton.playerCommand == Player.COMMAND_PLAY_PAUSE) {
-                    iconRes = if (exoPlayer?.isPlaying == true) R.drawable.ic_pause else R.drawable.ic_play
-                } else if (commandButton.playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS || 
-                           commandButton.playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM) {
-                    iconRes = R.drawable.ic_skip_previous
-                } else if (commandButton.playerCommand == Player.COMMAND_SEEK_TO_NEXT || 
-                           commandButton.playerCommand == Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM) {
-                    iconRes = R.drawable.ic_skip_next
-                }
-
-                val needsResizing = iconRes == R.drawable.ic_shuffle_on || 
-                                   iconRes == R.drawable.ic_repeat || 
-                                   iconRes == R.drawable.ic_repeat_one ||
-                                   iconRes == R.drawable.ic_repeat_off ||
-                                   iconRes == R.drawable.ic_favorite ||
-                                   iconRes == R.drawable.ic_favorite_border ||
-                                   iconRes == R.drawable.ic_play || 
-                                   iconRes == R.drawable.ic_pause ||
-                                   iconRes == R.drawable.ic_skip_next ||
-                                   iconRes == R.drawable.ic_skip_previous
-
-                val icon = if (needsResizing) {
-                    val bitmap = getResizedBitmap(iconRes, 24) // Back to 24dp but with 25% internal padding
-                    if (bitmap != null) IconCompat.createWithBitmap(bitmap)
-                    else IconCompat.createWithResource(this@MusicService, iconRes)
-                } else {
-                    IconCompat.createWithResource(this@MusicService, iconRes)
-                }
-
-                if (commandButton.sessionCommand != null) {
-                    builder.addAction(
-                        actionFactory.createCustomAction(
-                            mediaSession,
-                            icon,
-                            commandButton.displayName,
-                            commandButton.sessionCommand!!.customAction,
-                            commandButton.sessionCommand!!.customExtras
-                        )
-                    )
-                } else {
-                    builder.addAction(
-                        actionFactory.createMediaAction(
-                            mediaSession,
-                            icon,
-                            commandButton.displayName,
-                            commandButton.playerCommand
-                        )
-                    )
-                }
-
-                val compactViewIndex = commandButton.extras.getInt("media3.command_compact_view_index", -1)
-                if (compactViewIndex in 0..2) {
-                    hasCustomCompactViewIndices = true
-                    compactViewIndices[compactViewIndex] = i
-                }
-            }
-
-            if (!hasCustomCompactViewIndices) {
-                return intArrayOf(0, 1, 2).filter { it < mediaButtons.size }.toIntArray()
-            }
-
-            return compactViewIndices.filter { it != -1 }.toIntArray()
         }
     }
 
