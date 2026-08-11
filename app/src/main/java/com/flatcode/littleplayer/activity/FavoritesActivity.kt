@@ -10,7 +10,7 @@ import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFavoritesBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
-import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -46,13 +46,13 @@ class FavoritesActivity : AppCompatActivity() {
                         openPlayer(position, view)
                     }, onDeleteClick = { song ->
                         musicViewModel.deleteSong(song)
-                    })
+                    }).apply {
+                        bindToPlaybackSync(this@FavoritesActivity, nowPlayerViewModel, binding.root)
+                    }
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songs)
             }
         }
-
-        observePlaybackSync(nowPlayerViewModel, binding.root) { adapter }
     }
 }

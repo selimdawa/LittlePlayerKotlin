@@ -90,6 +90,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
             songName.setTextColor(trackColor)
         } else {
             wave.gone()
+            wave.stop()
             songName.setTextColor(context.getLibraryColor("colorOnSurface"))
         }
     }

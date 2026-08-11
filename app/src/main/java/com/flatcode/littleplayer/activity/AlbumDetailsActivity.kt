@@ -11,7 +11,7 @@ import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.loadCachedAlbumImage
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -65,13 +65,13 @@ class AlbumDetailsActivity : AppCompatActivity() {
                         onDeleteClick = { song ->
                             musicViewModel.deleteSong(song)
                         }
-                    )
+                    ).apply {
+                        bindToPlaybackSync(this@AlbumDetailsActivity, nowPlayerViewModel, binding.root)
+                    }
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(state.songs)
             }
         }
-
-        observePlaybackSync(nowPlayerViewModel, binding.root) { adapter }
     }
 }

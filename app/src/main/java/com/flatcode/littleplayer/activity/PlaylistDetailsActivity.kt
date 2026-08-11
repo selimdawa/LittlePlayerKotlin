@@ -18,7 +18,7 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
-import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -89,18 +89,10 @@ class PlaylistDetailsActivity : AppCompatActivity() {
                     musicViewModel.deleteSong(song)
                 }, onRemoveFromPlaylistClick = { song ->
                     viewModel.removeSongFromPlaylist(currentPlaylistName, song.id ?: "")
-                })
+                }).apply {
+                    bindToPlaybackSync(this@PlaylistDetailsActivity, nowPlayerViewModel, binding.root)
+                }
                 binding.recyclerView.adapter = adapter
-
-                // Sync initial playback state
-                adapter?.updatePlaybackState(
-                    nowPlayerViewModel.currentPlayingSong.value?.path,
-                    nowPlayerViewModel.isPlaying.value
-                )
-                adapter?.updateThemeState(
-                    nowPlayerViewModel.themeColorMode.value,
-                    nowPlayerViewModel.currentThemeColor.value ?: android.graphics.Color.WHITE
-                )
             }
             adapter?.submitList(songs)
         }
@@ -112,8 +104,6 @@ class PlaylistDetailsActivity : AppCompatActivity() {
                 }
             }
         }
-
-        observePlaybackSync(nowPlayerViewModel, binding.root) { adapter }
     }
 
     private fun showPlaylistOptionsDialog() {

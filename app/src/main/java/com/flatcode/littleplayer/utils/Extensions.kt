@@ -135,8 +135,7 @@ fun View.setHaloBackground(
             intArrayOf(startColor, endColor)
     } else {
         // Layer 1: Main Border (If only 2 layers)
-        (background.getDrawable(1) as? GradientDrawable)?.colors =
-            intArrayOf(startColor, endColor)
+        (background.getDrawable(1) as? GradientDrawable)?.colors = intArrayOf(startColor, endColor)
     }
 }
 
@@ -264,6 +263,22 @@ fun LifecycleOwner.observePlaybackSync(
     viewBindingRoot: View? = null,
     adapterProvider: () -> PlaybackAnimatable?,
 ) {
+    val sync = {
+        adapterProvider()?.let { adapter ->
+            val song = nowPlayerViewModel.currentPlayingSong.value
+            viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
+            adapter.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
+            adapter.updateThemeState(
+                nowPlayerViewModel.themeColorMode.value,
+                nowPlayerViewModel.currentThemeColor.value ?: Color.WHITE
+            )
+            adapter.updateListThemeState(nowPlayerViewModel.listItemThemeEnabled.value)
+        }
+    }
+
+    // Initial sync
+    sync()
+
     nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
         viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
         adapterProvider()?.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
@@ -289,6 +304,14 @@ fun LifecycleOwner.observePlaybackSync(
     nowPlayerViewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
         adapterProvider()?.updateListThemeState(enabled)
     }
+}
+
+fun PlaybackAnimatable.bindToPlaybackSync(
+    lifecycleOwner: LifecycleOwner,
+    nowPlayerViewModel: NowPlayerViewModel,
+    viewBindingRoot: View? = null
+) {
+    lifecycleOwner.observePlaybackSync(nowPlayerViewModel, viewBindingRoot) { this }
 }
 
 fun AppCompatActivity.initToolbar(title: String? = null) {
@@ -525,12 +548,11 @@ fun Int.ensureBrightColor(): Int {
 
 fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
     val dominantColor = this?.getDominantColor(defaultColor) ?: defaultColor
-    return this?.getLightVibrantColor(Color.TRANSPARENT)
-        .takeIf { it != Color.TRANSPARENT } ?: this?.getVibrantColor(
-        Color.TRANSPARENT,
-    ).takeIf { it != Color.TRANSPARENT }
-    ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-    ?: dominantColor
+    return this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getVibrantColor(
+            Color.TRANSPARENT,
+        ).takeIf { it != Color.TRANSPARENT } ?: this?.getLightMutedColor(Color.TRANSPARENT)
+            .takeIf { it != Color.TRANSPARENT } ?: dominantColor
 }
 
 fun Context.getAppCompatActivity(): AppCompatActivity? {

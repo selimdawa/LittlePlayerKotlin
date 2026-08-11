@@ -12,7 +12,7 @@ import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.utils.visible
@@ -75,7 +75,6 @@ class SongsFragment : Fragment() {
             }
         }
 
-        observePlaybackSync(nowPlayerViewModel, binding.root) { musicAdapter }
 
         viewModel.event.collectWithLifecycle(viewLifecycleOwner) { event ->
             when (event) {
@@ -108,7 +107,9 @@ class SongsFragment : Fragment() {
                 onDeleteClick = { song ->
                     viewModel.deleteSong(song)
                 }
-            )
+            ).apply {
+                bindToPlaybackSync(viewLifecycleOwner, nowPlayerViewModel, binding.root)
+            }
         }
         binding.recyclerView.adapter = musicAdapter
     }

@@ -10,6 +10,7 @@ import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivitySearchBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -63,14 +64,12 @@ class SearchActivity : AppCompatActivity() {
                         openPlayer(position, view)
                     }, onDeleteClick = { song ->
                         viewModel.deleteSong(song)
-                    })
+                    }).apply {
+                        bindToPlaybackSync(this@SearchActivity, nowPlayerViewModel, binding.root)
+                    }
                 binding.recyclerView.adapter = adapter
             }
             adapter?.submitList(songs)
-        }
-
-        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
-            binding.fragBottomPlayer.root.isVisible = song != null
         }
     }
 }

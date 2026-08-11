@@ -8,7 +8,7 @@ import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFolderDetailsBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.observePlaybackSync
+import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.FolderDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -50,13 +50,13 @@ class FolderDetailsActivity : AppCompatActivity() {
                         onDeleteClick = { song ->
                             musicViewModel.deleteSong(song)
                         }
-                    )
+                    ).apply {
+                        bindToPlaybackSync(this@FolderDetailsActivity, nowPlayerViewModel, binding.root)
+                    }
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songList)
             }
         }
-
-        observePlaybackSync(nowPlayerViewModel, binding.root) { adapter }
     }
 }
