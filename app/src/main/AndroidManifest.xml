@@ -91,6 +91,9 @@
         <activity
             android:name=".activity.EqualizerActivity"
             android:exported="false" />
+        <activity
+            android:name=".activity.HiddenFoldersActivity"
+            android:exported="false" />
 
         <activity
             android:name=".activity.PlaylistsActivity"

@@ -46,9 +46,12 @@ class PlaylistDetailsViewModel @Inject constructor(
                 if (name.isEmpty()) flowOf(emptyList())
                 else combine(
                     repository.getSongsFromPlaylist(name),
-                    _songsSortOrder
-                ) { entities, sortOrder ->
-                    val musicFiles = entities.filter { it.songId.isNotEmpty() }.map { entity ->
+                    _songsSortOrder,
+                    musicRepository.excludedFolders
+                ) { entities, sortOrder, excluded ->
+                    val musicFiles = entities.filter { 
+                        it.songId.isNotEmpty() && excluded.none { p -> it.path?.startsWith(p) == true }
+                    }.map { entity ->
                         val dbSong = repository.getSongById(entity.songId)
                         MusicFiles(
                             id = entity.songId,

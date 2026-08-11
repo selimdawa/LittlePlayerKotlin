@@ -33,6 +33,7 @@ object DATA {
     const val THEME_EXTRACTED_COLOR = "THEME_EXTRACTED_COLOR"
     const val SHOW_SONG_TOAST = "SHOW_SONG_TOAST"
     const val MARQUEE_ENABLED = "MARQUEE_ENABLED"
+    const val EXCLUDED_FOLDERS = "EXCLUDED_FOLDERS"
 
     const val MODE_BASIC = 0
     const val MODE_PALETTE = 1

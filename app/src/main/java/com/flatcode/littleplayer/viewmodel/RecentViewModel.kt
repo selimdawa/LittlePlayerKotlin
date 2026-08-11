@@ -24,10 +24,12 @@ class RecentViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                repository.getAllRecent(), repository.getAllAlbumImages()
-            ) { recents, images ->
+                repository.getAllRecent(), repository.getAllAlbumImages(), repository.excludedFolders
+            ) { recents, images, excluded ->
                 val imageMap = images.associateBy { it.albumName }
-                recents.take(20).map {
+                recents.filter { recent ->
+                    excluded.none { excludedPath -> recent.path?.startsWith(excludedPath) == true }
+                }.take(20).map {
                     MusicFiles(
                         id = it.songId,
                         title = it.title,

@@ -23,6 +23,7 @@
     <dimen name="icon_size_large">32dp</dimen>
     <dimen name="icon_size_64">64dp</dimen>
     <dimen name="icon_size_20">20dp</dimen>
+    <dimen name="icon_size_40">40dp</dimen>
 
     <dimen name="flag_width">30dp</dimen>
     <dimen name="flag_height">20dp</dimen>

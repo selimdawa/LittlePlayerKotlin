@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -13,10 +14,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.FolderAdapter
 import com.flatcode.littleplayer.databinding.FragmentFoldersBinding
+import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -74,7 +78,7 @@ class FoldersFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = FolderAdapter(requireContext()) { folderName, folderPath, _ ->
+            adapter = FolderAdapter(requireContext(), { folderName, folderPath, _ ->
                 val intent = Intent(
                     requireContext(),
                     com.flatcode.littleplayer.activity.FolderDetailsActivity::class.java
@@ -83,11 +87,39 @@ class FoldersFragment : Fragment() {
                     putExtra("FOLDER_PATH", folderPath)
                 }
                 startActivity(intent)
-            }
+            }, { folder, view ->
+                showFolderMenu(folder, view)
+            })
             adapter?.stateRestorationPolicy =
                 RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         }
         binding.recyclerView.adapter = adapter
+    }
+
+    private fun showFolderMenu(folder: Folder, view: View) {
+        val popup = PopupMenu(requireContext(), view)
+        popup.menu.add(0, 0, 0, R.string.hide_folder)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                0 -> {
+                    showHideFolderDialog(folder)
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun showHideFolderDialog(folder: Folder) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.hide_folder)
+            .setMessage(R.string.hide_folder_message)
+            .setPositiveButton(R.string.hide_folder) { _, _ ->
+                folder.path?.let { viewModel.addExcludedFolder(it) }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     override fun onDestroyView() {

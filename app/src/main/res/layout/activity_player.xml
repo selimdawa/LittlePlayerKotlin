@@ -38,13 +38,26 @@
                 android:layout_width="@dimen/spacing_40"
                 android:layout_height="@dimen/spacing_40"
                 android:layout_alignParentStart="true"
-                android:layout_marginHorizontal="@dimen/spacing_20"
-                android:layout_marginTop="@dimen/spacing_10"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/spacing_20"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:contentDescription="@null"
                 android:focusable="true"
                 android:src="@drawable/ic_down"
+                app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/more"
+                android:layout_width="@dimen/spacing_30"
+                android:layout_height="@dimen/spacing_30"
+                android:layout_centerVertical="true"
+                android:layout_toEndOf="@id/back"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@null"
+                android:focusable="true"
+                android:src="@drawable/ic_more"
                 app:tint="@color/white" />
 
             <com.google.android.material.card.MaterialCardView
@@ -125,6 +138,60 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_10"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/spacing_24"
+                    android:layout_height="@dimen/spacing_24"
+                    android:layout_marginHorizontal="@dimen/spacing_tiny"
+                    android:alpha="0.3"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_music"
+                    app:tint="@color/white" />
+
+                <ImageView
+                    android:layout_width="@dimen/spacing_24"
+                    android:layout_height="@dimen/spacing_24"
+                    android:layout_marginHorizontal="@dimen/spacing_tiny"
+                    android:alpha="0.3"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_music"
+                    app:tint="@color/white" />
+
+                <ImageView
+                    android:layout_width="@dimen/spacing_24"
+                    android:layout_height="@dimen/spacing_24"
+                    android:layout_marginHorizontal="@dimen/spacing_tiny"
+                    android:alpha="0.3"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_music"
+                    app:tint="@color/white" />
+
+                <ImageView
+                    android:layout_width="@dimen/spacing_24"
+                    android:layout_height="@dimen/spacing_24"
+                    android:layout_marginHorizontal="@dimen/spacing_tiny"
+                    android:alpha="0.3"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_music"
+                    app:tint="@color/white" />
+
+                <ImageView
+                    android:layout_width="@dimen/spacing_24"
+                    android:layout_height="@dimen/spacing_24"
+                    android:layout_marginHorizontal="@dimen/spacing_tiny"
+                    android:alpha="0.3"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_music"
+                    app:tint="@color/white" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/song_name"

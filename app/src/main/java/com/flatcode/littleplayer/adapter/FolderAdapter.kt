@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -14,7 +15,8 @@ import com.flatcode.littleplayer.utils.FastScrollableAdapter
 
 class FolderAdapter(
     private val context: Context,
-    private val onItemClick: (String, String, View) -> Unit
+    private val onItemClick: (String, String, View) -> Unit,
+    private val onMenuClick: (Folder, View) -> Unit
 ) : ListAdapter<Folder, FolderAdapter.FolderViewHolder>(FolderDiffCallback()), FastScrollableAdapter {
 
     class FolderViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
@@ -34,7 +36,11 @@ class FolderAdapter(
         holder.binding.folderDetails.text = context.getString(R.string.folder_details_format, songsText, folder.path)
 
         holder.itemView.setOnClickListener {
-            onItemClick(folder.name, folder.path, holder.itemView)
+            onItemClick(folder.name ?: "", folder.path ?: "", holder.itemView)
+        }
+
+        holder.binding.btnMore.setOnClickListener {
+            onMenuClick(folder, it)
         }
     }
 

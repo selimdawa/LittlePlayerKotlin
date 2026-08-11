@@ -9,6 +9,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.flatcode.littleplayer.data.dao.AlbumImageDao
 import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,17 +61,39 @@ class MusicRepository @Inject constructor(
         }
     }
 
+    val excludedFolders: Flow<Set<String>> = dataStore.data.map { preferences ->
+        preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] ?: emptySet()
+    }.distinctUntilChanged()
+
+    suspend fun addExcludedFolder(path: String) {
+        dataStore.edit { preferences ->
+            val current = preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] ?: emptySet()
+            preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] = current + path
+        }
+    }
+
+    suspend fun removeExcludedFolder(path: String) {
+        dataStore.edit { preferences ->
+            val current = preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] ?: emptySet()
+            preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] = current - path
+        }
+    }
+
     fun getSongsFlow(sortOrder: String): Flow<List<MusicFiles>> {
         return combine(
-            songDao.getAllSongs(), albumImageDao.getAllAlbumImages()
-        ) { dbSongs, cachedImages ->
+            songDao.getAllSongs(), albumImageDao.getAllAlbumImages(), excludedFolders
+        ) { dbSongs, cachedImages, excluded ->
+            val filteredDbSongs = dbSongs.filter { song ->
+                excluded.none { excludedPath -> song.path.startsWith(excludedPath) }
+            }
+
             val sortedDbSongs = when (sortOrder) {
-                DATA.SORT_BY_NAME -> dbSongs.sortedBy { it.title.lowercase() }
-                DATA.SORT_BY_DATE -> dbSongs.sortedByDescending { it.dateAdded }
-                DATA.SORT_BY_PLAY_COUNT -> dbSongs.sortedByDescending { it.playCount }
-                DATA.SORT_BY_SIZE -> dbSongs.sortedByDescending { it.size }
-                DATA.SORT_BY_RELEASE_DATE -> dbSongs.sortedByDescending { it.year }
-                else -> dbSongs
+                DATA.SORT_BY_NAME -> filteredDbSongs.sortedBy { it.title.lowercase() }
+                DATA.SORT_BY_DATE -> filteredDbSongs.sortedByDescending { it.dateAdded }
+                DATA.SORT_BY_PLAY_COUNT -> filteredDbSongs.sortedByDescending { it.playCount }
+                DATA.SORT_BY_SIZE -> filteredDbSongs.sortedByDescending { it.size }
+                DATA.SORT_BY_RELEASE_DATE -> filteredDbSongs.sortedByDescending { it.year }
+                else -> filteredDbSongs
             }
 
             val imageMap = cachedImages.associateBy { it.albumName }
@@ -103,6 +127,11 @@ class MusicRepository @Inject constructor(
     suspend fun getAllAudio(sortOrder: String): ArrayList<MusicFiles> =
         withContext(Dispatchers.IO) {
             val tempAudioList = ArrayList<MusicFiles>()
+            val excluded = try {
+                excludedFolders.first()
+            } catch (_: Exception) {
+                emptySet()
+            }
 
             try {
                 val dbSongs = songDao.getAllSongsSync()
@@ -114,6 +143,8 @@ class MusicRepository @Inject constructor(
                     }
 
                     dbSongs.forEach { dbSong ->
+                        if (excluded.any { dbSong.path.startsWith(it) }) return@forEach
+
                         val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                             val folderName = File(dbSong.path).parentFile?.name
                             if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
@@ -206,6 +237,7 @@ class MusicRepository @Inject constructor(
                         while (cursor.moveToNext()) {
                             val path = cursor.getString(pathColumn) ?: ""
                             if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+                            if (excluded.any { path.startsWith(it) }) continue
 
                             val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
                             val folderName = File(path).parentFile?.name
@@ -245,6 +277,11 @@ class MusicRepository @Inject constructor(
         }
 
     private suspend fun syncWithMediaStore() {
+        val excluded = try {
+            excludedFolders.first()
+        } catch (_: Exception) {
+            emptySet()
+        }
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val projection = arrayOf(
             MediaStore.Audio.Media.ALBUM,
@@ -276,6 +313,7 @@ class MusicRepository @Inject constructor(
             while (it.moveToNext()) {
                 val path = it.getString(pathColumn) ?: ""
                 if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+                if (excluded.any { path.startsWith(it) }) continue
 
                 val album = it.getString(albumColumn) ?: DATA.UNKNOWN
                 val title = it.getString(titleColumn) ?: DATA.UNKNOWN
@@ -445,7 +483,14 @@ class MusicRepository @Inject constructor(
     }
 
     suspend fun loadCurrentQueue(): List<MusicFiles> = withContext(Dispatchers.IO) {
-        musicDao.getQueue().map {
+        val excluded = try {
+            excludedFolders.first()
+        } catch (_: Exception) {
+            emptySet()
+        }
+        musicDao.getQueue().filter { entity ->
+            excluded.none { excludedPath -> entity.path?.startsWith(excludedPath) == true }
+        }.map {
             MusicFiles(
                 id = it.songId,
                 title = it.title,

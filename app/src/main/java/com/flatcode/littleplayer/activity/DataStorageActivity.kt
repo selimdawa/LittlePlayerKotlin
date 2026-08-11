@@ -20,6 +20,7 @@ import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.formatAsSize
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
+import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.setGradientBackground
 import com.flatcode.littleplayer.utils.setSolidBackground
 import com.flatcode.littleplayer.utils.snackbar
@@ -73,6 +74,10 @@ class DataStorageActivity : AppCompatActivity() {
         }
         binding.itemWhite.root.setOnClickListener {
             viewModel.setThemeColorMode(DATA.MODE_WHITE)
+        }
+
+        binding.btnHiddenFolders.setOnClickListener {
+            launchActivity<HiddenFoldersActivity>()
         }
 
         binding.btnClearCache.setOnClickListener {

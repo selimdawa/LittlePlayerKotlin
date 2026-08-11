@@ -24,10 +24,12 @@ class FavoritesViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                repository.getAllFavorites(), repository.getAllAlbumImages()
-            ) { favorites, images ->
+                repository.getAllFavorites(), repository.getAllAlbumImages(), repository.excludedFolders
+            ) { favorites, images, excluded ->
                 val imageMap = images.associateBy { it.albumName }
-                favorites.map {
+                favorites.filter { fav -> 
+                    excluded.none { excludedPath -> fav.path?.startsWith(excludedPath) == true }
+                }.map {
                     MusicFiles(
                         id = it.songId,
                         title = it.title,

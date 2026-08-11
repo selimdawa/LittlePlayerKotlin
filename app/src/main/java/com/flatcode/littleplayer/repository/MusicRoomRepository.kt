@@ -1,5 +1,8 @@
 package com.flatcode.littleplayer.repository
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.flatcode.littleplayer.data.dao.AlbumImageDao
 import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
@@ -10,8 +13,11 @@ import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.data.entity.SongEntity
+import com.flatcode.littleplayer.utils.DATA
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,8 +26,12 @@ import javax.inject.Singleton
 class MusicRoomRepository @Inject constructor(
     private val songDao: SongDao,
     private val albumImageDao: AlbumImageDao,
-    private val musicDao: MusicDao
+    private val musicDao: MusicDao,
+    private val dataStore: DataStore<Preferences>
 ) {
+    val excludedFolders: Flow<Set<String>> = dataStore.data.map { preferences ->
+        preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] ?: emptySet()
+    }.distinctUntilChanged()
     suspend fun insertSong(song: SongEntity) = withContext(Dispatchers.IO) {
         songDao.insertSong(song)
     }

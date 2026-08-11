@@ -234,6 +234,21 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     }
 
     fun getSongUri(songId: String): Uri = repository.getSongUri(songId)
+
+    fun addExcludedFolder(path: String) {
+        viewModelScope.launch {
+            repository.addExcludedFolder(path)
+        }
+    }
+
+    fun removeExcludedFolder(path: String) {
+        viewModelScope.launch {
+            repository.removeExcludedFolder(path)
+        }
+    }
+
+    val excludedFolders: StateFlow<Set<String>> = repository.excludedFolders
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 }
 
 sealed class MusicEvent {
