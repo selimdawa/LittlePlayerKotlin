@@ -16,6 +16,7 @@ import com.flatcode.littleplayer.databinding.ItemHiddenFolderBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
@@ -24,6 +25,7 @@ class HiddenFoldersActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHiddenFoldersBinding
     private val viewModel: MusicViewModel by viewModels()
+    private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,16 +33,22 @@ class HiddenFoldersActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         initToolbar(getString(R.string.hidden_folders))
-
         val adapter = HiddenFolderAdapter { path ->
             viewModel.removeExcludedFolder(path)
         }
         binding.recyclerView.adapter = adapter
+        observeViewModel()
+    }
 
+    private fun observeViewModel() {
         viewModel.excludedFolders.collectWithLifecycle(this) { folders ->
             val list = folders.toList().sorted()
-            adapter.submitList(list)
+            (binding.recyclerView.adapter as? HiddenFolderAdapter)?.submitList(list)
             binding.emptyState.isVisible = list.isEmpty()
+        }
+
+        nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
+            findViewById<android.view.View>(R.id.fragBottomPlayer)?.isVisible = song != null
         }
     }
 
@@ -59,6 +67,9 @@ class HiddenFoldersActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val path = getItem(position)
+            val folderName = path.trimEnd('/').substringAfterLast('/')
+            
+            holder.binding.folderName.text = folderName
             holder.binding.folderPath.text = path
             holder.binding.btnUnhide.setOnClickListener { onUnhideClick(path) }
         }

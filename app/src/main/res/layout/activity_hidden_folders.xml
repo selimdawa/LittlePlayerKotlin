@@ -1,21 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="?attr/colorOnBackground">
 
     <include
-        android:id="@+id/toolbar"
-        layout="@layout/toolbar_main" />
+        android:id="@+id/customToolbar"
+        layout="@layout/toolbar_custom" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/customToolbar"
         android:clipToPadding="false"
+        android:paddingBottom="@dimen/spacing_90"
         android:paddingTop="@dimen/spacing_10"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="true"
+        android:scrollbarDefaultDelayBeforeFade="500"
+        android:scrollbarThumbVertical="@drawable/fast_scrollbar_thumb"
+        android:scrollbarSize="@dimen/spacing_tiny"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_hidden_folder" />
 
@@ -23,11 +30,17 @@
         android:id="@+id/empty_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="@dimen/spacing_xlarge"
+        android:layout_centerInParent="true"
         android:text="@string/no_hidden_folders"
         android:textColor="@color/gray"
         android:textSize="@dimen/text_size_16"
         android:visibility="gone" />
 
-</LinearLayout>
+    <include
+        android:id="@+id/fragBottomPlayer"
+        layout="@layout/layout_now_player_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+
+</RelativeLayout>

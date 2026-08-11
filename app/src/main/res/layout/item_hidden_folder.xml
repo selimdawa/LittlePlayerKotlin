@@ -7,32 +7,51 @@
     android:layout_marginBottom="@dimen/spacing_10"
     android:background="?android:attr/selectableItemBackground"
     android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="@dimen/spacing_8">
+    android:orientation="horizontal">
 
     <ImageView
-        android:layout_width="@dimen/icon_size_40"
-        android:layout_height="@dimen/icon_size_40"
+        android:id="@+id/folder_icon"
+        android:layout_width="@dimen/icon_size_48"
+        android:layout_height="@dimen/icon_size_48"
         android:contentDescription="@null"
         android:src="@drawable/ic_folder"
-        app:tint="@color/gray" />
+        app:tint="?attr/mc_track" />
 
-    <TextView
-        android:id="@+id/folder_path"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/spacing_medium"
         android:layout_weight="1"
-        android:ellipsize="middle"
-        android:maxLines="1"
-        android:textColor="?attr/mc_track"
-        android:textSize="@dimen/text_size_16" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/folder_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/mc_track"
+            android:textSize="@dimen/text_size_18"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/folder_path"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_tiny"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:textColor="@color/gray"
+            android:textSize="@dimen/text_size_14" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/btn_unhide"
         style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/unhide" />
+        android:text="@string/unhide"
+        android:textColor="?attr/mc_track" />
 
 </LinearLayout>
