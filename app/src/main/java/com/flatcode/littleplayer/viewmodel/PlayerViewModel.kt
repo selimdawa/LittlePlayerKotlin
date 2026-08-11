@@ -42,7 +42,7 @@ class PlayerViewModel @Inject constructor(
             musicRepository.currentPlaylist.collect {
                 listSongs = it
                 if (it.isNotEmpty()) {
-                    val state = musicRepository.getPlaybackStateSync()
+                    val state = repository.getPlaybackStateSync()
                     val savedSongId = state?.currentSongId
                     lastProgress = state?.lastProgress ?: 0L
 
@@ -70,7 +70,7 @@ class PlayerViewModel @Inject constructor(
 
     private fun loadSession() {
         viewModelScope.launch {
-            val state = musicRepository.getPlaybackStateSync()
+            val state = repository.getPlaybackStateSync()
             val savedSongId = state?.currentSongId
             lastProgress = state?.lastProgress ?: 0L
 
