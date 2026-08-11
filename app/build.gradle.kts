@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.lincollincol.amplituda)
     implementation(libs.waveformseekbar)
     implementation(libs.multiwave)                     //Multi Wave
+    implementation(libs.jaudiotagger)
     //Other's
     implementation(libs.androidx.datastore.preferences)          //New Preference
 }

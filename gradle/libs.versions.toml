@@ -25,6 +25,7 @@ amplituda = "2.3.1"
 waveformseekbar = "5.0.2"
 multiwave = "1.0.1"
 multicolors = "1.0.4"
+jaudiotagger = "3.0.1"
 kotlin = "2.4.0"
 
 [libraries]
@@ -65,6 +66,7 @@ androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", v
 lincollincol-amplituda = { group = "com.github.lincollincol", name = "amplituda", version.ref = "amplituda" }
 waveformseekbar = { module = "com.github.massoudss:waveformSeekBar", version.ref = "waveformseekbar" }
 multiwave = { module = "com.github.selimdawa:MultiWave", version.ref = "multiwave" }
+jaudiotagger = { group = "net.jthink", name = "jaudiotagger", version.ref = "jaudiotagger" }
 #Other's
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
