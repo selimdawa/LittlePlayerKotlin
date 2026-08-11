@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -108,6 +109,34 @@ class SettingsActivity : AppCompatActivity() {
         binding.settingLanguage.setOnClickListener { showLanguageDialog() }
         binding.settingPrivacy.setOnClickListener { showPrivacyDialog() }
         binding.settingAbout.setOnClickListener { showAboutDialog() }
+        binding.settingAddWidget.setOnClickListener { showAddWidgetDialog() }
+    }
+
+    private fun showAddWidgetDialog() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val appWidgetManager = getSystemService(android.appwidget.AppWidgetManager::class.java)
+            if (appWidgetManager.isRequestPinAppWidgetSupported) {
+                val options = arrayOf(
+                    getString(R.string.add_small_widget),
+                    getString(R.string.add_large_widget)
+                )
+                MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.add_widget_to_home)
+                    .setItems(options) { _, which ->
+                        val provider = if (which == 0) {
+                            ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProvider::class.java)
+                        } else {
+                            ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProviderLarge::class.java)
+                        }
+                        appWidgetManager.requestPinAppWidget(provider, null, null)
+                    }
+                    .show()
+            } else {
+                binding.root.snackbar(getString(R.string.widget_pinning_not_supported))
+            }
+        } else {
+            binding.root.snackbar(getString(R.string.widget_pinning_not_supported))
+        }
     }
 
     private fun showPrivacyDialog() {
@@ -115,32 +144,37 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showLanguageDialog() {
-        val languages = arrayOf(
-            getString(R.string.system_default),
-            getString(R.string.english),
-            getString(R.string.arabic),
-            getString(R.string.spanish)
-        )
-        val languageTags = arrayOf("", "en", "ar", "es")
+        val view = layoutInflater.inflate(R.layout.dialog_language, null)
+        val alertDialog = MaterialAlertDialogBuilder(this)
+            .setView(view)
+            .create()
+
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val currentLocale = AppCompatDelegate.getApplicationLocales()[0]
         val currentTag = currentLocale?.language ?: ""
-        val checkedItem = languageTags.indexOf(currentTag).let { if (it == -1) 0 else it }
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.language)
-            .setSingleChoiceItems(languages, checkedItem) { dialog, which ->
-                val tag = languageTags[which]
-                val appLocale: LocaleListCompat = if (tag.isEmpty()) {
-                    LocaleListCompat.getEmptyLocaleList()
-                } else {
-                    LocaleListCompat.forLanguageTags(tag)
-                }
-                AppCompatDelegate.setApplicationLocales(appLocale)
-                dialog.dismiss()
+        view.findViewById<View>(R.id.checkSystem).isVisible = currentTag == ""
+        view.findViewById<View>(R.id.checkEnglish).isVisible = currentTag == "en"
+        view.findViewById<View>(R.id.checkArabic).isVisible = currentTag == "ar"
+        view.findViewById<View>(R.id.checkSpanish).isVisible = currentTag == "es"
+
+        val setLanguage = { tag: String ->
+            val appLocale: LocaleListCompat = if (tag.isEmpty()) {
+                LocaleListCompat.getEmptyLocaleList()
+            } else {
+                LocaleListCompat.forLanguageTags(tag)
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+            AppCompatDelegate.setApplicationLocales(appLocale)
+            alertDialog.dismiss()
+        }
+
+        view.findViewById<View>(R.id.langSystem).setOnClickListener { setLanguage("") }
+        view.findViewById<View>(R.id.langEnglish).setOnClickListener { setLanguage("en") }
+        view.findViewById<View>(R.id.langArabic).setOnClickListener { setLanguage("ar") }
+        view.findViewById<View>(R.id.langSpanish).setOnClickListener { setLanguage("es") }
+
+        alertDialog.show()
     }
 
     private fun showAboutDialog() {

@@ -222,7 +222,7 @@
                 android:layout_marginTop="@dimen/spacing_medium"
                 android:paddingHorizontal="@dimen/spacing_medium"
                 android:text="@string/hidden_folders"
-                android:textColor="?attr/mc_track"
+                android:textColor="?attr/colorError"
                 android:textSize="@dimen/text_size_14"
                 android:textStyle="bold" />
 

@@ -132,5 +132,9 @@
     <string name="enter_valid_minutes">Enter valid minutes</string>
     <string name="enter_minutes">Enter minutes</string>
     <string name="share_song">Share Song</string>
+    <string name="add_widget_to_home">Add Widget to Home Screen</string>
+    <string name="add_small_widget">Add Small Widget</string>
+    <string name="add_large_widget">Add Large Widget</string>
+    <string name="widget_pinning_not_supported">Widget pinning is not supported on this device.</string>
     <string name="unknown">Unknown</string>
 </resources>

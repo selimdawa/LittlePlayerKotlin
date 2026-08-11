@@ -136,5 +136,9 @@
     <string name="enter_valid_minutes">أدخل دقائق صالحة</string>
     <string name="enter_minutes">أدخل الدقائق</string>
     <string name="share_song">مشاركة الأغنية</string>
+    <string name="add_widget_to_home">إضافة ويدجت إلى الشاشة الرئيسية</string>
+    <string name="add_small_widget">إضافة ويدجت صغير</string>
+    <string name="add_large_widget">إضافة ويدجت كبير</string>
+    <string name="widget_pinning_not_supported">تثبيت الويدجت غير مدعوم على هذا الجهاز.</string>
     <string name="unknown">غير معروف</string>
 </resources>
