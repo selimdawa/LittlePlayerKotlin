@@ -18,7 +18,6 @@ import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
-import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.model.MusicFiles
@@ -549,23 +548,6 @@ class MusicRepository @Inject constructor(
                 cachedImagePath = it.cachedImagePath
             )
         }
-    }
-
-    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) =
-        withContext(Dispatchers.IO) {
-            musicDao.saveEqualizerSettings(equalizerEntity)
-        }
-
-    fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
-
-    fun getPlaybackState(): Flow<PlaybackStateEntity?> = musicDao.getPlaybackState()
-
-    suspend fun savePlaybackState(state: PlaybackStateEntity) = withContext(Dispatchers.IO) {
-        musicDao.savePlaybackState(state)
-    }
-
-    suspend fun getPlaybackStateSync(): PlaybackStateEntity? = withContext(Dispatchers.IO) {
-        musicDao.getPlaybackStateSync()
     }
 
     suspend fun clearArtCache() = withContext(Dispatchers.IO) {
