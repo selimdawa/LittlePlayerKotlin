@@ -21,8 +21,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
@@ -30,6 +31,8 @@ import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
+import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
@@ -45,12 +48,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class MusicService : MediaSessionService(), Player.Listener {
+class MusicService : MediaLibraryService(), Player.Listener {
 
     @Inject
     lateinit var dataStore: DataStore<Preferences>
@@ -58,9 +62,12 @@ class MusicService : MediaSessionService(), Player.Listener {
     @Inject
     lateinit var repository: MusicRoomRepository
 
+    @Inject
+    lateinit var musicRepository: MusicRepository
+
     private var basePlayer: ExoPlayer? = null
     var exoPlayer: Player? = null
-    private var mediaSession: MediaSession? = null
+    private var mediaSession: MediaLibrarySession? = null
 
     var position = -1
 
@@ -114,18 +121,14 @@ class MusicService : MediaSessionService(), Player.Listener {
 
         exoPlayer = object : ForwardingPlayer(basePlayer!!) {
             override fun getAvailableCommands(): Player.Commands {
-                return super.getAvailableCommands().buildUpon()
-                    .add(COMMAND_SEEK_TO_NEXT)
-                    .add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
-                    .add(COMMAND_SEEK_TO_PREVIOUS)
-                    .add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-                    .build()
+                return super.getAvailableCommands().buildUpon().add(COMMAND_SEEK_TO_NEXT)
+                    .add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(COMMAND_SEEK_TO_PREVIOUS)
+                    .add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).build()
             }
 
             override fun isCommandAvailable(command: Int): Boolean {
                 return when (command) {
-                    COMMAND_SEEK_TO_NEXT, COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
-                    COMMAND_SEEK_TO_PREVIOUS, COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> mediaItemCount > 0
+                    COMMAND_SEEK_TO_NEXT, COMMAND_SEEK_TO_NEXT_MEDIA_ITEM, COMMAND_SEEK_TO_PREVIOUS, COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> mediaItemCount > 0
 
                     else -> super.isCommandAvailable(command)
                 }
@@ -168,7 +171,7 @@ class MusicService : MediaSessionService(), Player.Listener {
 
         exoPlayer?.let { player ->
             mediaSession =
-                MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
+                MediaLibrarySession.Builder(this, player, CustomLibrarySessionCallback()).build()
 
             loadEqualizerSettings()
             initAudioEffects(basePlayer?.audioSessionId ?: -1)
@@ -184,19 +187,14 @@ class MusicService : MediaSessionService(), Player.Listener {
             if (queue.isNotEmpty() && (exoPlayer?.mediaItemCount ?: 0) == 0) {
                 val mediaItems = queue.map { item ->
                     val uri = item.path?.toUri() ?: "".toUri()
-                    val metadata = MediaMetadata.Builder()
-                        .setTitle(item.title)
-                        .setArtist(item.artist)
-                        .setExtras(Bundle().apply {
-                            putString("ALBUM_ID", item.albumId)
-                            putString("CACHED_IMAGE_PATH", item.cachedImagePath)
-                        })
-                        .build()
-                    MediaItem.Builder()
-                        .setUri(uri)
-                        .setMediaId(item.songId)
-                        .setMediaMetadata(metadata)
-                        .build()
+                    val metadata =
+                        MediaMetadata.Builder().setTitle(item.title).setArtist(item.artist)
+                            .setExtras(Bundle().apply {
+                                putString("ALBUM_ID", item.albumId)
+                                putString("CACHED_IMAGE_PATH", item.cachedImagePath)
+                            }).build()
+                    MediaItem.Builder().setUri(uri).setMediaId(item.songId)
+                        .setMediaMetadata(metadata).build()
                 }
 
                 val startItemIndex = if (state != null && !state.currentSongId.isNullOrEmpty()) {
@@ -299,7 +297,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         initAudioEffects(audioSessionId)
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
         return mediaSession
     }
 
@@ -311,6 +309,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     if (it.isPlaying) it.pause() else it.play()
                 }
             }
+
             ACTION_NEXT -> exoPlayer?.seekToNext()
             ACTION_PREV -> exoPlayer?.seekToPrevious()
             ACTION_SHUFFLE -> {
@@ -319,6 +318,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     sendWidgetUpdate()
                 }
             }
+
             ACTION_FAVORITE -> {
                 exoPlayer?.let { player ->
                     val currentMediaItem = player.currentMediaItem
@@ -337,7 +337,8 @@ class MusicService : MediaSessionService(), Player.Listener {
                                         artist = metadata.artist?.toString() ?: "",
                                         album = metadata.albumTitle?.toString(),
                                         duration = player.duration.let { if (it > 0) it.toString() else null },
-                                        path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
+                                        path = currentMediaItem.localConfiguration?.uri?.toString()
+                                            ?: ""
                                     )
                                 )
                             }
@@ -428,9 +429,8 @@ class MusicService : MediaSessionService(), Player.Listener {
                 .setDisplayName(getString(R.string.cycle)).setCustomIconResId(cycleIcon).build()
 
             val stopButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
-                .setSessionCommand(customCommandStop)
-                .setDisplayName(getString(R.string.stop)).setCustomIconResId(R.drawable.ic_close)
-                .build()
+                .setSessionCommand(customCommandStop).setDisplayName(getString(R.string.stop))
+                .setCustomIconResId(R.drawable.ic_close).build()
 
             mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton, stopButton))
         }
@@ -450,7 +450,9 @@ class MusicService : MediaSessionService(), Player.Listener {
             val metadata = player.mediaMetadata
             val songId = player.currentMediaItem?.mediaId ?: ""
             intent.putExtra("title", metadata.title?.toString() ?: getString(R.string.song_title))
-            intent.putExtra("artist", metadata.artist?.toString() ?: getString(R.string.artist_name))
+            intent.putExtra(
+                "artist", metadata.artist?.toString() ?: getString(R.string.artist_name)
+            )
             intent.putExtra("isPlaying", player.isPlaying)
             intent.putExtra("isShuffle", player.shuffleModeEnabled)
 
@@ -537,8 +539,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     .setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
                     .setExtras(Bundle(extras).apply {
                         putBoolean("IS_DEFAULT_ART", isDefault)
-                    })
-                    .build()
+                    }).build()
 
                 launch(Dispatchers.Main) {
                     if (player.currentMediaItem?.mediaId == currentMediaItem.mediaId) {
@@ -567,8 +568,7 @@ class MusicService : MediaSessionService(), Player.Listener {
             }
             updateNotificationLayout()
             if (events.containsAny(
-                    Player.EVENT_REPEAT_MODE_CHANGED,
-                    Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED
+                    Player.EVENT_REPEAT_MODE_CHANGED, Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED
                 )
             ) {
                 updateLastPlayedInfo()
@@ -576,22 +576,170 @@ class MusicService : MediaSessionService(), Player.Listener {
         }
     }
 
-    private inner class CustomSessionCallback : MediaSession.Callback {
+    private inner class CustomLibrarySessionCallback : MediaLibrarySession.Callback {
+
+        override fun onGetLibraryRoot(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<MediaItem>> {
+            val rootItem = MediaItem.Builder().setMediaId(ROOT_ID).setMediaMetadata(
+                MediaMetadata.Builder().setIsBrowsable(true).setIsPlayable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                    .setTitle(getString(R.string.app_name)).build()
+            ).build()
+            return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params))
+        }
+
+        override fun onGetChildren(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            parentId: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>> {
+            return when (parentId) {
+                ROOT_ID -> {
+                    val children = listOf(
+                        createBrowsableItem(
+                            CATEGORY_SONGS,
+                            getString(R.string.songs),
+                            MediaMetadata.MEDIA_TYPE_MUSIC
+                        ), createBrowsableItem(
+                            CATEGORY_ALBUMS,
+                            getString(R.string.albums),
+                            MediaMetadata.MEDIA_TYPE_ALBUM
+                        ), createBrowsableItem(
+                            CATEGORY_ARTISTS,
+                            getString(R.string.artists),
+                            MediaMetadata.MEDIA_TYPE_ARTIST
+                        ), createBrowsableItem(
+                            CATEGORY_PLAYLISTS,
+                            getString(R.string.playlists),
+                            MediaMetadata.MEDIA_TYPE_PLAYLIST
+                        ), createBrowsableItem(
+                            CATEGORY_FAVORITES,
+                            getString(R.string.favourites),
+                            MediaMetadata.MEDIA_TYPE_PLAYLIST
+                        ), createBrowsableItem(
+                            CATEGORY_RECENT,
+                            getString(R.string.recent),
+                            MediaMetadata.MEDIA_TYPE_PLAYLIST
+                        )
+                    )
+                    Futures.immediateFuture(LibraryResult.ofItemList(children, params))
+                }
+
+                CATEGORY_SONGS -> {
+                    val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                    val mediaItems = songs.map { it.toMediaItem() }
+                    Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
+                }
+
+                CATEGORY_ALBUMS -> {
+                    val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                    val albums = songs.groupBy { it.album ?: DATA.UNKNOWN }
+                    val albumItems = albums.keys.map { albumName ->
+                        createBrowsableItem(
+                            "album|$albumName", albumName, MediaMetadata.MEDIA_TYPE_ALBUM
+                        )
+                    }
+                    Futures.immediateFuture(LibraryResult.ofItemList(albumItems, params))
+                }
+
+                CATEGORY_ARTISTS -> {
+                    val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                    val artists = songs.groupBy { it.artist ?: DATA.UNKNOWN }
+                    val artistItems = artists.keys.map { artistName ->
+                        createBrowsableItem(
+                            "artist|$artistName", artistName, MediaMetadata.MEDIA_TYPE_ARTIST
+                        )
+                    }
+                    Futures.immediateFuture(LibraryResult.ofItemList(artistItems, params))
+                }
+
+                CATEGORY_FAVORITES -> {
+                    val favorites = runBlocking { repository.getAllFavorites().first() }
+                    val mediaItems = favorites.map { it.toMediaItem() }
+                    Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
+                }
+
+                CATEGORY_RECENT -> {
+                    val recent = runBlocking { repository.getAllRecent().first() }
+                    val mediaItems = recent.map { it.toMediaItem() }
+                    Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
+                }
+
+                else -> {
+                    if (parentId.startsWith("album|")) {
+                        val albumName = parentId.removePrefix("album|")
+                        val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                        val mediaItems =
+                            songs.filter { it.album == albumName }.map { it.toMediaItem() }
+                        Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
+                    } else if (parentId.startsWith("artist|")) {
+                        val artistName = parentId.removePrefix("artist|")
+                        val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                        val mediaItems =
+                            songs.filter { it.artist == artistName }.map { it.toMediaItem() }
+                        Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
+                    } else {
+                        Futures.immediateFuture(LibraryResult.ofItemList(listOf(), params))
+                    }
+                }
+            }
+        }
+
+        private fun RecentEntity.toMediaItem(): MediaItem {
+            return MediaItem.Builder().setMediaId(this.songId).setUri(this.path.toUri())
+                .setMediaMetadata(
+                    MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
+                        .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                        .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
+                ).build()
+        }
+
+        private fun createBrowsableItem(id: String, title: String, mediaType: Int): MediaItem {
+            return MediaItem.Builder().setMediaId(id).setMediaMetadata(
+                MediaMetadata.Builder().setIsBrowsable(true).setIsPlayable(false)
+                    .setMediaType(mediaType).setTitle(title).build()
+            ).build()
+        }
+
+        private fun MusicFiles.toMediaItem(): MediaItem {
+            val uri = this.path?.toUri() ?: "".toUri()
+            return MediaItem.Builder().setMediaId(this.id ?: "").setUri(uri).setMediaMetadata(
+                MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
+                    .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).setExtras(Bundle().apply {
+                        putString("ALBUM_ID", this@toMediaItem.albumId)
+                        putString("CACHED_IMAGE_PATH", this@toMediaItem.cachedImagePath)
+                    }).build()
+            ).build()
+        }
+
+        private fun FavoriteEntity.toMediaItem(): MediaItem {
+            return MediaItem.Builder().setMediaId(this.songId).setUri(this.path.toUri())
+                .setMediaMetadata(
+                    MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
+                        .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                        .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
+                ).build()
+        }
+
         override fun onConnect(
             session: MediaSession, controller: MediaSession.ControllerInfo
         ): MediaSession.ConnectionResult {
             val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
-                .add(customCommandFavorite)
-                .add(customCommandPlaybackCycle)
-                .add(customCommandStop)
+                .add(customCommandFavorite).add(customCommandPlaybackCycle).add(customCommandStop)
                 .add(SessionCommand(COMMAND_TOGGLE_EQ, Bundle.EMPTY))
                 .add(SessionCommand(COMMAND_SET_EQ_BAND, Bundle.EMPTY))
                 .add(SessionCommand(COMMAND_SET_BASS, Bundle.EMPTY))
                 .add(SessionCommand(COMMAND_SET_VIRTUALIZER, Bundle.EMPTY))
                 .add(SessionCommand(COMMAND_SET_SLEEP_TIMER, Bundle.EMPTY))
                 .add(SessionCommand(COMMAND_SET_PRESET, Bundle.EMPTY))
-                .add(SessionCommand(COMMAND_SAVE_EQ_SETTINGS, Bundle.EMPTY))
-                .build()
+                .add(SessionCommand(COMMAND_SAVE_EQ_SETTINGS, Bundle.EMPTY)).build()
 
             val playerCommands = MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
                 .add(Player.COMMAND_SEEK_TO_NEXT).add(Player.COMMAND_SEEK_TO_PREVIOUS)
@@ -609,8 +757,7 @@ class MusicService : MediaSessionService(), Player.Listener {
             val ke = intent.getParcelableExtra<android.view.KeyEvent>(Intent.EXTRA_KEY_EVENT)
             if (ke != null && ke.action == android.view.KeyEvent.ACTION_DOWN) {
                 when (ke.keyCode) {
-                    android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
-                    android.view.KeyEvent.KEYCODE_HEADSETHOOK -> {
+                    android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, android.view.KeyEvent.KEYCODE_HEADSETHOOK -> {
                         clickCount++
                         clickHandler.removeCallbacks(clickRunnable)
                         clickHandler.postDelayed(clickRunnable, 300)
@@ -635,7 +782,8 @@ class MusicService : MediaSessionService(), Player.Listener {
                         val title = currentMediaItem.mediaMetadata.title?.toString() ?: ""
                         val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: ""
                         val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
-                        val duration = session.player.duration.let { if (it > 0) it.toString() else null }
+                        val duration =
+                            session.player.duration.let { if (it > 0) it.toString() else null }
                         val path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
 
                         serviceScope.launch {
@@ -741,11 +889,7 @@ class MusicService : MediaSessionService(), Player.Listener {
                     currentPreset = args.getString("PRESET") ?: "Custom"
                     if (currentPreset == "Custom") {
                         System.arraycopy(
-                            customBandLevels,
-                            0,
-                            currentBandLevels,
-                            0,
-                            customBandLevels.size
+                            customBandLevels, 0, currentBandLevels, 0, customBandLevels.size
                         )
                         applyEqualizerSettings()
                     }
@@ -808,7 +952,8 @@ class MusicService : MediaSessionService(), Player.Listener {
                                     artist = metadata.artist?.toString() ?: "",
                                     album = metadata.albumTitle?.toString(),
                                     duration = player.duration.let { if (it > 0) it.toString() else null },
-                                    path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
+                                    path = currentMediaItem.localConfiguration?.uri?.toString()
+                                        ?: ""
                                 )
                             )
                         }
@@ -875,5 +1020,13 @@ class MusicService : MediaSessionService(), Player.Listener {
         const val ACTION_PREV = "com.flatcode.littleplayer.ACTION_PREV"
         const val ACTION_SHUFFLE = "com.flatcode.littleplayer.ACTION_SHUFFLE"
         const val ACTION_FAVORITE = "com.flatcode.littleplayer.ACTION_FAVORITE"
+
+        private const val ROOT_ID = "root"
+        private const val CATEGORY_SONGS = "songs"
+        private const val CATEGORY_ALBUMS = "albums"
+        private const val CATEGORY_ARTISTS = "artists"
+        private const val CATEGORY_PLAYLISTS = "playlists"
+        private const val CATEGORY_FAVORITES = "favorites"
+        private const val CATEGORY_RECENT = "recent"
     }
 }

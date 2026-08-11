@@ -132,18 +132,7 @@ class SettingsActivity : AppCompatActivity() {
                             ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProvider::class.java)
                         }
                         appWidgetManager.requestPinAppWidget(provider, null, null)
-                        
-                        // Show success message
-                        android.widget.Toast.makeText(this, getString(R.string.widget_added_success), android.widget.Toast.LENGTH_SHORT).show()
-                        
-                        // Close dialog
                         dialog.dismiss()
-                        
-                        // Go to home screen
-                        val intent = android.content.Intent(android.content.Intent.ACTION_MAIN)
-                        intent.addCategory(android.content.Intent.CATEGORY_HOME)
-                        intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-                        startActivity(intent)
                     }
                     .show()
             } else {
