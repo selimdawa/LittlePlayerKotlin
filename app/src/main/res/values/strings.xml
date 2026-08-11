@@ -157,4 +157,15 @@
     <string name="speed">Speed</string>
     <string name="pitch">Pitch</string>
     <string name="reset">Reset</string>
+
+    <string name="edit_tags">Edit Tags</string>
+    <string name="tag_editor">Tag Editor</string>
+    <string name="title">Title</string>
+    <string name="artist">Artist</string>
+    <string name="album">Album</string>
+    <string name="save">Save</string>
+    <string name="edit_cover">Edit Cover</string>
+    <string name="error_loading_tags">Error loading tags</string>
+    <string name="error_saving_tags">Error saving tags</string>
+    <string name="tags_saved_successfully">Tags saved successfully</string>
 </resources>

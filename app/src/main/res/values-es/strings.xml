@@ -139,4 +139,15 @@
     <string name="unknown">Desconocido</string>
     <string name="widget_added_success">Widget añadido! Revisa tu pantalla de inicio.</string>
     <string name="widget_already_exists">El widget ya existe en tu pantalla de inicio.</string>
+
+    <string name="edit_tags">Editar etiquetas</string>
+    <string name="tag_editor">Editor de etiquetas</string>
+    <string name="title">Título</string>
+    <string name="artist">Artista</string>
+    <string name="album">Álbum</string>
+    <string name="save">Guardar</string>
+    <string name="edit_cover">Editar portada</string>
+    <string name="error_loading_tags">Error al cargar etiquetas</string>
+    <string name="error_saving_tags">Error al guardar etiquetas</string>
+    <string name="tags_saved_successfully">Etiquetas guardadas con éxito</string>
 </resources>

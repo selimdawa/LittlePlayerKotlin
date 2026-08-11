@@ -161,4 +161,15 @@
     <string name="speed">السرعة</string>
     <string name="pitch">درجة الصوت</string>
     <string name="reset">إعادة ضبط</string>
+
+    <string name="edit_tags">تعديل البيانات</string>
+    <string name="tag_editor">محرر البيانات</string>
+    <string name="title">العنوان</string>
+    <string name="artist">الفنان</string>
+    <string name="album">الألبوم</string>
+    <string name="save">حفظ</string>
+    <string name="edit_cover">تعديل الغلاف</string>
+    <string name="error_loading_tags">خطأ في تحميل البيانات</string>
+    <string name="error_saving_tags">خطأ في حفظ البيانات</string>
+    <string name="tags_saved_successfully">تم حفظ البيانات بنجاح</string>
 </resources>
