@@ -2,8 +2,11 @@ package com.flatcode.littleplayer.repository
 
 import android.content.ContentUris
 import android.content.Context
+import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -24,6 +27,9 @@ import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,6 +53,34 @@ class MusicRepository @Inject constructor(
     private val albumImageDao: AlbumImageDao,
     private val musicDao: MusicDao
 ) {
+    private val repositoryScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var syncJob: Job? = null
+
+    private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+            scheduleSync()
+        }
+    }
+
+    private fun scheduleSync() {
+        syncJob?.cancel()
+        syncJob = repositoryScope.launch {
+            delay(3000)
+            try {
+                syncWithMediaStore()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    init {
+        context.contentResolver.registerContentObserver(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, true, observer
+        )
+    }
+
     private val _currentPlaylist = MutableStateFlow<List<MusicFiles>>(emptyList())
     val currentPlaylist: StateFlow<List<MusicFiles>> = _currentPlaylist.asStateFlow()
 
@@ -100,7 +134,10 @@ class MusicRepository @Inject constructor(
             sortedDbSongs.map { dbSong ->
                 val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                     val folderName = File(dbSong.path).parentFile?.name
-                    if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
+                    if (dbSong.album.equals(
+                            folderName, ignoreCase = true
+                        )
+                    ) DATA.UNKNOWN else dbSong.album
                 } else {
                     dbSong.album ?: DATA.UNKNOWN
                 }
@@ -147,7 +184,10 @@ class MusicRepository @Inject constructor(
 
                         val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                             val folderName = File(dbSong.path).parentFile?.name
-                            if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
+                            if (dbSong.album.equals(
+                                    folderName, ignoreCase = true
+                                )
+                            ) DATA.UNKNOWN else dbSong.album
                         } else {
                             dbSong.album ?: DATA.UNKNOWN
                         }
@@ -180,13 +220,7 @@ class MusicRepository @Inject constructor(
                     }
 
                     if (tempAudioList.isNotEmpty()) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            try {
-                                syncWithMediaStore()
-                                syncPlaylistsWithMediaStore()
-                            } catch (_: Exception) {
-                            }
-                        }
+                        scheduleSync()
                         return@withContext tempAudioList
                     }
                 }
@@ -236,12 +270,18 @@ class MusicRepository @Inject constructor(
 
                         while (cursor.moveToNext()) {
                             val path = cursor.getString(pathColumn) ?: ""
-                            if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+                            if (path.contains(
+                                    "/Android/data", true
+                                ) || path.contains("/Android/media", true)
+                            ) continue
                             if (excluded.any { path.startsWith(it) }) continue
 
                             val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
                             val folderName = File(path).parentFile?.name
-                            val cleanedAlbum = if (rawAlbum.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else rawAlbum
+                            val cleanedAlbum = if (rawAlbum.equals(
+                                    folderName, ignoreCase = true
+                                )
+                            ) DATA.UNKNOWN else rawAlbum
 
                             tempAudioList.add(
                                 MusicFiles(
@@ -261,13 +301,7 @@ class MusicRepository @Inject constructor(
                     }
 
                 if (tempAudioList.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            syncWithMediaStore()
-                            syncPlaylistsWithMediaStore()
-                        } catch (_: Exception) {
-                        }
-                    }
+                    scheduleSync()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -312,7 +346,10 @@ class MusicRepository @Inject constructor(
 
             while (it.moveToNext()) {
                 val path = it.getString(pathColumn) ?: ""
-                if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+                if (path.contains("/Android/data", true) || path.contains(
+                        "/Android/media", true
+                    )
+                ) continue
                 if (excluded.any { path.startsWith(it) }) continue
 
                 val album = it.getString(albumColumn) ?: DATA.UNKNOWN
@@ -341,6 +378,13 @@ class MusicRepository @Inject constructor(
                 )
             }
         }
+
+        val dbSongs = songDao.getAllSongsSync()
+        val mediaStoreIds = songEntities.map { it.id }.toSet()
+        dbSongs.filter { it.id !in mediaStoreIds }.forEach {
+            songDao.deleteSongById(it.id)
+        }
+
         if (songEntities.isNotEmpty()) {
             songDao.insertSongs(songEntities)
         }
@@ -350,21 +394,21 @@ class MusicRepository @Inject constructor(
     suspend fun syncPlaylistsWithMediaStore() {
         val playlistUri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI
         val playlistProjection = arrayOf(
-            MediaStore.Audio.Playlists._ID,
-            MediaStore.Audio.Playlists.NAME
+            MediaStore.Audio.Playlists._ID, MediaStore.Audio.Playlists.NAME
         )
 
-        context.contentResolver.query(playlistUri, playlistProjection, null, null, null)?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID)
-            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.NAME)
+        context.contentResolver.query(playlistUri, playlistProjection, null, null, null)
+            ?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID)
+                val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.NAME)
 
-            while (cursor.moveToNext()) {
-                val playlistId = cursor.getLong(idColumn)
-                val playlistName = cursor.getString(nameColumn) ?: continue
+                while (cursor.moveToNext()) {
+                    val playlistId = cursor.getLong(idColumn)
+                    val playlistName = cursor.getString(nameColumn) ?: continue
 
-                syncPlaylistMembers(playlistId, playlistName)
+                    syncPlaylistMembers(playlistId, playlistName)
+                }
             }
-        }
     }
 
     private suspend fun syncPlaylistMembers(playlistId: Long, playlistName: String) {
@@ -377,39 +421,42 @@ class MusicRepository @Inject constructor(
             MediaStore.Audio.Playlists.Members.ALBUM_ID
         )
 
-        context.contentResolver.query(membersUri, membersProjection, null, null, null)?.use { cursor ->
-            val audioIdColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.AUDIO_ID)
-            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.TITLE)
-            val artistColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ARTIST)
-            val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.DATA)
-            val albumIdColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ALBUM_ID)
+        context.contentResolver.query(membersUri, membersProjection, null, null, null)
+            ?.use { cursor ->
+                val audioIdColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.AUDIO_ID)
+                val titleColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.TITLE)
+                val artistColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ARTIST)
+                val pathColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.DATA)
+                val albumIdColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.ALBUM_ID)
 
-            val playlistItems = mutableListOf<PlaylistEntity>()
-            while (cursor.moveToNext()) {
-                val songId = cursor.getString(audioIdColumn)
-                val title = cursor.getString(titleColumn) ?: DATA.UNKNOWN
-                val artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN
-                val path = cursor.getString(pathColumn) ?: ""
-                val albumId = cursor.getString(albumIdColumn)
+                val playlistItems = mutableListOf<PlaylistEntity>()
+                while (cursor.moveToNext()) {
+                    val songId = cursor.getString(audioIdColumn)
+                    val title = cursor.getString(titleColumn) ?: DATA.UNKNOWN
+                    val artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN
+                    val path = cursor.getString(pathColumn) ?: ""
+                    val albumId = cursor.getString(albumIdColumn)
 
-                playlistItems.add(
-                    PlaylistEntity(
-                        playlistName = playlistName,
-                        songId = songId,
-                        title = title,
-                        artist = artist,
-                        path = path,
-                        albumId = albumId
+                    playlistItems.add(
+                        PlaylistEntity(
+                            playlistName = playlistName,
+                            songId = songId,
+                            title = title,
+                            artist = artist,
+                            path = path,
+                            albumId = albumId
+                        )
                     )
-                )
+                }
+                if (playlistItems.isNotEmpty()) {
+                    musicDao.insertToPlaylist(playlistItems)
+                }
             }
-            if (playlistItems.isNotEmpty()) {
-                musicDao.insertToPlaylist(playlistItems)
-            }
-        }
     }
 
     suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {
@@ -504,9 +551,10 @@ class MusicRepository @Inject constructor(
         }
     }
 
-    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) = withContext(Dispatchers.IO) {
-        musicDao.saveEqualizerSettings(equalizerEntity)
-    }
+    suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) =
+        withContext(Dispatchers.IO) {
+            musicDao.saveEqualizerSettings(equalizerEntity)
+        }
 
     fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
 
