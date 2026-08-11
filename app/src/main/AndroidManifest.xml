@@ -31,10 +31,10 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:extractNativeLibs="false"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/logo_icon"
+        android:icon="@drawable/ic_app_logo_modern"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@drawable/logo_icon"
+        android:roundIcon="@drawable/ic_app_logo_modern"
         android:supportsRtl="true"
         android:theme="@style/Theme.MC.One"
         android:usesCleartextTraffic="true"
@@ -42,7 +42,8 @@
         <activity
             android:name=".activity.SplashActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -51,66 +52,97 @@
         </activity>
         <activity
             android:name=".activity.MainActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.PlayerActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PlayerActivity" />
+            android:theme="@style/Theme.PlayerActivity"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.AlbumDetailsActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.FolderDetailsActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.ArtistDetailsActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.SearchActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.FavoritesActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.RecentActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.SettingsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.HeadsetControlActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.NotificationsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.DataStorageActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.EqualizerActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.HiddenFoldersActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.EditInfoActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" />
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activity.HeadsetControlActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activity.NotificationsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activity.DataStorageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activity.EqualizerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activity.HiddenFoldersActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
+            android:name=".activity.InfoEditActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
 
         <activity
             android:name=".activity.PlaylistsActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activity.PlaylistDetailsActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="LockedOrientationActivity" />
+
 
         <meta-data
             android:name="com.google.android.gms.car.application"
@@ -121,7 +153,8 @@
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback"
-            android:theme="@style/Theme.MC.One">
+            android:theme="@style/Theme.MC.One"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -131,7 +164,8 @@
         <receiver
             android:name=".widget.MusicWidgetProvider"
             android:exported="true"
-            android:label="Little Player (Full)">
+            android:label="Little Player (Full)"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
@@ -144,7 +178,8 @@
         <receiver
             android:name=".widget.MusicWidgetProviderCompact"
             android:exported="true"
-            android:label="Little Player (Compact)">
+            android:label="Little Player (Compact)"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
@@ -159,7 +194,8 @@
             android:value="androidx.media3.cast.DefaultCastOptionsProvider" />
 
         <receiver android:name="androidx.mediarouter.media.MediaTransferReceiver"
-            android:exported="true" />
+            android:exported="true"
+            tools:ignore="ExportedReceiver" />
 
     </application>
 

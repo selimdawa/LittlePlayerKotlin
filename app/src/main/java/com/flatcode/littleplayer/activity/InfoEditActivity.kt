@@ -17,7 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.flatcode.littleplayer.R
-import com.flatcode.littleplayer.databinding.ActivityTagEditorBinding
+import com.flatcode.littleplayer.databinding.ActivityInfoEditBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -34,9 +34,9 @@ import java.io.File
 import java.io.FileOutputStream
 
 @AndroidEntryPoint
-class TagEditorActivity : AppCompatActivity() {
+class InfoEditActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityTagEditorBinding
+    private lateinit var binding: ActivityInfoEditBinding
     private val viewModel: MusicViewModel by viewModels()
     private var song: MusicFiles? = null
     private var newArtworkUri: Uri? = null
@@ -55,7 +55,7 @@ class TagEditorActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
-        binding = ActivityTagEditorBinding.inflate(layoutInflater)
+        binding = ActivityInfoEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         WindowCompat.getInsetsController(window, window.decorView).apply {
@@ -98,10 +98,10 @@ class TagEditorActivity : AppCompatActivity() {
     private fun setupListeners() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.btnEditCover.setOnClickListener { pickImageLauncher.launch("image/*") }
-        binding.btnSave.setOnClickListener { saveTags() }
+        binding.btnSave.setOnClickListener { saveInfo() }
     }
 
-    private fun saveTags() {
+    private fun saveInfo() {
         val currentSong = song ?: return
         val path = currentSong.path ?: return
         val newTitle = binding.etTitle.text.toString()
@@ -135,7 +135,7 @@ class TagEditorActivity : AppCompatActivity() {
 
                     audioFile.commit()
                     MediaScannerConnection.scanFile(
-                        this@TagEditorActivity, arrayOf(path), null, null
+                        this@InfoEditActivity, arrayOf(path), null, null
                     )
                     true
                 } catch (e: Exception) {
@@ -146,10 +146,10 @@ class TagEditorActivity : AppCompatActivity() {
 
             if (success) {
                 viewModel.updateMetadata(currentSong.id ?: "", newTitle, newArtist, newAlbum)
-                Toast.makeText(this@TagEditorActivity, R.string.tags_saved_successfully, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@InfoEditActivity, R.string.tags_saved_successfully, Toast.LENGTH_SHORT).show()
                 finish()
             } else {
-                Toast.makeText(this@TagEditorActivity, R.string.error_saving_tags, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@InfoEditActivity, R.string.error_saving_tags, Toast.LENGTH_SHORT).show()
             }
         }
     }
