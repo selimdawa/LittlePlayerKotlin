@@ -14,12 +14,14 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.media3.cast.CastPlayer
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.cast.CastPlayer
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
 import androidx.media3.session.LibraryResult
@@ -44,8 +46,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -87,6 +91,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private var currentPreset = "Custom"
 
     private var clickCount = 0
+    private var updateLastPlayedJob: Job? = null
     private val clickHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private val clickRunnable = Runnable { handleHeadsetClicks() }
 
@@ -116,16 +121,18 @@ class MusicService : MediaLibraryService(), Player.Listener {
             }
         }
 
-        basePlayer = ExoPlayer.Builder(this).build().apply {
-            addListener(this@MusicService)
-            repeatMode = Player.REPEAT_MODE_ALL
-        }
+        basePlayer = ExoPlayer.Builder(this).setAudioAttributes(
+                AudioAttributes.Builder().setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .setUsage(C.USAGE_MEDIA).build(), true
+            ).setHandleAudioBecomingNoisy(true).setWakeMode(C.WAKE_MODE_LOCAL).build().apply {
+                addListener(this@MusicService)
+                repeatMode = Player.REPEAT_MODE_ALL
+            }
 
         try {
             castPlayer = CastPlayer.Builder(this).setLocalPlayer(basePlayer!!).build()
             castPlayer?.addListener(this@MusicService)
         } catch (e: Exception) {
-            // Cast context might not be available
         }
 
         val primaryPlayer = castPlayer ?: basePlayer!!
@@ -246,7 +253,6 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     customBandLevels =
                         it.customBandLevels.split(",").map { b -> b.toShort() }.toShortArray()
 
-                    // If effects are already initialized, apply them
                     applyEqualizerSettings()
                 }
             }
@@ -362,7 +368,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         return START_STICKY
     }
 
-    private fun updateLastPlayedInfo() {
+    private fun updateLastPlayedInfo(immediate: Boolean = false) {
         val player = exoPlayer ?: return
         val currentMediaItem = player.currentMediaItem ?: return
         val metadata = currentMediaItem.mediaMetadata
@@ -380,7 +386,11 @@ class MusicService : MediaLibraryService(), Player.Listener {
         val repeatMode = player.repeatMode
         val currentProgress = player.currentPosition
 
-        serviceScope.launch(Dispatchers.IO) {
+        updateLastPlayedJob?.cancel()
+        updateLastPlayedJob = serviceScope.launch(Dispatchers.IO) {
+            if (!immediate) {
+                delay(1000L)
+            }
             repository.insertRecent(
                 RecentEntity(
                     songId = songId,
@@ -485,7 +495,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        updateLastPlayedInfo()
+        updateLastPlayedInfo(immediate = true)
         super.onTaskRemoved(rootIntent)
     }
 
@@ -978,7 +988,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
     private fun stopPlaybackAndService() {
         sleepTimer?.cancel()
-        updateLastPlayedInfo()
+        updateLastPlayedInfo(immediate = true)
         exoPlayer?.let {
             it.stop()
             it.clearMediaItems()
