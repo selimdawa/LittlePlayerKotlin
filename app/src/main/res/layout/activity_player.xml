@@ -30,7 +30,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_30"
+            android:layout_marginTop="@dimen/spacing_40"
             android:layout_marginBottom="@dimen/spacing_10">
 
             <ImageView
@@ -45,19 +45,6 @@
                 android:contentDescription="@null"
                 android:focusable="true"
                 android:src="@drawable/ic_down"
-                app:tint="@color/white" />
-
-            <ImageView
-                android:id="@+id/more"
-                android:layout_width="@dimen/spacing_30"
-                android:layout_height="@dimen/spacing_30"
-                android:layout_centerVertical="true"
-                android:layout_toEndOf="@id/back"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="@null"
-                android:focusable="true"
-                android:src="@drawable/ic_more"
                 app:tint="@color/white" />
 
             <com.google.android.material.card.MaterialCardView
@@ -99,15 +86,6 @@
                 app:strokeColor="@color/white"
                 app:strokeWidth="@dimen/spacing_1" />
 
-            <androidx.mediarouter.app.MediaRouteButton
-                android:id="@+id/media_route_button"
-                android:layout_width="@dimen/spacing_30"
-                android:layout_height="@dimen/spacing_30"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="@dimen/spacing_8"
-                android:layout_toStartOf="@+id/whiteColor"
-                app:mediaRouteButtonTint="@color/white" />
-
         </RelativeLayout>
 
         <com.google.android.material.card.MaterialCardView
@@ -125,10 +103,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
+                <View
+                    android:id="@+id/imageBorder"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:background="@drawable/bg_image_gradient"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
                 <ImageView
                     android:id="@+id/image"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="0dp"
+                    android:layout_margin="@dimen/spacing_2"
                     android:contentDescription="@null"
                     android:scaleType="centerCrop"
                     android:transitionName="song_image"
@@ -137,6 +127,18 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/bitrate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/spacing_15"
+                    android:background="@drawable/bg_bitrate"
+                    android:text="320 kbps"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/text_size_12"
+                    app:layout_constraintBottom_toBottomOf="@id/image"
+                    app:layout_constraintEnd_toEndOf="@id/image" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -148,70 +150,15 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_10"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="@dimen/spacing_24"
-                    android:layout_height="@dimen/spacing_24"
-                    android:layout_marginHorizontal="@dimen/spacing_tiny"
-                    android:alpha="0.3"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_music"
-                    app:tint="@color/white" />
-
-                <ImageView
-                    android:layout_width="@dimen/spacing_24"
-                    android:layout_height="@dimen/spacing_24"
-                    android:layout_marginHorizontal="@dimen/spacing_tiny"
-                    android:alpha="0.3"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_music"
-                    app:tint="@color/white" />
-
-                <ImageView
-                    android:layout_width="@dimen/spacing_24"
-                    android:layout_height="@dimen/spacing_24"
-                    android:layout_marginHorizontal="@dimen/spacing_tiny"
-                    android:alpha="0.3"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_music"
-                    app:tint="@color/white" />
-
-                <ImageView
-                    android:layout_width="@dimen/spacing_24"
-                    android:layout_height="@dimen/spacing_24"
-                    android:layout_marginHorizontal="@dimen/spacing_tiny"
-                    android:alpha="0.3"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_music"
-                    app:tint="@color/white" />
-
-                <ImageView
-                    android:layout_width="@dimen/spacing_24"
-                    android:layout_height="@dimen/spacing_24"
-                    android:layout_marginHorizontal="@dimen/spacing_tiny"
-                    android:alpha="0.3"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_music"
-                    app:tint="@color/white" />
-
-            </LinearLayout>
-
             <TextView
                 android:id="@+id/song_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/spacing_xlarge"
-                android:layout_marginTop="@dimen/spacing_10"
                 android:ellipsize="marquee"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:gravity="center_horizontal"
+                android:gravity="start"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:maxLines="1"
                 android:scrollHorizontally="true"
@@ -220,21 +167,44 @@
                 android:textSize="@dimen/text_size_22"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/song_artist"
+            <RelativeLayout
+                android:layout_marginTop="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/spacing_40"
-                android:ellipsize="end"
-                android:gravity="center_horizontal"
-                android:maxLines="1"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_18" />
+                android:layout_marginHorizontal="@dimen/spacing_xlarge">
+
+                <TextView
+                    android:id="@+id/song_artist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/more_options"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:maxLines="1"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/text_size_18" />
+
+                <ImageView
+                    android:id="@+id/more_options"
+                    android:layout_width="@dimen/spacing_24"
+                    android:layout_height="@dimen/spacing_24"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="@null"
+                    android:focusable="true"
+                    android:src="@drawable/ic_more_horizontal"
+                    app:tint="@color/white" />
+
+            </RelativeLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_40"
+                android:layout_marginTop="@dimen/spacing_20"
                 android:orientation="vertical">
 
                 <SeekBar

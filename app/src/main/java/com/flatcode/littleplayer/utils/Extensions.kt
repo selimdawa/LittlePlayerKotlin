@@ -113,23 +113,31 @@ fun View.setHaloBackground(
     @ColorInt endColor: Int,
 ) {
     val background = background?.mutate() as? LayerDrawable ?: return
-    if (background.numberOfLayers < 2) return
+    val count = background.numberOfLayers
+    if (count < 2) return
 
-    val density = context.resources.displayMetrics.density
     val r = (Color.red(startColor) + Color.red(endColor)) / 2
     val g = (Color.green(startColor) + Color.green(endColor)) / 2
     val b = (Color.blue(startColor) + Color.blue(endColor)) / 2
-    val haloColor = Color.argb(80, r, g, b)
 
-    // Layer 0: Outer Blur (Fades Out)
-    (background.getDrawable(0) as? GradientDrawable)?.apply {
-        colors = intArrayOf(haloColor, Color.TRANSPARENT)
-        gradientType = GradientDrawable.RADIAL_GRADIENT
-        gradientRadius = 42f * density
+    val haloColor = Color.argb(90, r, g, b)
+
+    // Layer 0: Outer Fog
+    (background.getDrawable(0) as? GradientDrawable)?.colors =
+        intArrayOf(haloColor, Color.TRANSPARENT)
+
+    if (count >= 3) {
+        // Layer 1: Inner Glow (Optional)
+        (background.getDrawable(1) as? GradientDrawable)?.colors =
+            intArrayOf(Color.TRANSPARENT, haloColor)
+        // Last Layer: Main Border
+        (background.getDrawable(count - 1) as? GradientDrawable)?.colors =
+            intArrayOf(startColor, endColor)
+    } else {
+        // Layer 1: Main Border (If only 2 layers)
+        (background.getDrawable(1) as? GradientDrawable)?.colors =
+            intArrayOf(startColor, endColor)
     }
-
-    // Layer 1: Main Border
-    (background.getDrawable(1) as? GradientDrawable)?.colors = intArrayOf(startColor, endColor)
 }
 
 fun View.setHaloSolidBackground(@ColorInt color: Int) {

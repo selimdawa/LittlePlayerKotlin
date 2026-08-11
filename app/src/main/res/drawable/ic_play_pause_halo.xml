@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 1. The Single External Blurry Layer -->
-    <!-- Starts right at the border (30dp radius) and spreads outwards -->
+    <!-- 1. Outer Soft Fog (Layer 0) -->
     <item>
         <shape
             android:innerRadius="30dp"
             android:shape="ring"
-            android:thickness="12dp"
+            android:thickness="10dp"
             android:useLevel="false">
             <gradient
                 android:type="radial"
-                android:gradientRadius="42dp"
+                android:gradientRadius="40dp"
                 android:startColor="#60FFFFFF"
                 android:endColor="@android:color/transparent" />
         </shape>
     </item>
 
-    <!-- 2. The Main Border -->
+    <!-- 2. The Main Border (Layer 1) -->
     <item
         android:bottom="10dp"
         android:left="10dp"

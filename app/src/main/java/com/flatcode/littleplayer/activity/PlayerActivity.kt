@@ -6,6 +6,7 @@ import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -20,15 +21,13 @@ import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.DeviceInfo
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import androidx.media3.cast.MediaRouteButtonFactory
-import androidx.mediarouter.app.MediaRouteButton
 import androidx.palette.graphics.Palette
 import coil.imageLoader
 import coil.request.ImageRequest
@@ -47,10 +46,8 @@ import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.onProgressChanged
-import com.flatcode.littleplayer.utils.setGradientBackground
 import com.flatcode.littleplayer.utils.setHaloBackground
 import com.flatcode.littleplayer.utils.setHaloSolidBackground
-import com.flatcode.littleplayer.utils.setSolidBackground
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
@@ -139,8 +136,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun setupListeners() {
         binding.back.setOnClickListener { supportFinishAfterTransition() }
 
-        MediaRouteButtonFactory.setUpMediaRouteButton(this, binding.mediaRouteButton)
-
         binding.basicColor.setOnClickListener {
             nowPlayerViewModel.setThemeColorMode(DATA.MODE_BASIC)
         }
@@ -189,9 +184,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.playPauseBtn.setOnClickListener { playPauseBtn() }
         binding.favorite.setOnClickListener { viewModel.toggleFavorite() }
 
-        binding.more.setOnClickListener {
-            val bottomSheet = com.flatcode.littleplayer.fragment.PlaybackSpeedPitchBottomSheet(mediaController)
-            bottomSheet.show(supportFragmentManager, "PlaybackSpeedPitch")
+        binding.moreOptions.setOnClickListener {
+            val bottomSheet = com.flatcode.littleplayer.fragment.PlayerOptionsBottomSheet(
+                viewModel.currentSong.value, mediaController
+            ) {}
+            bottomSheet.show(supportFragmentManager, "PlayerOptions")
         }
 
         val gestureDetector = GestureDetector(this, SwipeGestureListener())
@@ -262,6 +259,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         animateTextChange(binding.songArtist, song.artist ?: getString(R.string.unknown))
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
+        val bitrate = getBitrate(song.path)
+        binding.bitrate.text = if (bitrate != null) "$bitrate kbps" else ""
+        binding.bitrate.visibility =
+            if (bitrate != null) android.view.View.VISIBLE else android.view.View.GONE
+
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath) {
             if (!isTransitionStarted) {
                 isTransitionStarted = true
@@ -291,6 +293,19 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             textView.text = newText
             textView.animate().alpha(1f).setDuration(150).start()
         }.start()
+    }
+
+    private fun getBitrate(path: String?): String? {
+        if (path == null) return null
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(path)
+            val bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
+            retriever.release()
+            if (bitrate != null) (bitrate.toInt() / 1000).toString() else null
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun loadWaveform(songId: String, path: String) {
