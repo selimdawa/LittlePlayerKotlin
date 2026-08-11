@@ -10,6 +10,7 @@
     <color name="light_gray_icon">#CCCCCC</color>
     <color name="pure_black">#FF000000</color>
     <color name="link">#2196F3</color>
+    <color name="blue">#2196F3</color>
 
     <!-- Syrian Flag Colors -->
     <color name="syria_green">#007A3D</color>

@@ -499,6 +499,10 @@ class MusicRepository @Inject constructor(
         songDao.deleteSongById(songId)
     }
 
+    suspend fun updateMetadata(songId: String, title: String, artist: String, album: String?) {
+        songDao.updateMetadata(songId, title, artist, album)
+    }
+
     fun getSongUri(songId: String): Uri {
         return ContentUris.withAppendedId(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()

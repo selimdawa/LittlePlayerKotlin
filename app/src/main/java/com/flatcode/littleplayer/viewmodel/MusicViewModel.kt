@@ -235,6 +235,12 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     fun getSongUri(songId: String): Uri = repository.getSongUri(songId)
 
+    fun updateMetadata(songId: String, title: String, artist: String, album: String?) {
+        viewModelScope.launch {
+            repository.updateMetadata(songId, title, artist, album)
+        }
+    }
+
     fun addExcludedFolder(path: String) {
         viewModelScope.launch {
             repository.addExcludedFolder(path)

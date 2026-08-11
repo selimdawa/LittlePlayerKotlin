@@ -32,6 +32,9 @@ interface SongDao {
     @Query("UPDATE songs_table SET waveform = :waveform WHERE id = :songId")
     suspend fun updateWaveform(songId: String, waveform: String)
 
+    @Query("UPDATE songs_table SET title = :title, artist = :artist, album = :album WHERE id = :songId")
+    suspend fun updateMetadata(songId: String, title: String, artist: String, album: String?)
+
     @Query("SELECT * FROM songs_table WHERE id = :songId")
     suspend fun getSongById(songId: String): SongEntity?
 
