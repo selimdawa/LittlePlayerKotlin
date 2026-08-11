@@ -102,10 +102,10 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="#1AFFFFFF"
+                    app:cardBackgroundColor="@color/white_10"
                     app:cardCornerRadius="@dimen/radius_large"
                     app:cardElevation="0dp"
-                    app:strokeColor="#1AFFFFFF"
+                    app:strokeColor="@color/white_10"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -142,7 +142,7 @@
                             android:layout_height="1dp"
                             android:layout_marginTop="4dp"
                             android:layout_marginBottom="20dp"
-                            android:background="#1AFFFFFF" />
+                            android:background="@color/white_10" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -172,7 +172,7 @@
                             android:layout_height="1dp"
                             android:layout_marginTop="4dp"
                             android:layout_marginBottom="20dp"
-                            android:background="#1AFFFFFF" />
+                            android:background="@color/white_10" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -201,7 +201,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:layout_marginTop="4dp"
-                            android:background="#1AFFFFFF" />
+                            android:background="@color/white_10" />
 
                     </LinearLayout>
 
@@ -224,7 +224,7 @@
                     android:textStyle="bold"
                     app:backgroundTint="@color/transparent"
                     app:cornerRadius="12dp"
-                    app:rippleColor="#40FFFFFF"
+                    app:rippleColor="@color/white_40"
                     app:strokeColor="?attr/mc_track"
                     app:strokeWidth="2dp" />
 

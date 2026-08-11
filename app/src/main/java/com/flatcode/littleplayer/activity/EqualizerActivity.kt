@@ -112,7 +112,7 @@ class EqualizerActivity : AppCompatActivity() {
         binding.bassKnob.apply {
             this.trackColor = containerBg
             this.progressColor = trackColor
-            this.knobColor = Color.WHITE
+            this.knobColor = ContextCompat.getColor(this@EqualizerActivity, R.color.white)
             this.indicatorColor = trackColor
             onProgressChanged = { progress, fromUser ->
                 if (fromUser) {
@@ -128,7 +128,7 @@ class EqualizerActivity : AppCompatActivity() {
         binding.virtualizerKnob.apply {
             this.trackColor = containerBg
             this.progressColor = trackColor
-            this.knobColor = Color.WHITE
+            this.knobColor = ContextCompat.getColor(this@EqualizerActivity, R.color.white)
             this.indicatorColor = trackColor
             onProgressChanged = { progress, fromUser ->
                 if (fromUser) {
@@ -197,7 +197,7 @@ class EqualizerActivity : AppCompatActivity() {
         val containerBg = getLibraryColor("colorSurfaceContainerHigh")
         val trackColor = getLibraryColor("mc_track")
         val trackCsl = ColorStateList.valueOf(trackColor)
-        val whiteCsl = ColorStateList.valueOf(Color.WHITE)
+        val whiteCsl = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
 
         binding.cardCustom.setCardBackgroundColor(containerBg)
         binding.cardPop.setCardBackgroundColor(containerBg)
@@ -207,13 +207,13 @@ class EqualizerActivity : AppCompatActivity() {
         binding.cardDance.setCardBackgroundColor(containerBg)
         binding.cardFlat.setCardBackgroundColor(containerBg)
 
-        binding.textCustom.setTextColor(Color.GRAY)
-        binding.textPop.setTextColor(Color.GRAY)
-        binding.textRock.setTextColor(Color.GRAY)
-        binding.textJazz.setTextColor(Color.GRAY)
-        binding.textClassical.setTextColor(Color.GRAY)
-        binding.textDance.setTextColor(Color.GRAY)
-        binding.textFlat.setTextColor(Color.GRAY)
+        binding.textCustom.setTextColor(ContextCompat.getColor(this, R.color.gray))
+        binding.textPop.setTextColor(ContextCompat.getColor(this, R.color.gray))
+        binding.textRock.setTextColor(ContextCompat.getColor(this, R.color.gray))
+        binding.textJazz.setTextColor(ContextCompat.getColor(this, R.color.gray))
+        binding.textClassical.setTextColor(ContextCompat.getColor(this, R.color.gray))
+        binding.textDance.setTextColor(ContextCompat.getColor(this, R.color.gray))
+        binding.textFlat.setTextColor(ContextCompat.getColor(this, R.color.gray))
 
         binding.icCustom.imageTintList = trackCsl
         binding.icPop.imageTintList = trackCsl
@@ -226,43 +226,43 @@ class EqualizerActivity : AppCompatActivity() {
         when (selected) {
             "Custom" -> {
                 binding.cardCustom.setCardBackgroundColor(themeColor)
-                binding.textCustom.setTextColor(Color.WHITE)
+                binding.textCustom.setTextColor(ContextCompat.getColor(this, R.color.white))
                 binding.icCustom.imageTintList = whiteCsl
             }
 
             "Pop" -> {
                 binding.cardPop.setCardBackgroundColor(themeColor)
-                binding.textPop.setTextColor(Color.WHITE)
+                binding.textPop.setTextColor(ContextCompat.getColor(this, R.color.white))
                 binding.icPop.imageTintList = whiteCsl
             }
 
             "Rock" -> {
                 binding.cardRock.setCardBackgroundColor(themeColor)
-                binding.textRock.setTextColor(Color.WHITE)
+                binding.textRock.setTextColor(ContextCompat.getColor(this, R.color.white))
                 binding.icRock.imageTintList = whiteCsl
             }
 
             "Jazz" -> {
                 binding.cardJazz.setCardBackgroundColor(themeColor)
-                binding.textJazz.setTextColor(Color.WHITE)
+                binding.textJazz.setTextColor(ContextCompat.getColor(this, R.color.white))
                 binding.icJazz.imageTintList = whiteCsl
             }
 
             "Classical" -> {
                 binding.cardClassical.setCardBackgroundColor(themeColor)
-                binding.textClassical.setTextColor(Color.WHITE)
+                binding.textClassical.setTextColor(ContextCompat.getColor(this, R.color.white))
                 binding.icClassical.imageTintList = whiteCsl
             }
 
             "Dance" -> {
                 binding.cardDance.setCardBackgroundColor(themeColor)
-                binding.textDance.setTextColor(Color.WHITE)
+                binding.textDance.setTextColor(ContextCompat.getColor(this, R.color.white))
                 binding.icDance.imageTintList = whiteCsl
             }
 
             "Flat" -> {
                 binding.cardFlat.setCardBackgroundColor(themeColor)
-                binding.textFlat.setTextColor(Color.WHITE)
+                binding.textFlat.setTextColor(ContextCompat.getColor(this, R.color.white))
                 binding.icFlat.imageTintList = whiteCsl
             }
         }

@@ -18,6 +18,7 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.createBitmap
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
@@ -114,7 +115,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val brightColor = color.ensureBrightColor()
         val colorStateList = ColorStateList.valueOf(brightColor)
         val backgroundColorStateList =
-            ColorStateList.valueOf("#66FFFFFF".toColorInt()) // 40% White for better visibility
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white_66)) // 40% White for better visibility
 
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
@@ -132,7 +133,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         binding.waveformSeekBar.waveProgressColor = brightColor
-        binding.waveformSeekBar.waveBackgroundColor = "#4DFFFFFF".toColorInt() // 30% White
+        binding.waveformSeekBar.waveBackgroundColor = ContextCompat.getColor(this, R.color.white_30) // 30% White
 
         binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC) 4 else 1
         binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE) 4 else 1

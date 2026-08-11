@@ -33,6 +33,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
@@ -197,7 +198,8 @@ fun Context.getLibraryColor(attrName: String): Int {
         id = resources.getIdentifier(attrName, "attr", "android")
     }
 
-    val fallback = if (attrName == "mc_track") "#6200EE".toColorInt() else "#3700B3".toColorInt()
+    val fallback = if (attrName == "mc_track") ContextCompat.getColor(this, R.color.purple_500)
+    else ContextCompat.getColor(this, R.color.purple_700)
     val color = if (id != 0) getColorFromAttr(id, Color.TRANSPARENT) else Color.TRANSPARENT
 
     if (color != Color.TRANSPARENT) return color

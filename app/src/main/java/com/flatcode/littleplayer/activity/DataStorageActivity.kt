@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
 import coil.load
@@ -35,7 +36,7 @@ class DataStorageActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDataStorageBinding
     private val viewModel: NowPlayerViewModel by viewModels()
     private val dataViewModel: DataStorageViewModel by viewModels()
-    private var currentDominantColor: Int = Color.BLACK // Will be initialized in onCreate
+    private var currentDominantColor: Int = 0 // Will be initialized in onCreate
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +44,7 @@ class DataStorageActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         initToolbar(getString(R.string.data_storage))
+        currentDominantColor = ContextCompat.getColor(this, R.color.pure_black)
         currentDominantColor = getLibraryColor("mc_track")
         extractPalette(R.drawable.ic_image_preview) { palette ->
             val defaultColor = getLibraryColor("mc_track")
@@ -141,7 +143,7 @@ class DataStorageActivity : AppCompatActivity() {
             currentDominantColor
         )
         setupThemeItem(
-            binding.itemWhite, getString(R.string.white), imageRes, 20, DATA.MODE_WHITE, Color.WHITE
+            binding.itemWhite, getString(R.string.white), imageRes, 20, DATA.MODE_WHITE, ContextCompat.getColor(this, R.color.white)
         )
 
         // List Item Previews
@@ -156,7 +158,7 @@ class DataStorageActivity : AppCompatActivity() {
             currentDominantColor
         )
         setupListItemThemeItem(
-            binding.itemListWhite, getString(R.string.white), imageRes, DATA.MODE_WHITE, Color.WHITE
+            binding.itemListWhite, getString(R.string.white), imageRes, DATA.MODE_WHITE, ContextCompat.getColor(this, R.color.white)
         )
     }
 
@@ -180,7 +182,7 @@ class DataStorageActivity : AppCompatActivity() {
 
         val colorToApply = when (mode) {
             DATA.MODE_PALETTE -> targetColor?.ensureBrightColor()
-            DATA.MODE_WHITE -> Color.WHITE
+            DATA.MODE_WHITE -> ContextCompat.getColor(this, R.color.white)
             else -> null
         }
 
@@ -224,7 +226,7 @@ class DataStorageActivity : AppCompatActivity() {
 
         val colorToApply = when (mode) {
             DATA.MODE_PALETTE -> targetColor?.ensureBrightColor()
-            DATA.MODE_WHITE -> Color.WHITE
+            DATA.MODE_WHITE -> ContextCompat.getColor(this, R.color.white)
             else -> null
         }
 

@@ -5,6 +5,6 @@
     android:minHeight="110dp"
     android:previewImage="@drawable/logo_icon"
     android:previewLayout="@layout/layout_widget_modern"
-    android:resizeMode="horizontal|vertical"
+    android:resizeMode="none"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />

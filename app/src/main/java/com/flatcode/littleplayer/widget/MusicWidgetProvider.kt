@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.widget.RemoteViews
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
@@ -80,7 +81,7 @@ class MusicWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widgetArtist, artist)
             views.setImageViewResource(R.id.widgetPlayPause, if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
             
-            val activeColor = "#CE1126".toColorInt()
+            val activeColor = ContextCompat.getColor(context, R.color.syria_red)
             
             // Buttons that might exist only in Full layout
             try {

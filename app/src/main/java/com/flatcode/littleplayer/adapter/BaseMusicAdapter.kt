@@ -2,7 +2,9 @@ package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.graphics.Color
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
+import com.flatcode.littleplayer.R
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
@@ -68,7 +70,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
             val trackColor = if (listItemThemeEnabled) {
                 when (currentThemeMode) {
                     DATA.MODE_PALETTE -> currentThemeColor.ensureBrightColor()
-                    DATA.MODE_WHITE -> Color.WHITE
+                    DATA.MODE_WHITE -> ContextCompat.getColor(context, R.color.white)
                     else -> context.getLibraryColor("mc_track")
                 }
             } else {
@@ -78,7 +80,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
             val closeColor = if (listItemThemeEnabled) {
                 when (currentThemeMode) {
                     DATA.MODE_PALETTE -> trackColor
-                    DATA.MODE_WHITE -> Color.WHITE
+                    DATA.MODE_WHITE -> ContextCompat.getColor(context, R.color.white)
                     else -> context.getLibraryColor("mc_tick")
                 }
             } else {

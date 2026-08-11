@@ -8,6 +8,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
+import com.flatcode.littleplayer.R
 import androidx.core.graphics.toColorInt
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -42,13 +44,13 @@ class KnobView @JvmOverloads constructor(
 
     private val knobPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        setShadowLayer(8f, 0f, 4f, "#40000000".toColorInt())
+        setShadowLayer(8f, 0f, 4f, ContextCompat.getColor(context, R.color.black_25))
     }
 
     private val knobBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = 2f
-        color = "#20000000".toColorInt()
+        color = ContextCompat.getColor(context, R.color.black_12)
     }
 
     private val indicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
