@@ -89,8 +89,6 @@ class SongsFragment : Fragment() {
                 is MusicEvent.PlaySong -> {
                     requireContext().openPlayer(event.position)
                 }
-
-                else -> {}
             }
         }
     }

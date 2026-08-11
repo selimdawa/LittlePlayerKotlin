@@ -142,7 +142,7 @@ class FoldersFragment : Fragment() {
 
         view.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.btnHide).setOnClickListener {
-            folder.path?.let { viewModel.addExcludedFolder(it) }
+            viewModel.addExcludedFolder(folder.path)
             dialog.dismiss()
         }
 

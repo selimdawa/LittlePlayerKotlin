@@ -39,7 +39,7 @@ class ArtistAdapter(
     }
 
     override fun getPopupText(position: Int): String {
-        val artistName = getItem(position).name ?: ""
+        val artistName = getItem(position).name
         return if (artistName.isNotEmpty()) artistName.substring(0, 1).uppercase() else ""
     }
 

@@ -38,7 +38,7 @@ class FolderAdapter(
             context.getString(R.string.folder_details_format, songsText, folder.path)
 
         holder.itemView.setOnClickListener {
-            onItemClick(folder.name ?: "", folder.path ?: "", holder.itemView)
+            onItemClick(folder.name, folder.path, holder.itemView)
         }
 
         holder.binding.btnMore.setOnClickListener {
@@ -47,7 +47,7 @@ class FolderAdapter(
     }
 
     override fun getPopupText(position: Int): String {
-        val name = getItem(position).name ?: ""
+        val name = getItem(position).name
         return if (name.isNotEmpty()) name.substring(0, 1).uppercase() else ""
     }
 
