@@ -18,6 +18,8 @@ import com.flatcode.littleplayer.utils.requestDeletion
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.flatcode.littleplayer.activity.TagEditorActivity
+import com.flatcode.littleplayer.utils.DATA
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.flatcode.littleplayer.R
 import com.google.android.material.button.MaterialButton
@@ -61,6 +63,14 @@ class SongOptionsBottomSheet(
 
         binding.optionShare.setOnClickListener {
             shareSong(song)
+            dismiss()
+        }
+
+        binding.optionEditTags.setOnClickListener {
+            val intent = Intent(requireContext(), TagEditorActivity::class.java).apply {
+                putExtra(DATA.SONG, song)
+            }
+            startActivity(intent)
             dismiss()
         }
 

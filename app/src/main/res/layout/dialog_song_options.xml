@@ -76,6 +76,34 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/optionEditTags"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="@dimen/spacing_12">
+
+        <ImageView
+            android:layout_width="@dimen/spacing_24"
+            android:layout_height="@dimen/spacing_24"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_edit"
+            app:tint="?attr/mc_track" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_12"
+            android:text="@string/edit_tags"
+            android:textColor="?attr/colorError"
+            android:textSize="@dimen/text_size_16" />
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/optionDelete"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

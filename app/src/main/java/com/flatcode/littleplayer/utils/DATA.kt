@@ -17,6 +17,7 @@ object DATA {
     const val PLAYLISTS = "Playlists"
     const val PLAYLIST_DETAILS = "PlaylistDetails"
     const val POSITION = "position"
+    const val SONG = "song"
 
     // Media Keys
     const val MUSIC_FILE = "STORED_MUSIC"
