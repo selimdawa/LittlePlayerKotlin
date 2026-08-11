@@ -112,14 +112,22 @@ class FoldersFragment : Fragment() {
     }
 
     private fun showHideFolderDialog(folder: Folder) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.hide_folder)
-            .setMessage(R.string.hide_folder_message)
-            .setPositiveButton(R.string.hide_folder) { _, _ ->
-                folder.path?.let { viewModel.addExcludedFolder(it) }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        val view = layoutInflater.inflate(R.layout.dialog_hide_folder, null)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(view)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        view.findViewById<android.widget.TextView>(R.id.dialogTitle).text = folder.name
+
+        view.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        view.findViewById<View>(R.id.btnHide).setOnClickListener {
+            folder.path?.let { viewModel.addExcludedFolder(it) }
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     override fun onDestroyView() {
