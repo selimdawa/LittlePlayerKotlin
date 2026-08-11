@@ -51,6 +51,7 @@ import com.flatcode.littleplayer.utils.setHaloSolidBackground
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
+import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.linc.amplituda.Amplituda
@@ -71,6 +72,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private val viewModel: PlayerViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
+    private val musicViewModel: MusicViewModel by viewModels()
 
     private var progressJob: Job? = null
     private var waveformJob: Job? = null
@@ -116,12 +118,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.seekBar.progressBackgroundTintList = backgroundColorStateList
 
         if (currentMode == DATA.MODE_BASIC) {
-            binding.playPauseBtn.setHaloBackground(
-                getLibraryColor("mc_track"),
-                getLibraryColor("mc_tick"),
-            )
+            val track = getLibraryColor("mc_track")
+            val tick = getLibraryColor("mc_tick")
+            binding.playPauseBtn.setHaloBackground(track, tick)
+            binding.imageBorder.setHaloBackground(track, tick)
         } else {
             binding.playPauseBtn.setHaloSolidBackground(brightColor)
+            binding.imageBorder.setHaloSolidBackground(brightColor)
         }
 
         binding.waveformSeekBar.waveProgressColor = brightColor
@@ -186,8 +189,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         binding.moreOptions.setOnClickListener {
             val bottomSheet = com.flatcode.littleplayer.fragment.PlayerOptionsBottomSheet(
-                viewModel.currentSong.value, mediaController
-            ) {}
+                song = viewModel.currentSong.value,
+                mediaController = mediaController,
+                onDeleteClick = { song ->
+                    musicViewModel.deleteSong(song)
+                    nextBtn(animate = false)
+                },
+                onCastClick = {}
+            )
             bottomSheet.show(supportFragmentManager, "PlayerOptions")
         }
 
