@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
+import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,7 @@ import javax.inject.Inject
 class NowPlayerViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val repository: MusicRepository,
+    private val roomRepository: MusicRoomRepository
 ) : ViewModel() {
 
     private val _currentPlayingSong = MutableStateFlow<MusicFiles?>(null)
@@ -69,7 +71,7 @@ class NowPlayerViewModel @Inject constructor(
                 repository.updateCurrentPlaylist(queue, saveToRoom = false)
             }
 
-            val playbackState = repository.getPlaybackStateSync()
+            val playbackState = roomRepository.getPlaybackStateSync()
             if ((playbackState != null) && (!playbackState.currentSongId.isNullOrEmpty())) {
                 _currentPlayingSong.value = queue.find { it.id == playbackState.currentSongId }
             }
