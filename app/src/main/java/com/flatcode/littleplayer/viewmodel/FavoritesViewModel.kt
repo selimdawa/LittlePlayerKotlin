@@ -28,7 +28,7 @@ class FavoritesViewModel @Inject constructor(
             ) { favorites, images, excluded ->
                 val imageMap = images.associateBy { it.albumName }
                 favorites.filter { fav -> 
-                    excluded.none { excludedPath -> fav.path?.startsWith(excludedPath) == true }
+                    excluded.none { excludedPath -> fav.path.startsWith(excludedPath) }
                 }.map {
                     MusicFiles(
                         id = it.songId,

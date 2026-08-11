@@ -81,8 +81,4 @@ class SettingsViewModel @Inject constructor(
             repository.getAllAudio(DATA.SORT_BY_NAME) // Trigger a full reload
         }
     }
-
-    fun setSleepTimer(minutes: Int) {
-        // This will be handled via MediaController command in the Activity
-    }
 }

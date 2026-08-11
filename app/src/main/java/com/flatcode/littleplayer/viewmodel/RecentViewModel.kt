@@ -28,7 +28,7 @@ class RecentViewModel @Inject constructor(
             ) { recents, images, excluded ->
                 val imageMap = images.associateBy { it.albumName }
                 recents.filter { recent ->
-                    excluded.none { excludedPath -> recent.path?.startsWith(excludedPath) == true }
+                    excluded.none { excludedPath -> recent.path.startsWith(excludedPath) }
                 }.take(20).map {
                     MusicFiles(
                         id = it.songId,

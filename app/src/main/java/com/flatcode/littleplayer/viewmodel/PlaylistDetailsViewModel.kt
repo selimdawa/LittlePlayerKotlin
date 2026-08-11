@@ -50,7 +50,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                     musicRepository.excludedFolders
                 ) { entities, sortOrder, excluded ->
                     val musicFiles = entities.filter { 
-                        it.songId.isNotEmpty() && excluded.none { p -> it.path?.startsWith(p) == true }
+                        it.songId.isNotEmpty() && excluded.none { p -> it.path.startsWith(p) }
                     }.map { entity ->
                         val dbSong = repository.getSongById(entity.songId)
                         MusicFiles(

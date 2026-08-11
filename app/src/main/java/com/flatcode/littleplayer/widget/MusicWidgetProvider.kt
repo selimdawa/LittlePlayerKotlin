@@ -6,10 +6,10 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.widget.RemoteViews
+import androidx.core.graphics.toColorInt
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
@@ -80,14 +80,15 @@ class MusicWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widgetArtist, artist)
             views.setImageViewResource(R.id.widgetPlayPause, if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
             
-            val activeColor = Color.parseColor("#CE1126")
+            val activeColor = "#CE1126".toColorInt()
             
             // Buttons that might exist only in Full layout
             try {
                 views.setInt(R.id.widgetShuffle, "setColorFilter", if (isShuffle) activeColor else Color.WHITE)
                 views.setImageViewResource(R.id.widgetFavorite, if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border)
                 views.setInt(R.id.widgetFavorite, "setColorFilter", if (isFavorite) activeColor else Color.WHITE)
-            } catch (e: Exception) {}
+            } catch (_: Exception) {
+            }
 
             if (imagePath != null) {
                 val bitmap = BitmapFactory.decodeFile(imagePath)
