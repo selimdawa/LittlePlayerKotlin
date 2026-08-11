@@ -128,6 +128,7 @@
                     app:tint="@color/gray" />
             </LinearLayout>
 
+
             <LinearLayout
                 android:id="@+id/settingDataStorage"
                 android:layout_width="match_parent"
@@ -193,6 +194,82 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/settingAddWidget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_medium">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_medium"
+                    android:layout_height="@dimen/icon_size_medium"
+                    android:src="@drawable/ic_widget"
+                    app:tint="?attr/mc_track" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_medium"
+                    android:layout_weight="1"
+                    android:text="@string/add_widget_to_home"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/text_size_small" />
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_20"
+                    android:layout_height="@dimen/icon_size_20"
+                    android:src="@drawable/ic_navigate_next"
+                    app:tint="@color/gray" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/settingHeadsetControls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_medium">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_medium"
+                    android:layout_height="@dimen/icon_size_medium"
+                    android:src="@drawable/ic_headset"
+                    app:tint="?attr/mc_track" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_medium"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/headset_controls"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="@dimen/text_size_body" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/headset_controls_desc"
+                        android:textColor="@color/gray"
+                        android:textSize="@dimen/text_size_small" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_20"
+                    android:layout_height="@dimen/icon_size_20"
+                    android:src="@drawable/ic_navigate_next"
+                    app:tint="@color/gray" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/settingPrivacy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -245,38 +322,6 @@
                     android:layout_marginStart="@dimen/spacing_medium"
                     android:layout_weight="1"
                     android:text="@string/about"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="@dimen/text_size_body" />
-
-                <ImageView
-                    android:layout_width="@dimen/icon_size_20"
-                    android:layout_height="@dimen/icon_size_20"
-                    android:src="@drawable/ic_navigate_next"
-                    app:tint="@color/gray" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/settingAddWidget"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/transparent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="@dimen/spacing_medium">
-
-                <ImageView
-                    android:layout_width="@dimen/icon_size_medium"
-                    android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/logo_icon"
-                    app:tint="?attr/mc_track" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/spacing_medium"
-                    android:layout_weight="1"
-                    android:text="@string/add_widget_to_home"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="@dimen/text_size_body" />
 

@@ -103,6 +103,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.settingNotifications.setOnClickListener {
             launchActivity<NotificationsActivity>()
         }
+        binding.settingHeadsetControls.setOnClickListener {
+            launchActivity<HeadsetControlActivity>()
+        }
         binding.settingDataStorage.setOnClickListener {
             launchActivity<DataStorageActivity>()
         }
@@ -117,18 +120,30 @@ class SettingsActivity : AppCompatActivity() {
             val appWidgetManager = getSystemService(android.appwidget.AppWidgetManager::class.java)
             if (appWidgetManager.isRequestPinAppWidgetSupported) {
                 val options = arrayOf(
-                    getString(R.string.add_small_widget),
-                    getString(R.string.add_large_widget)
+                    getString(R.string.small_widget),
+                    getString(R.string.large_widget)
                 )
                 MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.add_widget_to_home)
-                    .setItems(options) { _, which ->
+                    .setItems(options) { dialog, which ->
                         val provider = if (which == 0) {
-                            ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProvider::class.java)
-                        } else {
                             ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProviderLarge::class.java)
+                        } else {
+                            ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProvider::class.java)
                         }
                         appWidgetManager.requestPinAppWidget(provider, null, null)
+                        
+                        // Show success message
+                        android.widget.Toast.makeText(this, getString(R.string.widget_added_success), android.widget.Toast.LENGTH_SHORT).show()
+                        
+                        // Close dialog
+                        dialog.dismiss()
+                        
+                        // Go to home screen
+                        val intent = android.content.Intent(android.content.Intent.ACTION_MAIN)
+                        intent.addCategory(android.content.Intent.CATEGORY_HOME)
+                        intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
                     }
                     .show()
             } else {

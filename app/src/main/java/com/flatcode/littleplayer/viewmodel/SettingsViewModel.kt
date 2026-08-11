@@ -23,6 +23,10 @@ class SettingsViewModel @Inject constructor(
 
     private val darkModeKey = intPreferencesKey("dark_mode_preference")
     private val showSongToastKey = booleanPreferencesKey(DATA.SHOW_SONG_TOAST)
+    private val doubleClickActionKey =
+        androidx.datastore.preferences.core.stringPreferencesKey(DATA.HEADSET_DOUBLE_CLICK_ACTION)
+    private val tripleClickActionKey =
+        androidx.datastore.preferences.core.stringPreferencesKey(DATA.HEADSET_TRIPLE_CLICK_ACTION)
 
     val darkModeFlow: Flow<Int> = dataStore.data.map { preferences ->
         preferences[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
@@ -30,6 +34,14 @@ class SettingsViewModel @Inject constructor(
 
     val showSongToastFlow: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[showSongToastKey] ?: false
+    }
+
+    val doubleClickActionFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[doubleClickActionKey] ?: DATA.ACTION_NEXT_TRACK
+    }
+
+    val tripleClickActionFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[tripleClickActionKey] ?: DATA.ACTION_PREV_TRACK
     }
 
     fun setDarkMode(mode: Int) {
@@ -44,6 +56,22 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[showSongToastKey] = show
+            }
+        }
+    }
+
+    fun setHeadsetDoubleClickAction(action: String) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[doubleClickActionKey] = action
+            }
+        }
+    }
+
+    fun setHeadsetTripleClickAction(action: String) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[tripleClickActionKey] = action
             }
         }
     }

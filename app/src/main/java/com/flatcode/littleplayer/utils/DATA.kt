@@ -35,6 +35,17 @@ object DATA {
     const val MARQUEE_ENABLED = "MARQUEE_ENABLED"
     const val EXCLUDED_FOLDERS = "EXCLUDED_FOLDERS"
 
+    const val HEADSET_DOUBLE_CLICK_ACTION = "HEADSET_DOUBLE_CLICK_ACTION"
+    const val HEADSET_TRIPLE_CLICK_ACTION = "HEADSET_TRIPLE_CLICK_ACTION"
+
+    const val ACTION_NONE = "none"
+    const val ACTION_PLAY_PAUSE_TOGGLE = "play_pause"
+    const val ACTION_NEXT_TRACK = "next"
+    const val ACTION_PREV_TRACK = "prev"
+    const val ACTION_FAST_FORWARD = "fast_forward"
+    const val ACTION_REWIND = "rewind"
+    const val ACTION_FAVORITE_TOGGLE = "favorite"
+
     const val MODE_BASIC = 0
     const val MODE_PALETTE = 1
     const val MODE_WHITE = 2
