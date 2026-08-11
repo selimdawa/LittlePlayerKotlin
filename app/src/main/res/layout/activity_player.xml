@@ -351,18 +351,6 @@
                     android:src="@drawable/ic_favorite_border"
                     app:tint="@color/white" />
 
-                <ImageView
-                    android:id="@+id/btnPlaybackSpeed"
-                    android:layout_width="0dp"
-                    android:layout_height="30dp"
-                    android:layout_weight="1"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:contentDescription="@null"
-                    android:focusable="true"
-                    android:src="@drawable/ic_more_horizontal"
-                    app:tint="@color/white" />
-
             </LinearLayout>
 
             <com.masoudss.lib.WaveformSeekBar

@@ -187,7 +187,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.playPauseBtn.setOnClickListener { playPauseBtn() }
         binding.favorite.setOnClickListener { viewModel.toggleFavorite() }
 
-        binding.btnPlaybackSpeed.setOnClickListener {
+        binding.more.setOnClickListener {
             val bottomSheet = com.flatcode.littleplayer.fragment.PlaybackSpeedPitchBottomSheet(mediaController)
             bottomSheet.show(supportFragmentManager, "PlaybackSpeedPitch")
         }
@@ -231,11 +231,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
-            song?.let {
-                updateSongUI(it)
+            if (song != null) {
+                updateSongUI(song)
                 lifecycleScope.launch {
                     delay(300.milliseconds)
-                    it.path?.let { path -> it.id?.let { id -> loadWaveform(id, path) } }
+                    song.path?.let { path -> song.id?.let { id -> loadWaveform(id, path) } }
+                }
+            } else {
+                if (!isTransitionStarted) {
+                    isTransitionStarted = true
+                    startPostponedEnterTransition()
                 }
             }
         }
