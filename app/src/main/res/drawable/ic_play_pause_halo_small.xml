@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Glow Layer (Halo) -->
+
     <item>
         <shape android:shape="oval">
             <gradient
@@ -10,7 +10,7 @@
                 android:endColor="@android:color/transparent" />
         </shape>
     </item>
-    <!-- Ring Layer -->
+
     <item
         android:bottom="@dimen/spacing_5"
         android:left="@dimen/spacing_5"

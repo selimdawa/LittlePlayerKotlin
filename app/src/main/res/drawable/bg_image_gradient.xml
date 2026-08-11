@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Layer 0: Outer Soft Glow (Fog) -->
+
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/spacing_15" />
@@ -14,7 +14,7 @@
         </shape>
     </item>
 
-    <!-- Layer 1: Main Gradient Border -->
+
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/spacing_15" />
