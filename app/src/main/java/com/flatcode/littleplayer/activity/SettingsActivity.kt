@@ -6,6 +6,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -104,12 +105,42 @@ class SettingsActivity : AppCompatActivity() {
         binding.settingDataStorage.setOnClickListener {
             launchActivity<DataStorageActivity>()
         }
+        binding.settingLanguage.setOnClickListener { showLanguageDialog() }
         binding.settingPrivacy.setOnClickListener { showPrivacyDialog() }
         binding.settingAbout.setOnClickListener { showAboutDialog() }
     }
 
     private fun showPrivacyDialog() {
         showDialog(R.string.privacy_policy_title, R.string.privacy_policy_content)
+    }
+
+    private fun showLanguageDialog() {
+        val languages = arrayOf(
+            getString(R.string.system_default),
+            getString(R.string.english),
+            getString(R.string.arabic),
+            getString(R.string.spanish)
+        )
+        val languageTags = arrayOf("", "en", "ar", "es")
+
+        val currentLocale = AppCompatDelegate.getApplicationLocales()[0]
+        val currentTag = currentLocale?.language ?: ""
+        val checkedItem = languageTags.indexOf(currentTag).let { if (it == -1) 0 else it }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.language)
+            .setSingleChoiceItems(languages, checkedItem) { dialog, which ->
+                val tag = languageTags[which]
+                val appLocale: LocaleListCompat = if (tag.isEmpty()) {
+                    LocaleListCompat.getEmptyLocaleList()
+                } else {
+                    LocaleListCompat.forLanguageTags(tag)
+                }
+                AppCompatDelegate.setApplicationLocales(appLocale)
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun showAboutDialog() {

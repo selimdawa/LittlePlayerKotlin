@@ -119,4 +119,15 @@
     <string name="hide_folder_message">Are you sure you want to hide this folder? Its contents will be removed from your library.</string>
     <string name="unhide">Unhide</string>
     <string name="no_hidden_folders">No hidden folders</string>
+    <string name="language">Language</string>
+    <string name="system_default">System Default</string>
+    <string name="english">English</string>
+    <string name="spanish">Spanish</string>
+    <string name="arabic">Arabic</string>
+    <string name="playback_channel_name">Music Playback</string>
+    <string name="playback_channel_desc">Ongoing music playback notification</string>
+    <string name="enter_valid_minutes">Enter valid minutes</string>
+    <string name="enter_minutes">Enter minutes</string>
+    <string name="share_song">Share Song</string>
+    <string name="unknown">Unknown</string>
 </resources>

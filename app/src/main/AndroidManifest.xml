@@ -35,7 +35,7 @@
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@drawable/logo_icon"
-        android:supportsRtl="false"
+        android:supportsRtl="true"
         android:theme="@style/Theme.MC.One"
         android:usesCleartextTraffic="true"
         tools:replace="android:supportsRtl">
@@ -115,6 +115,30 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".widget.MusicWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/music_widget_small_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.MusicWidgetProviderLarge"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/music_widget_large_info" />
+        </receiver>
 
     </application>
 

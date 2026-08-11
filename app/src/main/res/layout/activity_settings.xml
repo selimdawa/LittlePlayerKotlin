@@ -161,6 +161,38 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/settingLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/transparent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_medium">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_medium"
+                    android:layout_height="@dimen/icon_size_medium"
+                    android:src="@drawable/ic_language"
+                    app:tint="?attr/mc_track" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_medium"
+                    android:layout_weight="1"
+                    android:text="@string/language"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/text_size_body" />
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_20"
+                    android:layout_height="@dimen/icon_size_20"
+                    android:src="@drawable/ic_navigate_next"
+                    app:tint="@color/gray" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/settingPrivacy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
