@@ -155,4 +155,5 @@
     <string name="toggle_favorite">تبديل المفضلة</string>
 
     <string name="unknown">غير معروف</string>
+    <string name="media_route_menu_title">بث</string>
 </resources>

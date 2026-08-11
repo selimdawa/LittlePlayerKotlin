@@ -99,6 +99,15 @@
                 app:strokeColor="@color/white"
                 app:strokeWidth="@dimen/spacing_1" />
 
+            <androidx.mediarouter.app.MediaRouteButton
+                android:id="@+id/media_route_button"
+                android:layout_width="@dimen/spacing_30"
+                android:layout_height="@dimen/spacing_30"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/spacing_8"
+                android:layout_toStartOf="@+id/whiteColor"
+                app:mediaRouteButtonTint="@color/white" />
+
         </RelativeLayout>
 
         <com.google.android.material.card.MaterialCardView

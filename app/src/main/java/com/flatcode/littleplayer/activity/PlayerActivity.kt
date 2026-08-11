@@ -23,9 +23,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.media3.cast.MediaRouteButtonFactory
+import androidx.mediarouter.app.MediaRouteButton
 import androidx.palette.graphics.Palette
 import coil.imageLoader
 import coil.request.ImageRequest
@@ -131,6 +134,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupListeners() {
         binding.back.setOnClickListener { supportFinishAfterTransition() }
+
+        MediaRouteButtonFactory.setUpMediaRouteButton(this, binding.mediaRouteButton)
 
         binding.basicColor.setOnClickListener {
             nowPlayerViewModel.setThemeColorMode(DATA.MODE_BASIC)
@@ -630,6 +635,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean("intent_processed", isIntentProcessed)
+    }
+
+    override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
+        if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+            // UI for local playback
+            binding.waveformSeekBar.alpha = 1f
+        } else if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
+            // UI for remote playback
+            binding.waveformSeekBar.alpha = 0.5f
+        }
     }
 
     private fun updatePlayPauseButton(isPlaying: Boolean) {

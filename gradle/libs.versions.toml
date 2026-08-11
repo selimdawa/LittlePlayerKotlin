@@ -19,6 +19,8 @@ ksp = "2.3.8"
 datastore = "1.2.1"
 palette = "1.0.0"
 media3-exoplayer = "1.10.1"
+media3-cast = "1.10.1"
+mediarouter = "1.7.0"
 amplituda = "2.3.1"
 waveformseekbar = "5.0.2"
 multiwave = "1.0.1"
@@ -57,6 +59,8 @@ coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutin
 #Media Player
 androidx-media = { group = "androidx.media3", name = "media3-session", version.ref = "media" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3-exoplayer" }
+androidx-media3-cast = { group = "androidx.media3", name = "media3-cast", version.ref = "media3-cast" }
+androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", version.ref = "mediarouter" }
 #Waves
 lincollincol-amplituda = { group = "com.github.lincollincol", name = "amplituda", version.ref = "amplituda" }
 waveformseekbar = { module = "com.github.massoudss:waveformSeekBar", version.ref = "waveformseekbar" }

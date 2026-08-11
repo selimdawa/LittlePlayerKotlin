@@ -14,8 +14,8 @@ android {
         applicationId = "com.flatcode.littleplayer"
         minSdk = 24
         targetSdk = 37
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -71,6 +71,8 @@ dependencies {
     //Media Player
     implementation(libs.androidx.media)
     implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.cast)
+    implementation(libs.androidx.mediarouter)
     //Audio Waves
     implementation(libs.lincollincol.amplituda)
     implementation(libs.waveformseekbar)

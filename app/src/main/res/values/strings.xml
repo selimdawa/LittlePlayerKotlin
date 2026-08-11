@@ -151,4 +151,5 @@
     <string name="toggle_favorite">Toggle Favorite</string>
 
     <string name="unknown">Unknown</string>
+    <string name="media_route_menu_title">Cast</string>
 </resources>

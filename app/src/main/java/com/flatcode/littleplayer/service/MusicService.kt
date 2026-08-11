@@ -19,6 +19,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.cast.CastPlayer
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
 import androidx.media3.session.LibraryResult
@@ -66,6 +67,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     lateinit var musicRepository: MusicRepository
 
     private var basePlayer: ExoPlayer? = null
+    private var castPlayer: CastPlayer? = null
     var exoPlayer: Player? = null
     private var mediaSession: MediaLibrarySession? = null
 
@@ -119,7 +121,16 @@ class MusicService : MediaLibraryService(), Player.Listener {
             repeatMode = Player.REPEAT_MODE_ALL
         }
 
-        exoPlayer = object : ForwardingPlayer(basePlayer!!) {
+        try {
+            castPlayer = CastPlayer.Builder(this).setLocalPlayer(basePlayer!!).build()
+            castPlayer?.addListener(this@MusicService)
+        } catch (e: Exception) {
+            // Cast context might not be available
+        }
+
+        val primaryPlayer = castPlayer ?: basePlayer!!
+
+        exoPlayer = object : ForwardingPlayer(primaryPlayer) {
             override fun getAvailableCommands(): Player.Commands {
                 return super.getAvailableCommands().buildUpon().add(COMMAND_SEEK_TO_NEXT)
                     .add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(COMMAND_SEEK_TO_PREVIOUS)
@@ -993,6 +1004,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         equalizer?.release()
         bassBoost?.release()
         virtualizer?.release()
+        castPlayer?.release()
         mediaSession?.run {
             player.release()
             release()
