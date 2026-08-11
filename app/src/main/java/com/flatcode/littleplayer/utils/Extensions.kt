@@ -290,6 +290,7 @@ fun ImageView.loadSongImage(
     path: String? = null,
     cachedPath: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
+    onComplete: (() -> Unit)? = null,
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, fallback)
 
@@ -297,6 +298,10 @@ fun ImageView.loadSongImage(
         crossfade(enable = true)
         placeholder(R.color.image_profile)
         error(fallback)
+        listener(
+            onSuccess = { _, _ -> onComplete?.invoke() },
+            onError = { _, _ -> onComplete?.invoke() },
+        )
     }
 }
 

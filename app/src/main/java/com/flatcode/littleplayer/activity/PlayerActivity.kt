@@ -81,10 +81,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var currentDominantColor: Int = Color.BLACK // Will be initialized in onCreate
     private var currentMode: Int = DATA.MODE_BASIC
     private var isIntentProcessed = false
+    private var isTransitionStarted = false
     private var isAnimating = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        postponeEnterTransition()
         isIntentProcessed = savedInstanceState?.getBoolean("intent_processed") ?: false
         window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 
@@ -185,6 +187,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.playPauseBtn.setOnClickListener { playPauseBtn() }
         binding.favorite.setOnClickListener { viewModel.toggleFavorite() }
 
+        binding.btnPlaybackSpeed.setOnClickListener {
+            val bottomSheet = com.flatcode.littleplayer.fragment.PlaybackSpeedPitchBottomSheet(mediaController)
+            bottomSheet.show(supportFragmentManager, "PlaybackSpeedPitch")
+        }
+
         val gestureDetector = GestureDetector(this, SwipeGestureListener())
         binding.card.setOnTouchListener { v, event ->
             if (gestureDetector.onTouchEvent(event)) {
@@ -248,7 +255,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         animateTextChange(binding.songArtist, song.artist ?: getString(R.string.unknown))
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
-        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath)
+        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath) {
+            if (!isTransitionStarted) {
+                isTransitionStarted = true
+                startPostponedEnterTransition()
+            }
+        }
         binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
 
         val model = getSongImageModel(song.albumId, song.path, song.cachedImagePath)
