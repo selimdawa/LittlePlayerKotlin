@@ -77,6 +77,10 @@ class MusicService : MediaSessionService(), Player.Listener {
     private var virtualizerStrength: Short = 0
     private var currentPreset = "Custom"
 
+    private var clickCount = 0
+    private val clickHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val clickRunnable = Runnable { handleHeadsetClicks() }
+
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
@@ -309,6 +313,39 @@ class MusicService : MediaSessionService(), Player.Listener {
             }
             ACTION_NEXT -> exoPlayer?.seekToNext()
             ACTION_PREV -> exoPlayer?.seekToPrevious()
+            ACTION_SHUFFLE -> {
+                exoPlayer?.let {
+                    it.shuffleModeEnabled = !it.shuffleModeEnabled
+                    sendWidgetUpdate()
+                }
+            }
+            ACTION_FAVORITE -> {
+                exoPlayer?.let { player ->
+                    val currentMediaItem = player.currentMediaItem
+                    if (currentMediaItem != null) {
+                        val songId = currentMediaItem.mediaId
+                        serviceScope.launch {
+                            val isFav = repository.isFavorite(songId)
+                            if (isFav) {
+                                repository.deleteFavoriteById(songId)
+                            } else {
+                                val metadata = currentMediaItem.mediaMetadata
+                                repository.insertFavorite(
+                                    FavoriteEntity(
+                                        songId = songId,
+                                        title = metadata.title?.toString() ?: "",
+                                        artist = metadata.artist?.toString() ?: "",
+                                        album = metadata.albumTitle?.toString(),
+                                        duration = player.duration.let { if (it > 0) it.toString() else null },
+                                        path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
+                                    )
+                                )
+                            }
+                            sendWidgetUpdate()
+                        }
+                    }
+                }
+            }
         }
         return START_STICKY
     }
@@ -411,16 +448,21 @@ class MusicService : MediaSessionService(), Player.Listener {
         intent.setPackage(packageName)
         exoPlayer?.let { player ->
             val metadata = player.mediaMetadata
+            val songId = player.currentMediaItem?.mediaId ?: ""
             intent.putExtra("title", metadata.title?.toString() ?: getString(R.string.song_title))
             intent.putExtra("artist", metadata.artist?.toString() ?: getString(R.string.artist_name))
             intent.putExtra("isPlaying", player.isPlaying)
+            intent.putExtra("isShuffle", player.shuffleModeEnabled)
 
-            val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
-            if (!cachedPath.isNullOrEmpty()) {
-                intent.putExtra("imagePath", cachedPath)
-                sendBroadcast(intent)
-            } else {
-                serviceScope.launch {
+            serviceScope.launch {
+                val isFav = if (songId.isNotEmpty()) repository.isFavorite(songId) else false
+                intent.putExtra("isFavorite", isFav)
+
+                val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
+                if (!cachedPath.isNullOrEmpty()) {
+                    intent.putExtra("imagePath", cachedPath)
+                    sendBroadcast(intent)
+                } else {
                     val pathFromStore = dataStore.data.map { it[cachedImagePathKey] }.first()
                     intent.putExtra("imagePath", pathFromStore)
                     sendBroadcast(intent)
@@ -559,6 +601,24 @@ class MusicService : MediaSessionService(), Player.Listener {
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailableSessionCommands(sessionCommands)
                 .setAvailablePlayerCommands(playerCommands).build()
+        }
+
+        override fun onMediaButtonEvent(
+            session: MediaSession, controllerInfo: MediaSession.ControllerInfo, intent: Intent
+        ): Boolean {
+            val ke = intent.getParcelableExtra<android.view.KeyEvent>(Intent.EXTRA_KEY_EVENT)
+            if (ke != null && ke.action == android.view.KeyEvent.ACTION_DOWN) {
+                when (ke.keyCode) {
+                    android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
+                    android.view.KeyEvent.KEYCODE_HEADSETHOOK -> {
+                        clickCount++
+                        clickHandler.removeCallbacks(clickRunnable)
+                        clickHandler.postDelayed(clickRunnable, 300)
+                        return true
+                    }
+                }
+            }
+            return super.onMediaButtonEvent(session, controllerInfo, intent)
         }
 
         override fun onCustomCommand(
@@ -700,6 +760,66 @@ class MusicService : MediaSessionService(), Player.Listener {
         }
     }
 
+    private fun handleHeadsetClicks() {
+        val count = clickCount
+        clickCount = 0
+        serviceScope.launch {
+            val action = when (count) {
+                1 -> DATA.ACTION_PLAY_PAUSE_TOGGLE
+                2 -> dataStore.data.map {
+                    it[stringPreferencesKey(DATA.HEADSET_DOUBLE_CLICK_ACTION)]
+                }.first() ?: DATA.ACTION_NEXT_TRACK
+
+                3 -> dataStore.data.map {
+                    it[stringPreferencesKey(DATA.HEADSET_TRIPLE_CLICK_ACTION)]
+                }.first() ?: DATA.ACTION_PREV_TRACK
+
+                else -> DATA.ACTION_NONE
+            }
+            executeHeadsetAction(action)
+        }
+    }
+
+    private fun executeHeadsetAction(action: String) {
+        val player = exoPlayer ?: return
+        when (action) {
+            DATA.ACTION_PLAY_PAUSE_TOGGLE -> {
+                if (player.isPlaying) player.pause() else player.play()
+            }
+
+            DATA.ACTION_NEXT_TRACK -> player.seekToNext()
+            DATA.ACTION_PREV_TRACK -> player.seekToPrevious()
+            DATA.ACTION_FAST_FORWARD -> player.seekForward()
+            DATA.ACTION_REWIND -> player.seekBack()
+            DATA.ACTION_FAVORITE_TOGGLE -> {
+                val currentMediaItem = player.currentMediaItem
+                if (currentMediaItem != null) {
+                    val songId = currentMediaItem.mediaId
+                    serviceScope.launch {
+                        val isFav = repository.isFavorite(songId)
+                        if (isFav) {
+                            repository.deleteFavoriteById(songId)
+                        } else {
+                            val metadata = currentMediaItem.mediaMetadata
+                            repository.insertFavorite(
+                                FavoriteEntity(
+                                    songId = songId,
+                                    title = metadata.title?.toString() ?: "",
+                                    artist = metadata.artist?.toString() ?: "",
+                                    album = metadata.albumTitle?.toString(),
+                                    duration = player.duration.let { if (it > 0) it.toString() else null },
+                                    path = currentMediaItem.localConfiguration?.uri?.toString() ?: ""
+                                )
+                            )
+                        }
+                        updateNotificationLayout()
+                        sendWidgetUpdate()
+                    }
+                }
+            }
+        }
+    }
+
     private fun stopPlaybackAndService() {
         sleepTimer?.cancel()
         updateLastPlayedInfo()
@@ -753,5 +873,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         const val ACTION_PLAY_PAUSE = "com.flatcode.littleplayer.ACTION_PLAY_PAUSE"
         const val ACTION_NEXT = "com.flatcode.littleplayer.ACTION_NEXT"
         const val ACTION_PREV = "com.flatcode.littleplayer.ACTION_PREV"
+        const val ACTION_SHUFFLE = "com.flatcode.littleplayer.ACTION_SHUFFLE"
+        const val ACTION_FAVORITE = "com.flatcode.littleplayer.ACTION_FAVORITE"
     }
 }

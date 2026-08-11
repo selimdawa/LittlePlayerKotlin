@@ -132,9 +132,9 @@
     <string name="enter_valid_minutes">Ingrese minutos válidos</string>
     <string name="enter_minutes">Ingrese los minutos</string>
     <string name="share_song">Compartir canción</string>
-    <string name="add_widget_to_home">Añadir widget a la pantalla de inicio</string>
-    <string name="add_small_widget">Añadir widget pequeño</string>
-    <string name="add_large_widget">Añadir widget grande</string>
+    <string name="add_widget_to_home">Widget de inicio</string>
+    <string name="small_widget">Widget pequeño</string>
+    <string name="large_widget">Widget grande</string>
     <string name="widget_pinning_not_supported">El anclaje de widgets no es compatible con este dispositivo.</string>
     <string name="unknown">Desconocido</string>
 </resources>

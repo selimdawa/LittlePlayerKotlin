@@ -83,6 +83,9 @@
             android:name=".activity.SettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.HeadsetControlActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.NotificationsActivity"
             android:exported="false" />
         <activity
@@ -119,27 +122,27 @@
         <receiver
             android:name=".widget.MusicWidgetProvider"
             android:exported="true"
-            android:label="Little Player (Small)">
+            android:label="Little Player (Full)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/music_widget_small_info" />
+                android:resource="@xml/music_widget_modern_info" />
         </receiver>
 
         <receiver
             android:name=".widget.MusicWidgetProviderLarge"
             android:exported="true"
-            android:label="Little Player (Large)">
+            android:label="Little Player (Compact)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/music_widget_large_info" />
+                android:resource="@xml/music_widget_modern_compact_info" />
         </receiver>
 
     </application>

@@ -132,9 +132,23 @@
     <string name="enter_valid_minutes">Enter valid minutes</string>
     <string name="enter_minutes">Enter minutes</string>
     <string name="share_song">Share Song</string>
-    <string name="add_widget_to_home">Add Widget to Home Screen</string>
-    <string name="add_small_widget">Add Small Widget</string>
-    <string name="add_large_widget">Add Large Widget</string>
+    <string name="add_widget_to_home">Home Widget</string>
+    <string name="small_widget">Small Widget</string>
+    <string name="large_widget">Large Widget</string>
     <string name="widget_pinning_not_supported">Widget pinning is not supported on this device.</string>
+    <string name="widget_added_success">Widget added! Check your home screen.</string>
+
+    <string name="headset_controls">Headset Controls</string>
+    <string name="headset_controls_desc">Customize headset button actions.</string>
+    <string name="double_click_action">Double Click Action</string>
+    <string name="triple_click_action">Triple Click Action</string>
+    <string name="none">None</string>
+    <string name="play_pause">Play/Pause</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="fast_forward">Fast Forward</string>
+    <string name="rewind">Rewind</string>
+    <string name="toggle_favorite">Toggle Favorite</string>
+
     <string name="unknown">Unknown</string>
 </resources>

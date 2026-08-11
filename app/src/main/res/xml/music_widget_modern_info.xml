@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:initialLayout="@layout/music_widget_large"
-    android:minWidth="180dp"
+    android:initialLayout="@layout/layout_widget_modern"
+    android:minWidth="250dp"
     android:minHeight="110dp"
-    android:previewImage="@drawable/ic_music"
-    android:previewLayout="@layout/music_widget_large"
+    android:previewImage="@drawable/logo_icon"
+    android:previewLayout="@layout/layout_widget_modern"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />

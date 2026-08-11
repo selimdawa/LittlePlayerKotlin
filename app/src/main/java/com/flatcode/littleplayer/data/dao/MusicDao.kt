@@ -22,6 +22,9 @@ interface MusicDao {
     @Delete
     suspend fun deleteFavorite(song: FavoriteEntity)
 
+    @Query("DELETE FROM favorites_table WHERE songId = :id")
+    suspend fun deleteFavoriteById(id: String)
+
     @Query("SELECT * FROM favorites_table")
     fun getAllFavorites(): Flow<List<FavoriteEntity>>
 

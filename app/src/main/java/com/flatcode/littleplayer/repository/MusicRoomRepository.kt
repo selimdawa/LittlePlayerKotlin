@@ -53,6 +53,10 @@ class MusicRoomRepository @Inject constructor(
         musicDao.deleteFavorite(song)
     }
 
+    suspend fun deleteFavoriteById(id: String) = withContext(Dispatchers.IO) {
+        musicDao.deleteFavoriteById(id)
+    }
+
     fun getAllFavorites(): Flow<List<FavoriteEntity>> = musicDao.getAllFavorites()
 
     suspend fun isFavorite(id: String): Boolean = withContext(Dispatchers.IO) {

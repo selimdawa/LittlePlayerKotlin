@@ -136,9 +136,23 @@
     <string name="enter_valid_minutes">أدخل دقائق صالحة</string>
     <string name="enter_minutes">أدخل الدقائق</string>
     <string name="share_song">مشاركة الأغنية</string>
-    <string name="add_widget_to_home">إضافة ويدجت إلى الشاشة الرئيسية</string>
-    <string name="add_small_widget">إضافة ويدجت صغير</string>
-    <string name="add_large_widget">إضافة ويدجت كبير</string>
+    <string name="add_widget_to_home">ويدجت الشاشة</string>
+    <string name="small_widget">ويدجت مصغر</string>
+    <string name="large_widget">ويدجت كامل</string>
     <string name="widget_pinning_not_supported">تثبيت الويدجت غير مدعوم على هذا الجهاز.</string>
+    <string name="widget_added_success">تمت إضافة الويدجت! تحقق من الشاشة الرئيسية.</string>
+
+    <string name="headset_controls">التحكم في السماعات</string>
+    <string name="headset_controls_desc">تخصيص إجراءات أزرار سماعة الرأس.</string>
+    <string name="double_click_action">إجراء النقر المزدوج</string>
+    <string name="triple_click_action">إجراء النقر الثلاثي</string>
+    <string name="none">بلا</string>
+    <string name="play_pause">تشغيل/إيقاف مؤقت</string>
+    <string name="next">التالي</string>
+    <string name="previous">السابق</string>
+    <string name="fast_forward">تقديم سريع</string>
+    <string name="rewind">إرجاع سريع</string>
+    <string name="toggle_favorite">تبديل المفضلة</string>
+
     <string name="unknown">غير معروف</string>
 </resources>
