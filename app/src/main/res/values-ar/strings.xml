@@ -88,7 +88,7 @@
     <string name="privacy_policy_content">خصوصيتك مهمة بالنسبة لنا. Little Player لا يجمع أي بيانات شخصية. نحن نصل فقط إلى تخزين جهازك للعثور على ملفات الموسيقى وتشغيلها. لا يتم مشاركة أي بيانات مع أطراف ثالثة.</string>
     <string name="about_app_content">Little Player هو مشغل موسيقى حديث وخفيف الوزن مصمم للحصول على أفضل تجربة صوتية.</string>
     <string name="origin_syria">الأصل: سوريا</string>
-    <string name="developer_selim_dawa">المطور: سليم دعوة</string>
+    <string name="developer_selim_dawa">المطور: سليم ضوا</string>
     <string name="github_label">جيت هاب:&#160;</string>
     <string name="github_url">https://github.com/selimdawa</string>
     <string name="crafted_with_passion">صُنع بشغف لمحبي الموسيقى.</string>
@@ -141,6 +141,7 @@
     <string name="large_widget">ويدجت كامل</string>
     <string name="widget_pinning_not_supported">تثبيت الويدجت غير مدعوم على هذا الجهاز.</string>
     <string name="widget_added_success">تمت إضافة الويدجت! تحقق من الشاشة الرئيسية.</string>
+    <string name="widget_already_exists">الويدجت موجود بالفعل على الشاشة الرئيسية.</string>
 
     <string name="headset_controls">التحكم في السماعات</string>
     <string name="headset_controls_desc">تخصيص إجراءات أزرار سماعة الرأس.</string>

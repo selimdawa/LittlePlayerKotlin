@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
@@ -28,6 +29,7 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.SettingsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
@@ -126,13 +128,39 @@ class SettingsActivity : AppCompatActivity() {
                 MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.add_widget_to_home)
                     .setItems(options) { dialog, which ->
-                        val provider = if (which == 0) {
-                            ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProviderLarge::class.java)
-                        } else {
-                            ComponentName(this, com.flatcode.littleplayer.widget.MusicWidgetProvider::class.java)
-                        }
-                        appWidgetManager.requestPinAppWidget(provider, null, null)
                         dialog.dismiss()
+                        
+                        val providerClass = if (which == 0) {
+                            "com.flatcode.littleplayer.widget.MusicWidgetProviderLarge"
+                        } else {
+                            "com.flatcode.littleplayer.widget.MusicWidgetProvider"
+                        }
+                        val provider = ComponentName(this, providerClass)
+                        
+                        // Check if widget already exists
+                        val existingIds = appWidgetManager.getAppWidgetIds(provider)
+                        if (existingIds.isNotEmpty()) {
+                            binding.root.snackbar(getString(R.string.widget_already_exists))
+                            return@setItems
+                        }
+                        
+                        try {
+                            val success = appWidgetManager.requestPinAppWidget(provider, null, null)
+                            if (success) {
+                                android.widget.Toast.makeText(this, getString(R.string.widget_added_success), android.widget.Toast.LENGTH_SHORT).show()
+                                
+                                // Delay navigation to home screen to allow system dialog to appear
+                                lifecycleScope.launch {
+                                    kotlinx.coroutines.delay(500)
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_MAIN)
+                                    intent.addCategory(android.content.Intent.CATEGORY_HOME)
+                                    intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                    startActivity(intent)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                     .show()
             } else {
