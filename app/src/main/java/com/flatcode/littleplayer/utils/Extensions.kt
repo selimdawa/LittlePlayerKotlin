@@ -491,13 +491,15 @@ fun Context.getResizedBitmap(resId: Int, sizeDp: Int): Bitmap? {
 
     return try {
         val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(this, resId) ?: return null
+        drawable.mutate()
+        // Force white tint to match PlayerActivity
+        androidx.core.graphics.drawable.DrawableCompat.setTint(drawable, Color.WHITE)
         
         val bitmap = createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bitmap)
         
-        // Ensure we handle scaling correctly even for large PNGs
-        // Standard notification icons usually have ~15% padding
-        val padding = (sizePx * 0.15f).toInt()
+        // Increase padding to make icons look smaller and more standard (25% padding)
+        val padding = (sizePx * 0.25f).toInt()
         val targetSize = sizePx - (padding * 2)
         
         drawable.setBounds(padding, padding, padding + targetSize, padding + targetSize)

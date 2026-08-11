@@ -27,7 +27,6 @@ import com.flatcode.littleplayer.fragment.AlbumsFragment
 import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
-import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -88,7 +87,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupSearchSwitcher() {
         binding.toolbar.searchTextSwitcher.setFactory {
             TextView(this).apply {
-                gravity = Gravity.CENTER_VERTICAL
+                gravity = Gravity.START or Gravity.CENTER_VERTICAL
                 textSize = 14f
                 maxLines = 1
                 ellipsize = TruncateAt.END

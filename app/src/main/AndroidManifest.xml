@@ -118,7 +118,8 @@
 
         <receiver
             android:name=".widget.MusicWidgetProvider"
-            android:exported="true">
+            android:exported="true"
+            android:label="Little Player (Small)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
@@ -130,7 +131,8 @@
 
         <receiver
             android:name=".widget.MusicWidgetProviderLarge"
-            android:exported="true">
+            android:exported="true"
+            android:label="Little Player (Large)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />

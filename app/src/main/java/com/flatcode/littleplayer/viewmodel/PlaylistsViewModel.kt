@@ -42,7 +42,7 @@ class PlaylistsViewModel @Inject constructor(
         syncPlaylists()
 
         viewModelScope.launch {
-            musicRepository.getSortOrder("Playlists").collect {
+            musicRepository.getSortOrder(DATA.PLAYLISTS).collect {
                 _playlistsSortOrder.value = it
             }
         }

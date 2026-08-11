@@ -35,7 +35,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            musicRepository.getSortOrder("PlaylistDetails").collect {
+            musicRepository.getSortOrder(DATA.PLAYLIST_DETAILS).collect {
                 _songsSortOrder.value = it
             }
         }
