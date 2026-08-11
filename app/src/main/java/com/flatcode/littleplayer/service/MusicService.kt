@@ -21,10 +21,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
+import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.core.app.NotificationCompat
+import androidx.core.graphics.drawable.IconCompat
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
@@ -34,6 +38,8 @@ import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getDefaultArtBytes
+import com.flatcode.littleplayer.utils.getResizedBitmap
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -166,9 +172,77 @@ class MusicService : MediaSessionService(), Player.Listener {
             mediaSession =
                 MediaSession.Builder(this, player).setCallback(CustomSessionCallback()).build()
 
+            setMediaNotificationProvider(CustomNotificationProvider())
+
             loadEqualizerSettings()
             initAudioEffects(basePlayer?.audioSessionId ?: -1)
             loadPlaybackStateAndQueue()
+        }
+    }
+
+    private inner class CustomNotificationProvider : DefaultMediaNotificationProvider(this@MusicService) {
+        override fun addNotificationActions(
+            mediaSession: MediaSession,
+            mediaButtons: ImmutableList<CommandButton>,
+            builder: NotificationCompat.Builder,
+            actionFactory: MediaNotification.ActionFactory
+        ): IntArray {
+            val compactViewIndices = IntArray(3) { -1 }
+            var hasCustomCompactViewIndices = false
+
+            for (i in mediaButtons.indices) {
+                val commandButton = mediaButtons[i]
+                val iconRes = commandButton.iconResId
+                
+                val icon = if (iconRes == R.drawable.ic_shuffle_on || 
+                            iconRes == R.drawable.ic_repeat || 
+                            iconRes == R.drawable.ic_repeat_one ||
+                            iconRes == R.drawable.ic_play || 
+                            iconRes == R.drawable.ic_pause) {
+                    val bitmap = getResizedBitmap(iconRes, 24)
+                    if (bitmap != null) IconCompat.createWithBitmap(bitmap)
+                    else IconCompat.createWithResource(this@MusicService, iconRes)
+                } else {
+                    IconCompat.createWithResource(this@MusicService, iconRes)
+                }
+
+                if (commandButton.sessionCommand != null) {
+                    builder.addAction(
+                        actionFactory.createCustomAction(
+                            mediaSession,
+                            icon,
+                            commandButton.displayName,
+                            commandButton.sessionCommand!!.customAction,
+                            commandButton.sessionCommand!!.customExtras
+                        )
+                    )
+                } else {
+                    builder.addAction(
+                        actionFactory.createMediaAction(
+                            mediaSession,
+                            icon,
+                            commandButton.displayName,
+                            commandButton.playerCommand
+                        )
+                    )
+                }
+
+                val compactViewIndex = commandButton.extras.getInt("media3.command_compact_view_index", -1)
+                if (compactViewIndex in 0..2) {
+                    hasCustomCompactViewIndices = true
+                    compactViewIndices[compactViewIndex] = i
+                } else {
+                    // This part is simplified but should handle SLOT_BACK/CENTRAL/FORWARD if possible
+                    // For now, we'll just let it be.
+                }
+            }
+
+            if (!hasCustomCompactViewIndices) {
+                // Basic default: show first 3 actions if possible
+                return intArrayOf(0, 1, 2).filter { it < mediaButtons.size }.toIntArray()
+            }
+
+            return compactViewIndices.filter { it != -1 }.toIntArray()
         }
     }
 

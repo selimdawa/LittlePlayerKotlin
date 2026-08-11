@@ -482,6 +482,26 @@ fun Int.ensureBrightColor(): Int {
     return Color.HSVToColor(hsv)
 }
 
+fun Context.getResizedBitmap(resId: Int, sizeDp: Int): Bitmap? {
+    val sizePx = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        sizeDp.toFloat(),
+        resources.displayMetrics,
+    ).toInt()
+
+    return try {
+        val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(this, resId) ?: return null
+        val bitmap = createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        drawable.setBounds(0, 0, sizePx, sizePx)
+        drawable.draw(canvas)
+        bitmap
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
 fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
     val dominantColor = this?.getDominantColor(defaultColor) ?: defaultColor
     return this?.getLightVibrantColor(Color.TRANSPARENT)
