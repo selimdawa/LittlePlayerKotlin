@@ -27,18 +27,11 @@ class MusicRoomRepository @Inject constructor(
     private val songDao: SongDao,
     private val albumImageDao: AlbumImageDao,
     private val musicDao: MusicDao,
-    private val dataStore: DataStore<Preferences>
+    dataStore: DataStore<Preferences>
 ) {
     val excludedFolders: Flow<Set<String>> = dataStore.data.map { preferences ->
         preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] ?: emptySet()
     }.distinctUntilChanged()
-    suspend fun insertSong(song: SongEntity) = withContext(Dispatchers.IO) {
-        songDao.insertSong(song)
-    }
-
-    suspend fun insertAlbumImage(albumImage: AlbumImageEntity) = withContext(Dispatchers.IO) {
-        albumImageDao.insertAlbumImage(albumImage)
-    }
 
     suspend fun getAlbumImageByName(albumName: String): AlbumImageEntity? =
         withContext(Dispatchers.IO) {
@@ -61,10 +54,6 @@ class MusicRoomRepository @Inject constructor(
 
     suspend fun isFavorite(id: String): Boolean = withContext(Dispatchers.IO) {
         musicDao.isFavorite(id)
-    }
-
-    suspend fun insertToPlaylist(playlistItem: PlaylistEntity) = withContext(Dispatchers.IO) {
-        musicDao.insertToPlaylist(playlistItem)
     }
 
     suspend fun insertToPlaylist(playlistItems: List<PlaylistEntity>) =
@@ -128,8 +117,6 @@ class MusicRoomRepository @Inject constructor(
     suspend fun savePlaybackState(state: PlaybackStateEntity) = withContext(Dispatchers.IO) {
         musicDao.savePlaybackState(state)
     }
-
-    fun getPlaybackState(): Flow<PlaybackStateEntity?> = musicDao.getPlaybackState()
 
     suspend fun getPlaybackStateSync(): PlaybackStateEntity? = withContext(Dispatchers.IO) {
         musicDao.getPlaybackStateSync()

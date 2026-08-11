@@ -331,35 +331,35 @@ class MusicRepository @Inject constructor(
 
         val cursor: Cursor? = context.contentResolver.query(uri, projection, null, null, null)
         val songEntities = mutableListOf<com.flatcode.littleplayer.data.entity.SongEntity>()
-        cursor?.use {
-            val albumColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val titleColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-            val pathColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-            val artistColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val albumIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-            val dateAddedColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
-            val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
-            val yearColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+        cursor?.use { c ->
+            val albumColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+            val titleColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val durationColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val pathColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+            val artistColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val idColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val albumIdColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val dateAddedColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+            val sizeColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
+            val yearColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
 
-            while (it.moveToNext()) {
-                val path = it.getString(pathColumn) ?: ""
+            while (c.moveToNext()) {
+                val path = c.getString(pathColumn) ?: ""
                 if (path.contains("/Android/data", true) || path.contains(
                         "/Android/media", true
                     )
                 ) continue
                 if (excluded.any { path.startsWith(it) }) continue
 
-                val album = it.getString(albumColumn) ?: DATA.UNKNOWN
-                val title = it.getString(titleColumn) ?: DATA.UNKNOWN
-                val duration = it.getLong(durationColumn)
-                val artist = it.getString(artistColumn) ?: DATA.UNKNOWN
-                val id = it.getString(idColumn) ?: ""
-                val albumId = it.getString(albumIdColumn) ?: ""
-                val dateAdded = it.getLong(dateAddedColumn)
-                val size = it.getLong(sizeColumn)
-                val year = it.getInt(yearColumn)
+                val album = c.getString(albumColumn) ?: DATA.UNKNOWN
+                val title = c.getString(titleColumn) ?: DATA.UNKNOWN
+                val duration = c.getLong(durationColumn)
+                val artist = c.getString(artistColumn) ?: DATA.UNKNOWN
+                val id = c.getString(idColumn) ?: ""
+                val albumId = c.getString(albumIdColumn) ?: ""
+                val dateAdded = c.getLong(dateAddedColumn)
+                val size = c.getLong(sizeColumn)
+                val year = c.getInt(yearColumn)
 
                 songEntities.add(
                     com.flatcode.littleplayer.data.entity.SongEntity(
@@ -390,6 +390,7 @@ class MusicRepository @Inject constructor(
         syncPlaylistsWithMediaStore()
     }
 
+    @Suppress("DEPRECATION")
     suspend fun syncPlaylistsWithMediaStore() {
         val playlistUri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI
         val playlistProjection = arrayOf(
@@ -410,6 +411,7 @@ class MusicRepository @Inject constructor(
             }
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun syncPlaylistMembers(playlistId: Long, playlistName: String) {
         val membersUri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId)
         val membersProjection = arrayOf(
@@ -569,7 +571,7 @@ class MusicRepository @Inject constructor(
     fun getCacheSize(): Long {
         val folder = File(context.filesDir, "album_art")
         return if (folder.exists()) {
-            folder.walkTopDown().filter { it.isFile }.map { it.length() }.sum()
+            folder.walkTopDown().filter { it.isFile }.sumOf { it.length() }
         } else 0L
     }
 }

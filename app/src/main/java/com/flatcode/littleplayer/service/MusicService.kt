@@ -7,6 +7,7 @@ import android.media.audiofx.Virtualizer
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.widget.Toast
+import androidx.core.content.IntentCompat
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -84,7 +85,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private var sleepTimer: CountDownTimer? = null
 
     private var equalizer: Equalizer? = null
+    @Suppress("DEPRECATION")
     private var bassBoost: BassBoost? = null
+    @Suppress("DEPRECATION")
     private var virtualizer: Virtualizer? = null
     private var eqEnabled = false
     private var currentBandLevels = shortArrayOf(0, 0, 0, 0, 0)
@@ -118,7 +121,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         MultiColorManager.applyTheme(this)
 
         serviceScope.launch {
-            MultiColorManager.currentThemeId.collect {
+            MultiColorManager.currentThemeId.collect { _ ->
                 MultiColorManager.applyTheme(this@MusicService)
                 exoPlayer?.let { player ->
                     loadArtForCurrentItem(player, forceDefaultRefresh = true)
@@ -137,7 +140,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         try {
             castPlayer = CastPlayer.Builder(this).setLocalPlayer(basePlayer!!).build()
             castPlayer?.addListener(this@MusicService)
-        } catch (e: Exception) {
+        } catch (ignored: Exception) {
         }
 
         val primaryPlayer = castPlayer ?: basePlayer!!
@@ -290,6 +293,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun applyEqualizerSettings() {
         equalizer?.enabled = eqEnabled
         bassBoost?.enabled = eqEnabled
@@ -303,11 +307,12 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     equalizer?.setBandLevel(i.toShort(), currentBandLevels[i])
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                // Ignore
             }
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun initAudioEffects(sessionId: Int) {
         if (sessionId != -1) {
             try {
@@ -321,7 +326,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
                 applyEqualizerSettings()
             } catch (e: Exception) {
-                e.printStackTrace()
+                // Ignore
             }
         }
     }
@@ -800,7 +805,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         override fun onMediaButtonEvent(
             session: MediaSession, controllerInfo: MediaSession.ControllerInfo, intent: Intent
         ): Boolean {
-            val ke = intent.getParcelableExtra<android.view.KeyEvent>(Intent.EXTRA_KEY_EVENT)
+            val ke = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_KEY_EVENT, android.view.KeyEvent::class.java)
             if (ke != null && ke.action == android.view.KeyEvent.ACTION_DOWN) {
                 when (ke.keyCode) {
                     android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, android.view.KeyEvent.KEYCODE_HEADSETHOOK -> {
