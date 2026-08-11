@@ -12,6 +12,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
+import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import androidx.activity.viewModels
@@ -163,6 +164,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         binding.repeat.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.pulse)
+            binding.repeat.startAnimation(animation)
             mediaController?.let { controller ->
                 when {
                     (!controller.shuffleModeEnabled) && (controller.repeatMode != Player.REPEAT_MODE_ONE) -> {
@@ -186,8 +189,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         binding.prev.setOnClickListener { prevBtn() }
         binding.next.setOnClickListener { nextBtn() }
-        binding.playPauseBtn.setOnClickListener { playPauseBtn() }
-        binding.favorite.setOnClickListener { viewModel.toggleFavorite() }
+        binding.playPauseBtn.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.pulse)
+            binding.playPause.startAnimation(animation)
+            playPauseBtn()
+        }
+        binding.favorite.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.pulse)
+            binding.favorite.startAnimation(animation)
+            viewModel.toggleFavorite()
+        }
 
         binding.moreOptions.setOnClickListener {
             val bottomSheet = com.flatcode.littleplayer.fragment.PlayerOptionsBottomSheet(

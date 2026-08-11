@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -77,6 +78,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         }
 
         binding.playerContent.nextBtn.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(requireContext(), R.anim.pulse)
+            binding.playerContent.nextBtn.startAnimation(animation)
             mediaController?.let { controller ->
                 val count = controller.mediaItemCount
                 if (count > 0) {
@@ -90,6 +93,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         }
 
         binding.playerContent.playPauseBtn.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(requireContext(), R.anim.pulse)
+            binding.playerContent.playPause.startAnimation(animation)
             mediaController?.let { controller ->
                 if (controller.currentMediaItem == null) {
                     val song = viewModel.currentPlayingSong.value
