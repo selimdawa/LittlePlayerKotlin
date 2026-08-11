@@ -38,6 +38,12 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     private val _albumsSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
     val albumsSortOrder: StateFlow<String> = _albumsSortOrder.asStateFlow()
 
+    private val _artistsSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
+    val artistsSortOrder: StateFlow<String> = _artistsSortOrder.asStateFlow()
+
+    private val _foldersSortOrder = MutableStateFlow(DATA.SORT_BY_NAME)
+    val foldersSortOrder: StateFlow<String> = _foldersSortOrder.asStateFlow()
+
     private val _event = MutableSharedFlow<MusicEvent>()
     val event: SharedFlow<MusicEvent> = _event.asSharedFlow()
 
@@ -85,8 +91,8 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val folderFiles: StateFlow<List<Folder>> = combine(
-        allSongs, _searchQuery
-    ) { songs: List<MusicFiles>, query: String ->
+        allSongs, _foldersSortOrder, _searchQuery
+    ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
         val foldersMap = HashMap<String, Triple<String, Int, MusicFiles?>>()
 
         for (song in songs) {
@@ -118,15 +124,20 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             )
         }
 
-        val sorted = foldersList.sortedBy { it.name.lowercase() }
+        val sorted = when (sortOrder) {
+            DATA.SORT_BY_NAME -> foldersList.sortedBy { it.name.lowercase() }
+            DATA.SORT_BY_SONG_COUNT -> foldersList.sortedByDescending { it.songsCount }
+            else -> foldersList.sortedBy { it.name.lowercase() }
+        }
+
         if (query.isEmpty()) sorted else {
             sorted.filter { it.name.lowercase().contains(query.lowercase()) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val artistFiles: StateFlow<List<Artist>> = combine(
-        allSongs, _searchQuery
-    ) { songs: List<MusicFiles>, query: String ->
+        allSongs, _artistsSortOrder, _searchQuery
+    ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
         val artistsMap = HashMap<String, Pair<Int, MusicFiles?>>()
 
         for (song in songs) {
@@ -148,7 +159,12 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             )
         }
 
-        val sorted = artistsList.sortedBy { it.name.lowercase() }
+        val sorted = when (sortOrder) {
+            DATA.SORT_BY_NAME -> artistsList.sortedBy { it.name.lowercase() }
+            DATA.SORT_BY_SONG_COUNT -> artistsList.sortedByDescending { it.songsCount }
+            else -> artistsList.sortedBy { it.name.lowercase() }
+        }
+
         if (query.isEmpty()) sorted else {
             sorted.filter { it.name.lowercase().contains(query.lowercase()) }
         }
@@ -160,6 +176,12 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
         viewModelScope.launch {
             repository.getSortOrder(DATA.ALBUMS).collect { _albumsSortOrder.value = it }
+        }
+        viewModelScope.launch {
+            repository.getSortOrder(DATA.ARTISTS).collect { _artistsSortOrder.value = it }
+        }
+        viewModelScope.launch {
+            repository.getSortOrder(DATA.FOLDERS).collect { _foldersSortOrder.value = it }
         }
 
         // Start background art caching when songs are loaded
