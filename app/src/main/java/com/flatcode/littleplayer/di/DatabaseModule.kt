@@ -28,7 +28,7 @@ object DatabaseModule {
     ): AppDatabase {
         return Room.databaseBuilder(
             context, AppDatabase::class.java, "little_player_db"
-        ).fallbackToDestructiveMigration(dropAllTables = true).build()
+        ).build()
     }
 
     @Provides

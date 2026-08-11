@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.data.database
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.flatcode.littleplayer.data.dao.AlbumImageDao
@@ -16,8 +17,11 @@ import com.flatcode.littleplayer.data.entity.SongEntity
 
 @Database(
     entities = [SongEntity::class, AlbumImageEntity::class, FavoriteEntity::class, PlaylistEntity::class, RecentEntity::class, CurrentQueueEntity::class, EqualizerEntity::class, PlaybackStateEntity::class],
-    version = 17,
-    exportSchema = false
+    version = 18,
+    autoMigrations = [
+        AutoMigration(from = 17, to = 18)
+    ],
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao
