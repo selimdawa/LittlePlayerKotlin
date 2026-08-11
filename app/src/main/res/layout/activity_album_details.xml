@@ -6,10 +6,15 @@
     android:layout_height="match_parent"
     android:background="?attr/colorOnBackground">
 
+    <include
+        android:id="@+id/customToolbar"
+        layout="@layout/toolbar_custom" />
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/layout_image_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/customToolbar"
         android:layout_marginHorizontal="@dimen/spacing_10"
         android:layout_marginTop="@dimen/spacing_10"
         app:cardCornerRadius="@dimen/spacing_medium"

@@ -439,6 +439,10 @@ class MusicRepository @Inject constructor(
         )
     }
 
+    suspend fun getPlaybackStateSync() = withContext(Dispatchers.IO) {
+        musicDao.getPlaybackStateSync()
+    }
+
     fun updateCurrentPlaylist(songs: List<MusicFiles>, saveToRoom: Boolean = true) {
         _currentPlaylist.value = songs
         if (saveToRoom) {

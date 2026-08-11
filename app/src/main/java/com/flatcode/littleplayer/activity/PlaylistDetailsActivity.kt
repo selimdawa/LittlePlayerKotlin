@@ -21,6 +21,7 @@ import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsEvent
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsViewModel
@@ -80,9 +81,8 @@ class PlaylistDetailsActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.songs.collectWithLifecycle(this) { songs ->
             if (adapter == null) {
-                adapter = MusicAdapter(this, onItemClick = { _, position, view ->
-                    musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                    openPlayer(position, view)
+                adapter = MusicAdapter(this, onItemClick = { _, position, _ ->
+                    musicViewModel.updatePlaylistAndPlay(adapter?.currentList ?: emptyList(), position)
                 }, onDeleteClick = { song ->
                     musicViewModel.deleteSong(song)
                 }, onRemoveFromPlaylistClick = { song ->
@@ -98,10 +98,11 @@ class PlaylistDetailsActivity : AppCompatActivity() {
         }
 
         viewModel.event.collectWithLifecycle(this) { event ->
-            when (event) {
-                is PlaylistDetailsEvent.PlaySong -> {
-                    openPlayer(event.position)
-                }
+        }
+
+        musicViewModel.event.collectWithLifecycle(this) { event ->
+            if (event is MusicEvent.PlaySong) {
+                openPlayer(event.position)
             }
         }
     }

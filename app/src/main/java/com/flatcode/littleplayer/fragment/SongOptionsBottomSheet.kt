@@ -18,7 +18,7 @@ import com.flatcode.littleplayer.utils.requestDeletion
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.flatcode.littleplayer.activity.EditInfoActivity
+import com.flatcode.littleplayer.activity.InfoEditActivity
 import com.flatcode.littleplayer.utils.DATA
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.flatcode.littleplayer.R
@@ -67,7 +67,7 @@ class SongOptionsBottomSheet(
         }
 
         binding.optionEditTags.setOnClickListener {
-            val intent = Intent(requireContext(), EditInfoActivity::class.java).apply {
+            val intent = Intent(requireContext(), InfoEditActivity::class.java).apply {
                 putExtra(DATA.SONG, song)
             }
             startActivity(intent)

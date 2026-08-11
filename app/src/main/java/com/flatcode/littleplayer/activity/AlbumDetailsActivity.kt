@@ -13,8 +13,11 @@ import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
+import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.viewmodel.AlbumDetailsViewModel
+import com.flatcode.littleplayer.viewmodel.AlbumDetailsEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -37,7 +40,12 @@ class AlbumDetailsActivity : AppCompatActivity() {
         observeViewModel()
 
         val albumName = intent.extras?.getString("ALBUM_NAME")
+        initUI(albumName)
         viewModel.filterSongsByAlbum(albumName)
+    }
+
+    private fun initUI(albumName: String?) {
+        initToolbar(albumName ?: getString(com.flatcode.littleplayer.R.string.album))
     }
 
     private fun observeViewModel() {
@@ -58,9 +66,8 @@ class AlbumDetailsActivity : AppCompatActivity() {
                 if (adapter == null) {
                     adapter = MusicAdapter(
                         context,
-                        onItemClick = { _, position, view ->
-                            viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                            openPlayer(position, view)
+                        onItemClick = { _, position, _ ->
+                            musicViewModel.updatePlaylistAndPlay(adapter?.currentList ?: emptyList(), position)
                         },
                         onDeleteClick = { song ->
                             musicViewModel.deleteSong(song)
@@ -71,6 +78,15 @@ class AlbumDetailsActivity : AppCompatActivity() {
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(state.songs)
+            }
+        }
+
+        viewModel.event.collectWithLifecycle(this) { event ->
+            // Handle AlbumDetailsViewModel specific events if any
+        }
+        musicViewModel.event.collectWithLifecycle(this) { event ->
+            if (event is MusicEvent.PlaySong) {
+                openPlayer(event.position)
             }
         }
     }

@@ -78,8 +78,6 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         }
 
         binding.playerContent.nextBtn.setOnClickListener {
-            val animation = AnimationUtils.loadAnimation(requireContext(), R.anim.pulse)
-            binding.playerContent.nextBtn.startAnimation(animation)
             mediaController?.let { controller ->
                 val count = controller.mediaItemCount
                 if (count > 0) {

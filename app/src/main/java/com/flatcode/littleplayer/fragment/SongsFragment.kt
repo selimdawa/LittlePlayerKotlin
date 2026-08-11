@@ -81,14 +81,10 @@ class SongsFragment : Fragment() {
                 is MusicEvent.SongDeleted -> {
                     binding.root.snackbar("File Deleted: ${event.song.title}")
                 }
-
                 is MusicEvent.Error -> {
                     binding.root.snackbar(event.message)
                 }
-
-                is MusicEvent.PlaySong -> {
-                    requireContext().openPlayer(event.position)
-                }
+                else -> {}
             }
         }
     }
@@ -97,10 +93,9 @@ class SongsFragment : Fragment() {
         if (musicAdapter == null) {
             musicAdapter = MusicAdapter(
                 requireContext(),
-                onItemClick = { _, position, view ->
+                onItemClick = { _, position, _ ->
                     val currentFiles = musicAdapter?.currentList ?: return@MusicAdapter
-                    viewModel.updateCurrentPlaylist(ArrayList(currentFiles))
-                    requireContext().openPlayer(position, view)
+                    viewModel.updatePlaylistAndPlay(ArrayList(currentFiles), position)
                 },
                 onDeleteClick = { song ->
                     viewModel.deleteSong(song)

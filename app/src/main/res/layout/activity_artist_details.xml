@@ -6,12 +6,16 @@
     android:layout_height="match_parent"
     android:background="?attr/colorOnBackground">
 
+    <include
+        android:id="@+id/customToolbar"
+        layout="@layout/toolbar_custom" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/customToolbar"
         android:layout_marginHorizontal="@dimen/spacing_5"
-        android:layout_marginTop="@dimen/spacing_10"
         android:paddingBottom="@dimen/spacing_90"
         android:clipToPadding="false"
         android:scrollbars="vertical"

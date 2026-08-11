@@ -253,6 +253,13 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         repository.updateCurrentPlaylist(songs)
     }
 
+    fun updatePlaylistAndPlay(songs: List<MusicFiles>, position: Int) {
+        viewModelScope.launch {
+            updateCurrentPlaylist(songs)
+            _event.emit(MusicEvent.PlaySong(position))
+        }
+    }
+
     fun deleteSong(song: MusicFiles) {
         viewModelScope.launch {
             song.id?.let {

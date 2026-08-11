@@ -34,6 +34,7 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
+import com.flatcode.littleplayer.fragment.PlayerOptionsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
@@ -50,10 +51,10 @@ import com.flatcode.littleplayer.utils.onProgressChanged
 import com.flatcode.littleplayer.utils.setHaloBackground
 import com.flatcode.littleplayer.utils.setHaloSolidBackground
 import com.flatcode.littleplayer.utils.togglePlayPause
+import com.flatcode.littleplayer.viewmodel.MusicEvent
+import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
-import com.flatcode.littleplayer.viewmodel.MusicViewModel
-import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.linc.amplituda.Amplituda
@@ -201,15 +202,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         binding.moreOptions.setOnClickListener {
-            val bottomSheet = com.flatcode.littleplayer.fragment.PlayerOptionsBottomSheet(
+            val bottomSheet = PlayerOptionsBottomSheet(
                 song = viewModel.currentSong.value,
                 mediaController = mediaController,
                 onDeleteClick = { song ->
                     musicViewModel.deleteSong(song)
                     nextBtn(animate = false)
                 },
-                onCastClick = {}
-            )
+                onCastClick = {})
             bottomSheet.show(supportFragmentManager, "PlayerOptions")
         }
 
@@ -389,26 +389,34 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         ) { startProgressUpdater() }
     }
 
-    private fun prevBtn(animate: Boolean = true) {
+    private fun prevBtn(animate: Boolean = true, forceIndex: Int = -1) {
         if (animate) {
             animateSkip(toNext = false)
             return
         }
         mediaController?.let { controller ->
-            controller.seekToPreviousMediaItem()
+            if (forceIndex != -1) {
+                controller.seekToDefaultPosition(forceIndex)
+            } else {
+                controller.seekToPreviousMediaItem()
+            }
             if (!controller.playWhenReady) {
                 controller.play()
             }
         }
     }
 
-    private fun nextBtn(animate: Boolean = true) {
+    private fun nextBtn(animate: Boolean = true, forceIndex: Int = -1) {
         if (animate) {
             animateSkip(toNext = true)
             return
         }
         mediaController?.let { controller ->
-            controller.seekToNextMediaItem()
+            if (forceIndex != -1) {
+                controller.seekToDefaultPosition(forceIndex)
+            } else {
+                controller.seekToNextMediaItem()
+            }
             if (!controller.playWhenReady) {
                 controller.play()
             }
@@ -423,11 +431,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (itemCount <= 0) return
 
         isAnimating = true
-        val nextIndex =
+        val targetIndex =
             if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
 
+        if (targetIndex == -1) {
+            isAnimating = false
+            return
+        }
+
         val nextSong =
-            if (nextIndex in viewModel.listSongs.indices) viewModel.listSongs[nextIndex] else null
+            if (targetIndex in viewModel.listSongs.indices) viewModel.listSongs[targetIndex] else null
 
         nextSong?.let {
             binding.songName.text = it.title ?: getString(R.string.unknown)
@@ -448,11 +461,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                             .listener(
                                 onError = { _, _ ->
                                     currentDominantColor = getLibraryColor("mc_track")
-                                    performSkipAndSlideIn(toNext, inX)
+                                    performSkipAndSlideIn(toNext, inX, targetIndex)
                                 },
                                 onCancel = {
                                     currentDominantColor = getLibraryColor("mc_track")
-                                    performSkipAndSlideIn(toNext, inX)
+                                    performSkipAndSlideIn(toNext, inX, targetIndex)
                                 },
                             ).target { result ->
                                 val bitmap = if (result is BitmapDrawable) {
@@ -472,19 +485,20 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                                 Palette.from(bitmap).generate { palette ->
                                     val defaultColor = getLibraryColor("mc_track")
                                     currentDominantColor = palette.extractVibrantColor(defaultColor)
-                                    performSkipAndSlideIn(toNext, inX)
+                                    performSkipAndSlideIn(toNext, inX, targetIndex)
                                 }
                             }.build()
                     imageLoader.enqueue(request)
                 } else {
                     currentDominantColor = getLibraryColor("mc_track")
-                    performSkipAndSlideIn(toNext, inX)
+                    performSkipAndSlideIn(toNext, inX, targetIndex)
                 }
             }.start()
     }
 
-    private fun performSkipAndSlideIn(toNext: Boolean, inX: Float) {
-        if (toNext) nextBtn(animate = false) else prevBtn(animate = false)
+    private fun performSkipAndSlideIn(toNext: Boolean, inX: Float, targetIndex: Int) {
+        if (toNext) nextBtn(animate = false, forceIndex = targetIndex)
+        else prevBtn(animate = false, forceIndex = targetIndex)
         binding.card.translationX = inX
         binding.card.animate().translationX(0f).alpha(1f).setDuration(200)
             .setInterpolator(DecelerateInterpolator()).withEndAction { isAnimating = false }.start()
@@ -587,9 +601,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 val checkAndPlay = {
                     val currentItem = controller.currentMediaItem
                     val targetSong = viewModel.listSongs.getOrNull(intentPosition)
-                    val isAlreadyPlaying = currentItem != null &&
-                            controller.currentMediaItemIndex == intentPosition &&
-                            currentItem.mediaId == targetSong?.id
+                    val isAlreadyPlaying =
+                        currentItem != null && controller.currentMediaItemIndex == intentPosition && currentItem.mediaId == targetSong?.id
 
                     if (isAlreadyPlaying) {
                         viewModel.updatePositionAndSong(intentPosition)
@@ -648,7 +661,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
-    private fun forcePlaySong(controller: MediaController, pos: Int, keepProgress: Boolean = false) {
+    private fun forcePlaySong(
+        controller: MediaController, pos: Int, keepProgress: Boolean = false
+    ) {
         val currentProgress = if (keepProgress) controller.currentPosition else 0L
         viewModel.updatePositionAndSong(pos, forceUpdate = true)
 

@@ -12,6 +12,7 @@ import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.FolderDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -43,9 +44,8 @@ class FolderDetailsActivity : AppCompatActivity() {
                 if (adapter == null) {
                     adapter = MusicAdapter(
                         context,
-                        onItemClick = { _, position, view ->
-                            viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                            openPlayer(position, view)
+                        onItemClick = { _, position, _ ->
+                            musicViewModel.updatePlaylistAndPlay(adapter?.currentList ?: emptyList(), position)
                         },
                         onDeleteClick = { song ->
                             musicViewModel.deleteSong(song)
@@ -56,6 +56,12 @@ class FolderDetailsActivity : AppCompatActivity() {
                     binding.recyclerView.adapter = adapter
                 }
                 adapter?.submitList(songList)
+            }
+        }
+
+        musicViewModel.event.collectWithLifecycle(this) { event ->
+            if (event is MusicEvent.PlaySong) {
+                openPlayer(event.position)
             }
         }
     }

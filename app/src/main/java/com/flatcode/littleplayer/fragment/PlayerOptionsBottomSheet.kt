@@ -15,7 +15,7 @@ import androidx.media3.cast.MediaRouteButtonFactory
 import com.flatcode.littleplayer.databinding.DialogPlayerOptionsBinding
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.model.MusicFiles
-import com.flatcode.littleplayer.activity.EditInfoActivity
+import com.flatcode.littleplayer.activity.InfoEditActivity
 import com.flatcode.littleplayer.activity.EqualizerActivity
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -88,7 +88,7 @@ class PlayerOptionsBottomSheet(
         )
 
         binding.optionEdit.setOnClickListener {
-            val intent = Intent(requireContext(), EditInfoActivity::class.java).apply {
+            val intent = Intent(requireContext(), InfoEditActivity::class.java).apply {
                 putExtra(DATA.SONG, song)
             }
             startActivity(intent)
