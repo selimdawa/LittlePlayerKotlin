@@ -91,24 +91,43 @@ class SortSongsBottomSheet(
         }
 
         binding.sortBySize.setOnClickListener {
-            val sortType = if (category == DATA.ALBUMS || category == DATA.PLAYLISTS) DATA.SORT_BY_SONG_COUNT else DATA.SORT_BY_SIZE
+            val sortType =
+                if (category == DATA.ALBUMS || category == DATA.PLAYLISTS || category == DATA.ARTISTS || category == DATA.FOLDERS) DATA.SORT_BY_SONG_COUNT else DATA.SORT_BY_SIZE
             if (currentSort != sortType) onSortSelected(category, sortType)
             dismiss()
         }
 
-        if (category == DATA.ALBUMS) {
-            binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_albums)
-            binding.sortByPlayCount.visibility = View.GONE
-            binding.sortByReleaseDate.visibility = View.GONE
-            binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
-        }
+        when (category) {
+            DATA.ALBUMS -> {
+                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_albums)
+                binding.sortByPlayCount.visibility = View.GONE
+                binding.sortByReleaseDate.visibility = View.GONE
+                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+            }
 
-        if (category == DATA.PLAYLISTS) {
-            binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_playlists)
-            binding.sortByDate.visibility = View.GONE
-            binding.sortByPlayCount.visibility = View.GONE
-            binding.sortByReleaseDate.visibility = View.GONE
-            binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+            DATA.PLAYLISTS -> {
+                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_playlists)
+                binding.sortByDate.visibility = View.GONE
+                binding.sortByPlayCount.visibility = View.GONE
+                binding.sortByReleaseDate.visibility = View.GONE
+                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+            }
+
+            DATA.ARTISTS -> {
+                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_artists)
+                binding.sortByDate.visibility = View.GONE
+                binding.sortByPlayCount.visibility = View.GONE
+                binding.sortByReleaseDate.visibility = View.GONE
+                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+            }
+
+            DATA.FOLDERS -> {
+                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_folders)
+                binding.sortByDate.visibility = View.GONE
+                binding.sortByPlayCount.visibility = View.GONE
+                binding.sortByReleaseDate.visibility = View.GONE
+                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+            }
         }
     }
 

@@ -23,6 +23,8 @@
     <string name="search">بحث…</string>
     <string name="sort_songs">فرز الأغاني</string>
     <string name="sort_albums">فرز الألبومات</string>
+    <string name="sort_artists">فرز الفنانين</string>
+    <string name="sort_folders">فرز المجلدات</string>
     <string name="sort_playlists">فرز قوائم التشغيل</string>
     <string name="by_adding_time">حسب وقت الإضافة</string>
     <string name="by_name">حسب الاسم</string>

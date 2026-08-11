@@ -17,6 +17,7 @@ import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollerHelper
+import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ class ArtistsFragment : Fragment() {
 
     private val viewModel: MusicViewModel by activityViewModels()
     private var adapter: ArtistAdapter? = null
+    private var lastSortOrder: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -40,7 +42,16 @@ class ArtistsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.btnFilterSort.visibility = View.GONE
+        binding.toolbar.btnFilterSort.visible()
+
+        binding.toolbar.btnFilterSort.setOnClickListener {
+            val bottomSheet = SortSongsBottomSheet(
+                DATA.ARTISTS, viewModel.artistsSortOrder.value
+            ) { category, sortType ->
+                viewModel.updateSortOrder(category, sortType)
+            }
+            bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
+        }
 
         binding.toolbar.btnShuffle.setOnClickListener {
             viewModel.smartShuffle(DATA.ARTISTS)
@@ -51,12 +62,20 @@ class ArtistsFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.artistFiles.collect { artistList ->
+                    val currentSortOrder = viewModel.artistsSortOrder.value
+                    val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
+                    lastSortOrder = currentSortOrder
+
                     binding.emptyState.isVisible = artistList.isEmpty()
                     if (artistList.isNotEmpty()) {
                         if (adapter == null) {
                             setupAdapter()
                         }
-                        adapter?.submitList(artistList)
+                        adapter?.submitList(artistList) {
+                            if (shouldScrollToTop) {
+                                binding.recyclerView.scrollToPosition(0)
+                            }
+                        }
                     } else {
                         adapter?.submitList(emptyList())
                     }

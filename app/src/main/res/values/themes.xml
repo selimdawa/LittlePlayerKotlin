@@ -4,6 +4,10 @@
         <item name="cornerSize">8dp</item>
     </style>
 
+    <style name="ShapeAppearance.App.Rounded13" parent="">
+        <item name="cornerSize">13dp</item>
+    </style>
+
     <style name="RoundedImage">
         <item name="cornerSize">16dp</item>
     </style>

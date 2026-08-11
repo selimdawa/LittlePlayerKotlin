@@ -19,6 +19,7 @@ import com.flatcode.littleplayer.adapter.FolderAdapter
 import com.flatcode.littleplayer.databinding.FragmentFoldersBinding
 import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,6 +34,7 @@ class FoldersFragment : Fragment() {
 
     private val viewModel: MusicViewModel by activityViewModels()
     private var adapter: FolderAdapter? = null
+    private var lastSortOrder: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -43,7 +45,16 @@ class FoldersFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.btnFilterSort.visibility = View.GONE
+        binding.toolbar.btnFilterSort.visible()
+
+        binding.toolbar.btnFilterSort.setOnClickListener {
+            val bottomSheet = SortSongsBottomSheet(
+                DATA.FOLDERS, viewModel.foldersSortOrder.value
+            ) { category, sortType ->
+                viewModel.updateSortOrder(category, sortType)
+            }
+            bottomSheet.show(childFragmentManager, "SortSongsBottomSheet")
+        }
 
         binding.toolbar.btnShuffle.setOnClickListener {
             viewModel.smartShuffle(DATA.FOLDERS)
@@ -54,12 +65,20 @@ class FoldersFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.folderFiles.collect { folderList ->
+                    val currentSortOrder = viewModel.foldersSortOrder.value
+                    val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
+                    lastSortOrder = currentSortOrder
+
                     binding.emptyState.isVisible = folderList.isEmpty()
                     if (folderList.isNotEmpty()) {
                         if (adapter == null) {
                             setupAdapter()
                         }
-                        adapter?.submitList(folderList)
+                        adapter?.submitList(folderList) {
+                            if (shouldScrollToTop) {
+                                binding.recyclerView.scrollToPosition(0)
+                            }
+                        }
                     } else {
                         adapter?.submitList(emptyList())
                     }

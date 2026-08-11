@@ -23,6 +23,8 @@
     <string name="search">Buscar…</string>
     <string name="sort_songs">Ordenar canciones</string>
     <string name="sort_albums">Ordenar álbumes</string>
+    <string name="sort_artists">Ordenar artistas</string>
+    <string name="sort_folders">Ordenar carpetas</string>
     <string name="sort_playlists">Ordenar listas</string>
     <string name="by_adding_time">Por fecha de adición</string>
     <string name="by_name">Por nombre</string>
