@@ -900,17 +900,17 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 COMMAND_SET_EQ_BAND -> {
                     val band = args.getShort("BAND", 0)
                     val level = args.getShort("LEVEL", 0)
-                    try {
-                        if (band.toInt() in currentBandLevels.indices) {
-                            currentBandLevels[band.toInt()] = level
-                            if (currentPreset == "Custom") {
-                                customBandLevels[band.toInt()] = level
+                        try {
+                            if (band.toInt() in currentBandLevels.indices) {
+                                currentBandLevels[band.toInt()] = level
+                                if (currentPreset == "Custom") {
+                                    customBandLevels[band.toInt()] = level
+                                }
                             }
+                            equalizer?.setBandLevel(band, level)
+                        } catch (e: Exception) {
+                            // Ignored
                         }
-                        equalizer?.setBandLevel(band, level)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
                 }
 
                 COMMAND_TOGGLE_EQ -> {
