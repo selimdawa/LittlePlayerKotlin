@@ -131,8 +131,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.waveformSeekBar.waveProgressColor = brightColor
         binding.waveformSeekBar.waveBackgroundColor = "#4DFFFFFF".toColorInt() // 30% White
 
-        binding.btnShuffle.imageTintList = colorStateList
-
         binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC) 4 else 1
         binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE) 4 else 1
         binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE) 4 else 1
@@ -150,10 +148,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
         binding.whiteColor.setOnClickListener {
             nowPlayerViewModel.setThemeColorMode(DATA.MODE_WHITE)
-        }
-
-        binding.btnShuffle.setOnClickListener {
-            musicViewModel.smartShuffle(DATA.SONGS)
         }
 
         binding.seekBar.onProgressChanged { progress, fromUser ->
@@ -179,6 +173,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     (!controller.shuffleModeEnabled) && (controller.repeatMode == Player.REPEAT_MODE_ONE) -> {
                         controller.repeatMode = Player.REPEAT_MODE_ALL
                         controller.shuffleModeEnabled = true
+                        musicViewModel.smartShuffle("Current", viewModel.currentSong.value)
                     }
 
                     else -> {
@@ -263,7 +258,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         musicViewModel.event.collectWithLifecycle(this) { event ->
             if (event is MusicEvent.PlaySong) {
                 mediaController?.let { controller ->
-                    forcePlaySong(controller, event.position)
+                    forcePlaySong(controller, event.position, event.keepProgress)
                 }
             }
         }
@@ -642,7 +637,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
-    private fun forcePlaySong(controller: MediaController, pos: Int) {
+    private fun forcePlaySong(controller: MediaController, pos: Int, keepProgress: Boolean = false) {
+        val currentProgress = if (keepProgress) controller.currentPosition else 0L
         viewModel.updatePositionAndSong(pos, forceUpdate = true)
 
         val mediaItems: List<MediaItem> = viewModel.listSongs.map { song ->
@@ -658,7 +654,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 .build()
         }
 
-        controller.setMediaItems(mediaItems, pos, 0L)
+        controller.setMediaItems(mediaItems, pos, currentProgress)
         controller.prepare()
         controller.play()
 

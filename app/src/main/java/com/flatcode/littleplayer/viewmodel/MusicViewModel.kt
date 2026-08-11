@@ -212,32 +212,39 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }
 
-    fun smartShuffle(category: String) {
+    fun smartShuffle(category: String, currentSong: MusicFiles? = null) {
         viewModelScope.launch {
             val fullList = repository.getAllAudio(DATA.SORT_BY_DATE)
-            val songs = when (category) {
+            val shuffledSongs = when (category) {
                 DATA.SONGS -> fullList.shuffled()
                 DATA.ALBUMS -> {
                     val album = albumFiles.value.randomOrNull()?.album
-                    fullList.filter { it.album == album }
+                    fullList.filter { it.album == album }.shuffled()
                 }
-
                 DATA.ARTISTS -> {
                     val artist = artistFiles.value.randomOrNull()?.name
-                    fullList.filter { it.artist == artist }
+                    fullList.filter { it.artist == artist }.shuffled()
                 }
-
                 DATA.FOLDERS -> {
                     val folder = folderFiles.value.randomOrNull()?.path
-                    fullList.filter { it.path?.startsWith(folder ?: "") == true }
+                    fullList.filter { it.path?.startsWith(folder ?: "") == true }.shuffled()
                 }
-
+                "Current" -> {
+                    repository.currentPlaylist.value.shuffled()
+                }
                 else -> emptyList()
             }
 
-            if (songs.isNotEmpty()) {
-                updateCurrentPlaylist(songs)
-                _event.emit(MusicEvent.PlaySong(0))
+            if (shuffledSongs.isNotEmpty()) {
+                val finalSongs = if (currentSong != null) {
+                    val remaining = shuffledSongs.filter { it.id != currentSong.id }
+                    listOf(currentSong) + remaining
+                } else {
+                    shuffledSongs
+                }
+                
+                updateCurrentPlaylist(finalSongs)
+                _event.emit(MusicEvent.PlaySong(0, keepProgress = currentSong != null))
             }
         }
     }
@@ -282,5 +289,5 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 sealed class MusicEvent {
     data class SongDeleted(val song: MusicFiles) : MusicEvent()
     data class Error(val message: String) : MusicEvent()
-    data class PlaySong(val position: Int) : MusicEvent()
+    data class PlaySong(val position: Int, val keepProgress: Boolean = false) : MusicEvent()
 }

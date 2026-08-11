@@ -474,9 +474,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
             val favIcon = if (isFav) R.drawable.ic_favorite else R.drawable.ic_favorite_border
 
             val cycleIcon = when {
-                player.shuffleModeEnabled -> R.drawable.ic_shuffle_on
-                player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                else -> R.drawable.ic_repeat
+                player.shuffleModeEnabled -> R.drawable.ic_shuffle_on_24
+                player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one_24
+                else -> R.drawable.ic_repeat_24
             }
 
             val favoriteButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
@@ -489,7 +489,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
             val stopButton = CommandButton.Builder(CommandButton.ICON_UNDEFINED)
                 .setSessionCommand(customCommandStop).setDisplayName(getString(R.string.stop))
-                .setCustomIconResId(R.drawable.ic_close).build()
+                .setCustomIconResId(R.drawable.ic_close_24).build()
 
             mediaSession?.setCustomLayout(listOf(favoriteButton, cycleButton, stopButton))
         }
@@ -893,10 +893,23 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         }
 
                         !player.shuffleModeEnabled && player.repeatMode == Player.REPEAT_MODE_ONE -> {
+                            // When triggered from notification cycle, we still want the smart shuffle behavior
+                            // For simplicity in the service, we'll shuffle the current queue items
+                            val items = mutableListOf<MediaItem>()
+                            for (i in 0 until player.mediaItemCount) {
+                                items.add(player.getMediaItemAt(i))
+                            }
+                            
+                            val currentIndex = player.currentMediaItemIndex
+                            val currentItem = if (currentIndex != -1) items.removeAt(currentIndex) else null
+                            
+                            items.shuffle()
+                            if (currentItem != null) items.add(0, currentItem)
+                            
+                            player.setMediaItems(items, 0, player.currentPosition)
                             player.repeatMode = Player.REPEAT_MODE_ALL
                             player.shuffleModeEnabled = true
-                            // Force a new shuffle order when enabling shuffle
-                            basePlayer?.setShuffleOrder(androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder(player.mediaItemCount))
+                            player.prepare()
                         }
 
                         else -> {
