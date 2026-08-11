@@ -162,8 +162,8 @@
     <string name="pitch">درجة الصوت</string>
     <string name="reset">إعادة ضبط</string>
 
-    <string name="edit_tags">تعديل البيانات</string>
-    <string name="tag_editor">محرر البيانات</string>
+    <string name="edit_tags">تعديل المعلومات</string>
+    <string name="tag_editor">تعديل المعلومات</string>
     <string name="title">العنوان</string>
     <string name="artist">الفنان</string>
     <string name="album">الألبوم</string>

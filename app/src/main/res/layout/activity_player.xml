@@ -312,7 +312,7 @@
                     android:id="@+id/play_pause_btn"
                     android:layout_width="@dimen/spacing_80"
                     android:layout_height="@dimen/spacing_80"
-                    android:background="@drawable/ic_gradient_border"
+                    android:background="@drawable/ic_play_pause_halo"
                     android:clickable="true"
                     android:focusable="true">
 

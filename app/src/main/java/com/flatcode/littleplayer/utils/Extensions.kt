@@ -108,24 +108,56 @@ fun View.setGradientBackground(
     shape?.colors = intArrayOf(startColor, endColor)
 }
 
+fun View.setHaloBackground(
+    @ColorInt startColor: Int,
+    @ColorInt endColor: Int,
+) {
+    val background = background?.mutate() as? LayerDrawable ?: return
+    if (background.numberOfLayers < 2) return
+
+    val density = context.resources.displayMetrics.density
+
+    // 1. Soft Blurry Layer (Layer 0)
+    (background.getDrawable(0) as? GradientDrawable)?.apply {
+        val blurColor = Color.argb(
+            60, // Very soft alpha for pure blur effect
+            (Color.red(startColor) + Color.red(endColor)) / 2,
+            (Color.green(startColor) + Color.green(endColor)) / 2,
+            (Color.blue(startColor) + Color.blue(endColor)) / 2
+        )
+        colors = intArrayOf(blurColor, Color.TRANSPARENT)
+        gradientType = GradientDrawable.RADIAL_GRADIENT
+        gradientRadius = 45f * density
+    }
+
+    // 2. Main Border Ring (Layer 1)
+    (background.getDrawable(1) as? GradientDrawable)?.apply {
+        colors = intArrayOf(startColor, endColor)
+    }
+}
+
+fun View.setHaloSolidBackground(@ColorInt color: Int) {
+    setHaloBackground(color, color)
+}
+
 fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
     setGradientBackground(color, color, layerIndex)
 }
 
 fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
     val request = ImageRequest.Builder(this).data(data).allowHardware(enable = false).listener(
-            onError = { _, _ -> onPaletteGenerated(null) },
-            onCancel = { onPaletteGenerated(null) },
-        ).target { result ->
-            val bitmap = (result as? BitmapDrawable)?.bitmap
-            if (bitmap != null) {
-                Palette.from(bitmap).generate { palette ->
-                    onPaletteGenerated(palette)
-                }
-            } else {
-                onPaletteGenerated(null)
+        onError = { _, _ -> onPaletteGenerated(null) },
+        onCancel = { onPaletteGenerated(null) },
+    ).target { result ->
+        val bitmap = (result as? BitmapDrawable)?.bitmap
+        if (bitmap != null) {
+            Palette.from(bitmap).generate { palette ->
+                onPaletteGenerated(palette)
             }
-        }.build()
+        } else {
+            onPaletteGenerated(null)
+        }
+    }.build()
     imageLoader.enqueue(request)
 }
 

@@ -158,8 +158,8 @@
     <string name="pitch">Pitch</string>
     <string name="reset">Reset</string>
 
-    <string name="edit_tags">Edit Tags</string>
-    <string name="tag_editor">Tag Editor</string>
+    <string name="edit_tags">Edit Info</string>
+    <string name="tag_editor">Edit Info</string>
     <string name="title">Title</string>
     <string name="artist">Artist</string>
     <string name="album">Album</string>
