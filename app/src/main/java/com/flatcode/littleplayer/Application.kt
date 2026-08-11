@@ -16,7 +16,6 @@ import dagger.hilt.android.HiltAndroidApp
 import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 

@@ -18,7 +18,6 @@ import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
-import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
@@ -43,6 +42,7 @@ import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.seconds
 
 @Singleton
 class MusicRepository @Inject constructor(
@@ -65,7 +65,7 @@ class MusicRepository @Inject constructor(
     private fun scheduleSync() {
         syncJob?.cancel()
         syncJob = repositoryScope.launch {
-            delay(3000)
+            delay(3.seconds)
             try {
                 syncWithMediaStore()
             } catch (e: Exception) {

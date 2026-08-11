@@ -14,11 +14,10 @@ import com.flatcode.littleplayer.databinding.ActivityPlaylistDetailsBinding
 import com.flatcode.littleplayer.databinding.DialogConfirmDeleteBinding
 import com.flatcode.littleplayer.databinding.DialogPlaylistNewBinding
 import com.flatcode.littleplayer.fragment.SortSongsBottomSheet
-import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
-import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -26,7 +25,6 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsEvent
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -90,7 +88,9 @@ class PlaylistDetailsActivity : AppCompatActivity() {
                 }, onRemoveFromPlaylistClick = { song ->
                     viewModel.removeSongFromPlaylist(currentPlaylistName, song.id ?: "")
                 }).apply {
-                    bindToPlaybackSync(this@PlaylistDetailsActivity, nowPlayerViewModel, binding.root)
+                    bindToPlaybackSync(
+                        this@PlaylistDetailsActivity, nowPlayerViewModel, binding.root
+                    )
                 }
                 binding.recyclerView.adapter = adapter
             }

@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -17,7 +16,8 @@ class FolderAdapter(
     private val context: Context,
     private val onItemClick: (String, String, View) -> Unit,
     private val onMenuClick: (Folder, View) -> Unit
-) : ListAdapter<Folder, FolderAdapter.FolderViewHolder>(FolderDiffCallback()), FastScrollableAdapter {
+) : ListAdapter<Folder, FolderAdapter.FolderViewHolder>(FolderDiffCallback()),
+    FastScrollableAdapter {
 
     class FolderViewHolder(val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -29,11 +29,13 @@ class FolderAdapter(
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
         val folder = getItem(position)
         holder.binding.folderName.text = folder.name
-        
+
         val context = holder.itemView.context
         val songCount = folder.songsCount
-        val songsText = context.resources.getQuantityString(R.plurals.songs_count, songCount, songCount)
-        holder.binding.folderDetails.text = context.getString(R.string.folder_details_format, songsText, folder.path)
+        val songsText =
+            context.resources.getQuantityString(R.plurals.songs_count, songCount, songCount)
+        holder.binding.folderDetails.text =
+            context.getString(R.string.folder_details_format, songsText, folder.path)
 
         holder.itemView.setOnClickListener {
             onItemClick(folder.name ?: "", folder.path ?: "", holder.itemView)

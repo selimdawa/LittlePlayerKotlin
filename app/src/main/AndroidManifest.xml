@@ -142,7 +142,7 @@
         </receiver>
 
         <receiver
-            android:name=".widget.MusicWidgetProviderLarge"
+            android:name=".widget.MusicWidgetProviderCompact"
             android:exported="true"
             android:label="Little Player (Compact)">
             <intent-filter>

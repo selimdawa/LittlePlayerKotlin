@@ -58,6 +58,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @UnstableApi
 @AndroidEntryPoint
@@ -404,7 +405,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         updateLastPlayedJob?.cancel()
         updateLastPlayedJob = serviceScope.launch(Dispatchers.IO) {
             if (!immediate) {
-                delay(1000L)
+                delay(1.seconds)
             }
             repository.insertRecent(
                 RecentEntity(

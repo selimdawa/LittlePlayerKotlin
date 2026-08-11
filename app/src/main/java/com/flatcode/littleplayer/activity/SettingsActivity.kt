@@ -29,8 +29,10 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.SettingsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @AndroidEntryPoint
@@ -131,7 +133,7 @@ class SettingsActivity : AppCompatActivity() {
                         dialog.dismiss()
                         
                         val providerClass = if (which == 0) {
-                            "com.flatcode.littleplayer.widget.MusicWidgetProviderLarge"
+                            "com.flatcode.littleplayer.widget.MusicWidgetProviderCompact"
                         } else {
                             "com.flatcode.littleplayer.widget.MusicWidgetProvider"
                         }
@@ -149,9 +151,8 @@ class SettingsActivity : AppCompatActivity() {
                             if (success) {
                                 android.widget.Toast.makeText(this, getString(R.string.widget_added_success), android.widget.Toast.LENGTH_SHORT).show()
                                 
-                                // Delay navigation to home screen to allow system dialog to appear
                                 lifecycleScope.launch {
-                                    kotlinx.coroutines.delay(500)
+                                    delay(500.milliseconds)
                                     val intent = android.content.Intent(android.content.Intent.ACTION_MAIN)
                                     intent.addCategory(android.content.Intent.CATEGORY_HOME)
                                     intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
@@ -183,7 +184,7 @@ class SettingsActivity : AppCompatActivity() {
 
         alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        val currentLocale = AppCompatDelegate.getApplicationLocales()[0]
+        val currentLocale = AppCompatDelegate.getApplicationLocales().get(0)
         val currentTag = currentLocale?.language ?: ""
 
         view.findViewById<View>(R.id.checkSystem).isVisible = currentTag == ""

@@ -102,7 +102,7 @@ class KnobView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x - (width / 2)
         val y = event.y - (height / 2)
-        
+
         var angle = atan2(y.toDouble(), x.toDouble()) * 180.0 / PI
         angle = (angle + 360) % 360
 
@@ -110,7 +110,7 @@ class KnobView @JvmOverloads constructor(
         if (relativeAngle > sweepAngle + 30) return true // Dead zone
 
         val newProgress = (relativeAngle / sweepAngle * 100).toInt().coerceIn(0, 100)
-        
+
         if (newProgress != progress) {
             progress = newProgress
             onProgressChanged?.invoke(progress, true)

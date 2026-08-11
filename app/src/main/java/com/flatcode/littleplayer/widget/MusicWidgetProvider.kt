@@ -41,7 +41,7 @@ class MusicWidgetProvider : AppWidgetProvider() {
                 R.layout.layout_widget_modern, title, artist, isPlaying, isShuffle, isFavorite, imagePath)
                 
             // Update Compact Version
-            updateWidgetUI(context, appWidgetManager, ComponentName(context, MusicWidgetProviderLarge::class.java), 
+            updateWidgetUI(context, appWidgetManager, ComponentName(context, MusicWidgetProviderCompact::class.java), 
                 R.layout.layout_widget_modern_compact, title, artist, isPlaying, isShuffle, isFavorite, imagePath)
         }
     }
@@ -104,7 +104,7 @@ class MusicWidgetProvider : AppWidgetProvider() {
 }
 
 @UnstableApi
-class MusicWidgetProviderLarge : AppWidgetProvider() {
+class MusicWidgetProviderCompact : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.layout_widget_modern_compact)

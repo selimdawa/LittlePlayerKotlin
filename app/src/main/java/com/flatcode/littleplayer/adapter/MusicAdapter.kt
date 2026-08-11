@@ -21,8 +21,7 @@ class MusicAdapter(
     private val onItemClick: (MusicFiles, Int, View) -> Unit,
     private val onDeleteClick: (MusicFiles) -> Unit,
     private val onRemoveFromPlaylistClick: ((MusicFiles) -> Unit)? = null,
-) : BaseMusicAdapter<MusicAdapter.MusicViewHolder>(MusicDiffCallback()),
-    FastScrollableAdapter {
+) : BaseMusicAdapter<MusicAdapter.MusicViewHolder>(MusicDiffCallback()), FastScrollableAdapter {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
         val binding = ItemMusicBinding.inflate(LayoutInflater.from(context), parent, false)
@@ -33,8 +32,10 @@ class MusicAdapter(
         val currentFile = getItem(position)
 
         holder.binding.songName.text = currentFile.title
-        val artist = if (currentFile.safeArtist == DATA.UNKNOWN) context.getString(R.string.unknown) else currentFile.safeArtist
-        val album = if (currentFile.safeAlbum == DATA.UNKNOWN) context.getString(R.string.unknown) else currentFile.safeAlbum
+        val artist =
+            if (currentFile.safeArtist == DATA.UNKNOWN) context.getString(R.string.unknown) else currentFile.safeArtist
+        val album =
+            if (currentFile.safeAlbum == DATA.UNKNOWN) context.getString(R.string.unknown) else currentFile.safeAlbum
         val songDetailsText = context.getString(R.string.song_details_format, artist, album)
         holder.binding.songDetails.text = songDetailsText
 
