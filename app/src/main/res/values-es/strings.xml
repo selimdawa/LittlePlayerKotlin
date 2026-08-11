@@ -10,6 +10,9 @@
     <string name="night_mode">Modo noche</string>
     <string name="next_song">Siguiente canción</string>
     <string name="songs">Canciones</string>
+    <string name="albums">Álbumes</string>
+    <string name="artists">Artistas</string>
+    <string name="folders">Carpetas</string>
     <string name="_12_songs_storage_emulated_0_music_songs">12 canciones | /storage/emulated/0/Music/Songs/</string>
     <string name="song_details_format">%1$s | %2$s</string>
     <string name="favorite">Favorito</string>

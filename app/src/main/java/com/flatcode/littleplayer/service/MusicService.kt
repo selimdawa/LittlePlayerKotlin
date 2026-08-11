@@ -192,14 +192,32 @@ class MusicService : MediaSessionService(), Player.Listener {
 
             for (i in mediaButtons.indices) {
                 val commandButton = mediaButtons[i]
-                val iconRes = commandButton.iconResId
+                var iconRes = commandButton.iconResId
                 
-                val icon = if (iconRes == R.drawable.ic_shuffle_on || 
-                            iconRes == R.drawable.ic_repeat || 
-                            iconRes == R.drawable.ic_repeat_one ||
-                            iconRes == R.drawable.ic_play || 
-                            iconRes == R.drawable.ic_pause) {
-                    val bitmap = getResizedBitmap(iconRes, 24)
+                // Force match icons with PlayerActivity for standard actions
+                if (commandButton.playerCommand == Player.COMMAND_PLAY_PAUSE) {
+                    iconRes = if (exoPlayer?.isPlaying == true) R.drawable.ic_pause else R.drawable.ic_play
+                } else if (commandButton.playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS || 
+                           commandButton.playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM) {
+                    iconRes = R.drawable.ic_skip_previous
+                } else if (commandButton.playerCommand == Player.COMMAND_SEEK_TO_NEXT || 
+                           commandButton.playerCommand == Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM) {
+                    iconRes = R.drawable.ic_skip_next
+                }
+
+                val needsResizing = iconRes == R.drawable.ic_shuffle_on || 
+                                   iconRes == R.drawable.ic_repeat || 
+                                   iconRes == R.drawable.ic_repeat_one ||
+                                   iconRes == R.drawable.ic_repeat_off ||
+                                   iconRes == R.drawable.ic_favorite ||
+                                   iconRes == R.drawable.ic_favorite_border ||
+                                   iconRes == R.drawable.ic_play || 
+                                   iconRes == R.drawable.ic_pause ||
+                                   iconRes == R.drawable.ic_skip_next ||
+                                   iconRes == R.drawable.ic_skip_previous
+
+                val icon = if (needsResizing) {
+                    val bitmap = getResizedBitmap(iconRes, 24) // Back to 24dp but with 25% internal padding
                     if (bitmap != null) IconCompat.createWithBitmap(bitmap)
                     else IconCompat.createWithResource(this@MusicService, iconRes)
                 } else {
@@ -231,14 +249,10 @@ class MusicService : MediaSessionService(), Player.Listener {
                 if (compactViewIndex in 0..2) {
                     hasCustomCompactViewIndices = true
                     compactViewIndices[compactViewIndex] = i
-                } else {
-                    // This part is simplified but should handle SLOT_BACK/CENTRAL/FORWARD if possible
-                    // For now, we'll just let it be.
                 }
             }
 
             if (!hasCustomCompactViewIndices) {
-                // Basic default: show first 3 actions if possible
                 return intArrayOf(0, 1, 2).filter { it < mediaButtons.size }.toIntArray()
             }
 
@@ -375,6 +389,15 @@ class MusicService : MediaSessionService(), Player.Listener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        when (intent?.action) {
+            ACTION_PLAY_PAUSE -> {
+                exoPlayer?.let {
+                    if (it.isPlaying) it.pause() else it.play()
+                }
+            }
+            ACTION_NEXT -> exoPlayer?.seekToNext()
+            ACTION_PREV -> exoPlayer?.seekToPrevious()
+        }
         return START_STICKY
     }
 
@@ -468,6 +491,30 @@ class MusicService : MediaSessionService(), Player.Listener {
         if (!isPlaying) {
             updateLastPlayedInfo()
         }
+        sendWidgetUpdate()
+    }
+
+    private fun sendWidgetUpdate() {
+        val intent = Intent(ACTION_UPDATE_WIDGET)
+        intent.setPackage(packageName)
+        exoPlayer?.let { player ->
+            val metadata = player.mediaMetadata
+            intent.putExtra("title", metadata.title?.toString() ?: getString(R.string.song_title))
+            intent.putExtra("artist", metadata.artist?.toString() ?: getString(R.string.artist_name))
+            intent.putExtra("isPlaying", player.isPlaying)
+
+            val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
+            if (!cachedPath.isNullOrEmpty()) {
+                intent.putExtra("imagePath", cachedPath)
+                sendBroadcast(intent)
+            } else {
+                serviceScope.launch {
+                    val pathFromStore = dataStore.data.map { it[cachedImagePathKey] }.first()
+                    intent.putExtra("imagePath", pathFromStore)
+                    sendBroadcast(intent)
+                }
+            }
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -506,6 +553,7 @@ class MusicService : MediaSessionService(), Player.Listener {
         }
         updateLastPlayedInfo()
         updateNotificationLayout()
+        sendWidgetUpdate()
     }
 
     private fun loadArtForCurrentItem(player: Player, forceDefaultRefresh: Boolean = false) {
@@ -788,5 +836,10 @@ class MusicService : MediaSessionService(), Player.Listener {
         const val COMMAND_SET_VIRTUALIZER = "COMMAND_SET_VIRTUALIZER"
         const val COMMAND_STOP_SERVICE = "COMMAND_STOP_SERVICE"
         const val COMMAND_SET_PRESET = "COMMAND_SET_PRESET"
+
+        const val ACTION_UPDATE_WIDGET = "com.flatcode.littleplayer.ACTION_UPDATE_WIDGET"
+        const val ACTION_PLAY_PAUSE = "com.flatcode.littleplayer.ACTION_PLAY_PAUSE"
+        const val ACTION_NEXT = "com.flatcode.littleplayer.ACTION_NEXT"
+        const val ACTION_PREV = "com.flatcode.littleplayer.ACTION_PREV"
     }
 }

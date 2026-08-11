@@ -10,6 +10,9 @@
     <string name="night_mode">Night Mode</string>
     <string name="next_song">Next Song</string>
     <string name="songs">Songs</string>
+    <string name="albums">Albums</string>
+    <string name="artists">Artists</string>
+    <string name="folders">Folders</string>
     <string name="_12_songs_storage_emulated_0_music_songs">12 songs | /storage/emulated/0/Music/Songs/</string>
     <string name="song_details_format">%1$s | %2$s</string>
     <string name="favorite">Favorite</string>

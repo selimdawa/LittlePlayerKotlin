@@ -10,6 +10,9 @@
     <string name="night_mode">الوضع الليلي</string>
     <string name="next_song">الأغنية التالية</string>
     <string name="songs">الأغاني</string>
+    <string name="albums">الألبومات</string>
+    <string name="artists">الفنانون</string>
+    <string name="folders">المجلدات</string>
     <string name="_12_songs_storage_emulated_0_music_songs">12 أغنية | /storage/emulated/0/Music/Songs/</string>
     <string name="song_details_format">%1$s | %2$s</string>
     <string name="favorite">المفضلة</string>

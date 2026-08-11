@@ -174,10 +174,10 @@ class MainActivity : AppCompatActivity() {
     private fun setupUI() {
         viewModel.loadAudioData()
         val adapter = ViewPagerAdapter(this).apply {
-            addFragment(DATA.SONGS) { SongsFragment() }
-            addFragment(DATA.ALBUMS) { AlbumsFragment() }
-            addFragment(DATA.ARTISTS) { ArtistsFragment() }
-            addFragment(DATA.FOLDERS) { FoldersFragment() }
+            addFragment(getString(R.string.songs)) { SongsFragment() }
+            addFragment(getString(R.string.albums)) { AlbumsFragment() }
+            addFragment(getString(R.string.artists)) { ArtistsFragment() }
+            addFragment(getString(R.string.folders)) { FoldersFragment() }
         }
         binding.viewPager.adapter = adapter
 

@@ -65,7 +65,7 @@ class PlaylistsActivity : AppCompatActivity() {
             isVisible = true
             setOnClickListener {
                 val bottomSheet = SortSongsBottomSheet(
-                    DATA.PLAYLISTS, viewModel.playlistsSortOrder.value
+                    "Playlists", viewModel.playlistsSortOrder.value
                 ) { category, sortType ->
                     viewModel.updateSortOrder(category, sortType)
                 }
