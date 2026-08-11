@@ -147,47 +147,47 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
         exoPlayer = object : ForwardingPlayer(primaryPlayer) {
             override fun getAvailableCommands(): Player.Commands {
-                return super.getAvailableCommands().buildUpon().add(COMMAND_SEEK_TO_NEXT)
-                    .add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(COMMAND_SEEK_TO_PREVIOUS)
-                    .add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).build()
+                return super.availableCommands.buildUpon()
+                    .add(COMMAND_SEEK_TO_NEXT)
+                    .add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                    .add(COMMAND_SEEK_TO_PREVIOUS)
+                    .add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                    .build()
             }
 
             override fun isCommandAvailable(command: Int): Boolean {
                 return when (command) {
-                    COMMAND_SEEK_TO_NEXT, COMMAND_SEEK_TO_NEXT_MEDIA_ITEM, COMMAND_SEEK_TO_PREVIOUS, COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> mediaItemCount > 0
-
+                    COMMAND_SEEK_TO_NEXT, COMMAND_SEEK_TO_NEXT_MEDIA_ITEM, 
+                    COMMAND_SEEK_TO_PREVIOUS, COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> mediaItemCount > 0
                     else -> super.isCommandAvailable(command)
                 }
             }
 
-            override fun hasNextMediaItem(): Boolean = mediaItemCount > 0
-            override fun hasPreviousMediaItem(): Boolean = mediaItemCount > 0
-
             override fun getNextMediaItemIndex(): Int {
                 val count = mediaItemCount
                 if (count <= 0) return -1
-                return (currentMediaItemIndex + 1) % count
+                val next = super.nextMediaItemIndex
+                return if (next == -1) (currentMediaItemIndex + 1) % count else next
             }
 
             override fun getPreviousMediaItemIndex(): Int {
                 val count = mediaItemCount
                 if (count <= 0) return -1
-                return (currentMediaItemIndex - 1 + count) % count
+                val prev = super.previousMediaItemIndex
+                return if (prev == -1) (currentMediaItemIndex - 1 + count) % count else prev
             }
 
             override fun seekToNextMediaItem() {
-                val next = getNextMediaItemIndex()
-                if (next != -1) {
-                    seekToDefaultPosition(next)
-                    if (!playWhenReady) play()
+                val nextIndex = nextMediaItemIndex
+                if (nextIndex != -1) {
+                    seekToDefaultPosition(nextIndex)
                 }
             }
 
             override fun seekToPreviousMediaItem() {
-                val prev = getPreviousMediaItemIndex()
-                if (prev != -1) {
-                    seekToDefaultPosition(prev)
-                    if (!playWhenReady) play()
+                val prevIndex = previousMediaItemIndex
+                if (prevIndex != -1) {
+                    seekToDefaultPosition(prevIndex)
                 }
             }
 
@@ -365,7 +365,11 @@ class MusicService : MediaLibraryService(), Player.Listener {
             ACTION_PREV -> exoPlayer?.seekToPrevious()
             ACTION_SHUFFLE -> {
                 exoPlayer?.let {
-                    it.shuffleModeEnabled = !it.shuffleModeEnabled
+                    val nextShuffle = !it.shuffleModeEnabled
+                    it.shuffleModeEnabled = nextShuffle
+                    if (nextShuffle) {
+                        basePlayer?.setShuffleOrder(androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder(it.mediaItemCount))
+                    }
                     sendWidgetUpdate()
                 }
             }
@@ -891,6 +895,8 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         !player.shuffleModeEnabled && player.repeatMode == Player.REPEAT_MODE_ONE -> {
                             player.repeatMode = Player.REPEAT_MODE_ALL
                             player.shuffleModeEnabled = true
+                            // Force a new shuffle order when enabling shuffle
+                            basePlayer?.setShuffleOrder(androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder(player.mediaItemCount))
                         }
 
                         else -> {

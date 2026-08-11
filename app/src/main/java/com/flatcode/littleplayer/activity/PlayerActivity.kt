@@ -52,6 +52,7 @@ import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlayerViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
+import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.linc.amplituda.Amplituda
@@ -130,6 +131,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.waveformSeekBar.waveProgressColor = brightColor
         binding.waveformSeekBar.waveBackgroundColor = "#4DFFFFFF".toColorInt() // 30% White
 
+        binding.btnShuffle.imageTintList = colorStateList
+
         binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC) 4 else 1
         binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE) 4 else 1
         binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE) 4 else 1
@@ -147,6 +150,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
         binding.whiteColor.setOnClickListener {
             nowPlayerViewModel.setThemeColorMode(DATA.MODE_WHITE)
+        }
+
+        binding.btnShuffle.setOnClickListener {
+            musicViewModel.smartShuffle(DATA.SONGS)
         }
 
         binding.seekBar.onProgressChanged { progress, fromUser ->
@@ -249,6 +256,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 if (!isTransitionStarted) {
                     isTransitionStarted = true
                     startPostponedEnterTransition()
+                }
+            }
+        }
+
+        musicViewModel.event.collectWithLifecycle(this) { event ->
+            if (event is MusicEvent.PlaySong) {
+                mediaController?.let { controller ->
+                    forcePlaySong(controller, event.position)
                 }
             }
         }
@@ -374,13 +389,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             return
         }
         mediaController?.let { controller ->
-            val count = controller.mediaItemCount
-            if (count > 0) {
-                val prevIndex = ((controller.currentMediaItemIndex - 1) + count) % count
-                controller.seekToDefaultPosition(prevIndex)
-                if (!controller.playWhenReady) {
-                    controller.play()
-                }
+            controller.seekToPreviousMediaItem()
+            if (!controller.playWhenReady) {
+                controller.play()
             }
         }
     }
@@ -391,13 +402,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             return
         }
         mediaController?.let { controller ->
-            val count = controller.mediaItemCount
-            if (count > 0) {
-                val nextIndex = (controller.currentMediaItemIndex + 1) % count
-                controller.seekToDefaultPosition(nextIndex)
-                if (!controller.playWhenReady) {
-                    controller.play()
-                }
+            controller.seekToNextMediaItem()
+            if (!controller.playWhenReady) {
+                controller.play()
             }
         }
     }

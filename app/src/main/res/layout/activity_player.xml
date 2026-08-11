@@ -86,6 +86,21 @@
                 app:strokeColor="@color/white"
                 app:strokeWidth="@dimen/spacing_1" />
 
+            <ImageView
+                android:id="@+id/btnShuffle"
+                android:layout_width="@dimen/spacing_24"
+                android:layout_height="@dimen/spacing_24"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/spacing_15"
+                android:layout_toStartOf="@+id/whiteColor"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@null"
+                android:focusable="true"
+                android:padding="@dimen/spacing_tiny"
+                android:src="@drawable/ic_shuffle_on"
+                app:tint="@color/white" />
+
         </RelativeLayout>
 
         <com.google.android.material.card.MaterialCardView
