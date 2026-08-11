@@ -21,6 +21,7 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
@@ -208,8 +209,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 onDeleteClick = { song ->
                     musicViewModel.deleteSong(song)
                     nextBtn(animate = false)
-                },
-                onCastClick = {})
+                }
+            ) { /* onCastClick */ }
             bottomSheet.show(supportFragmentManager, "PlayerOptions")
         }
 
@@ -290,9 +291,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
         val bitrate = getBitrate(song.path)
-        binding.bitrate.text = if (bitrate != null) "$bitrate kbps" else ""
-        binding.bitrate.visibility =
-            if (bitrate != null) android.view.View.VISIBLE else android.view.View.GONE
+        binding.bitrate.text = bitrate?.let { "$it kbps" } ?: ""
+        binding.bitrate.isVisible = bitrate != null
 
         binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath) {
             if (!isTransitionStarted) {
@@ -332,7 +332,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             retriever.setDataSource(path)
             val bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
             retriever.release()
-            if (bitrate != null) (bitrate.toInt() / 1000).toString() else null
+            bitrate?.let { (it.toInt() / 1000).toString() }
         } catch (_: Exception) {
             null
         }
@@ -554,7 +554,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                             binding.seekBar.max = duration.toInt() / 1000
                         }
 
-                        if (binding.durationTotal.text == "0:00" || binding.durationTotal.text == DATA.UNKNOWN) {
+                        if ((binding.durationTotal.text == "0:00") || (binding.durationTotal.text == DATA.UNKNOWN)) {
                             binding.durationTotal.text = duration.milliseconds.formatAsTime()
                         }
 
@@ -714,7 +714,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     override fun onStop() {
         super.onStop()
         mediaController?.removeListener(this)
-        MediaController.releaseFuture(controllerFuture!!)
+        controllerFuture?.let { MediaController.releaseFuture(it) }
         mediaController = null
         stopProgressUpdater()
     }
@@ -725,12 +725,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
-        if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
-            // UI for local playback
-            binding.waveformSeekBar.alpha = 1f
-        } else if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
-            // UI for remote playback
-            binding.waveformSeekBar.alpha = 0.5f
+        binding.waveformSeekBar.alpha = when (deviceInfo.playbackType) {
+            DeviceInfo.PLAYBACK_TYPE_LOCAL -> 1f
+            DeviceInfo.PLAYBACK_TYPE_REMOTE -> 0.5f
+            else -> binding.waveformSeekBar.alpha
         }
     }
 
