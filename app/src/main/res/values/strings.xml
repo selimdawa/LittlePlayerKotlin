@@ -153,4 +153,8 @@
 
     <string name="unknown">Unknown</string>
     <string name="media_route_menu_title">Cast</string>
+    <string name="playback_settings">Playback Settings</string>
+    <string name="speed">Speed</string>
+    <string name="pitch">Pitch</string>
+    <string name="reset">Reset</string>
 </resources>

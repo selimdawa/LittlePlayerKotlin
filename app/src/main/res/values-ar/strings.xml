@@ -157,4 +157,8 @@
 
     <string name="unknown">غير معروف</string>
     <string name="media_route_menu_title">بث</string>
+    <string name="playback_settings">إعدادات التشغيل</string>
+    <string name="speed">السرعة</string>
+    <string name="pitch">درجة الصوت</string>
+    <string name="reset">إعادة ضبط</string>
 </resources>

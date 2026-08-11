@@ -12,6 +12,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.cast.CastPlayer
@@ -20,6 +21,7 @@ import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -103,6 +105,8 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
     private val showSongToastKey = booleanPreferencesKey(DATA.SHOW_SONG_TOAST)
+    private val playbackSpeedKey = floatPreferencesKey(DATA.PLAYBACK_SPEED)
+    private val playbackPitchKey = floatPreferencesKey(DATA.PLAYBACK_PITCH)
 
     private val customCommandFavorite = SessionCommand(COMMAND_FAVORITE, Bundle.EMPTY)
     private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
@@ -194,6 +198,17 @@ class MusicService : MediaLibraryService(), Player.Listener {
             loadEqualizerSettings()
             initAudioEffects(basePlayer?.audioSessionId ?: -1)
             loadPlaybackStateAndQueue()
+            loadPlaybackParameters()
+        }
+    }
+
+    private fun loadPlaybackParameters() {
+        serviceScope.launch {
+            dataStore.data.first().let { prefs ->
+                val speed = prefs[playbackSpeedKey] ?: 1.0f
+                val pitch = prefs[playbackPitchKey] ?: 1.0f
+                exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
+            }
         }
     }
 
@@ -462,6 +477,15 @@ class MusicService : MediaLibraryService(), Player.Listener {
             updateLastPlayedInfo()
         }
         sendWidgetUpdate()
+    }
+
+    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
+        serviceScope.launch {
+            dataStore.edit { prefs ->
+                prefs[playbackSpeedKey] = playbackParameters.speed
+                prefs[playbackPitchKey] = playbackParameters.pitch
+            }
+        }
     }
 
     private fun sendWidgetUpdate() {
