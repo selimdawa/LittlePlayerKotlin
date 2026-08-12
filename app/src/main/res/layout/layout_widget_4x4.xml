@@ -21,10 +21,12 @@
 
         <ImageView
             android:id="@+id/widgetArtLarge"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
             android:scaleType="centerCrop"
             android:contentDescription="@null"
+            android:padding="1.5dp"
+            android:background="@drawable/widget_art_bg"
             android:src="@drawable/logo_icon" />
 
         <TextView

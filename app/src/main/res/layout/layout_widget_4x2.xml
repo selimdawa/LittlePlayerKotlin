@@ -19,12 +19,14 @@
 
         <ImageView
             android:id="@+id/widgetArtLarge"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:scaleType="centerCrop"
             android:contentDescription="@null"
+            android:padding="1dp"
+            android:background="@drawable/widget_art_bg"
             android:src="@drawable/logo_icon" />
 
         <LinearLayout

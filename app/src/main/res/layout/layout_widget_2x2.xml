@@ -22,9 +22,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/textContainer"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="12dp"
             android:scaleType="centerCrop"
             android:contentDescription="@null"
+            android:padding="1dp"
+            android:background="@drawable/widget_art_bg"
             android:src="@drawable/logo_icon" />
 
         <LinearLayout
