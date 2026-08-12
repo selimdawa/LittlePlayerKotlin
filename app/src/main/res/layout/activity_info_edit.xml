@@ -50,8 +50,8 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardCover"
-                    android:layout_width="240dp"
-                    android:layout_height="240dp"
+                    android:layout_width="@dimen/cover_size_edit"
+                    android:layout_height="@dimen/cover_size_edit"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/spacing_20"
                     android:layout_marginBottom="@dimen/spacing_xlarge"
@@ -74,20 +74,20 @@
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/btnEditCover"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
+                            android:layout_width="@dimen/icon_size_34"
+                            android:layout_height="@dimen/icon_size_34"
                             android:layout_gravity="bottom|end"
-                            android:layout_margin="10dp"
+                            android:layout_margin="@dimen/spacing_10"
                             android:clickable="true"
                             android:focusable="true"
                             app:cardBackgroundColor="?attr/mc_track"
-                            app:cardCornerRadius="17dp"
-                            app:cardElevation="4dp"
-                            app:strokeWidth="0dp">
+                            app:cardCornerRadius="@dimen/radius_17"
+                            app:cardElevation="@dimen/spacing_tiny"
+                            app:strokeWidth="@dimen/spacing_0">
 
                             <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
+                                android:layout_width="@dimen/icon_size_18"
+                                android:layout_height="@dimen/icon_size_18"
                                 android:layout_gravity="center"
                                 android:contentDescription="@null"
                                 android:src="@drawable/ic_edit"
@@ -112,12 +112,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="24dp">
+                        android:padding="@dimen/spacing_24">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
+                            android:layout_marginBottom="@dimen/spacing_8"
                             android:text="@string/title"
                             android:textAllCaps="true"
                             android:textColor="@color/white_66"
@@ -132,22 +132,22 @@
                             android:hint="@string/song_title"
                             android:inputType="textCapWords"
                             android:maxLines="1"
-                            android:paddingVertical="8dp"
+                            android:paddingVertical="@dimen/spacing_8"
                             android:textColor="@color/white"
                             android:textColorHint="@color/white_33"
                             android:textSize="@dimen/text_size_18" />
 
                         <View
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="20dp"
+                            android:layout_height="@dimen/divider_height"
+                            android:layout_marginTop="@dimen/spacing_tiny"
+                            android:layout_marginBottom="@dimen/spacing_20"
                             android:background="@color/white_10" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
+                            android:layout_marginBottom="@dimen/spacing_8"
                             android:text="@string/artist"
                             android:textAllCaps="true"
                             android:textColor="@color/white_66"
@@ -162,22 +162,22 @@
                             android:hint="@string/artist_name"
                             android:inputType="textCapWords"
                             android:maxLines="1"
-                            android:paddingVertical="8dp"
+                            android:paddingVertical="@dimen/spacing_8"
                             android:textColor="@color/white"
                             android:textColorHint="@color/white_33"
                             android:textSize="@dimen/text_size_18" />
 
                         <View
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="20dp"
+                            android:layout_height="@dimen/divider_height"
+                            android:layout_marginTop="@dimen/spacing_tiny"
+                            android:layout_marginBottom="@dimen/spacing_20"
                             android:background="@color/white_10" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
+                            android:layout_marginBottom="@dimen/spacing_8"
                             android:text="@string/album"
                             android:textAllCaps="true"
                             android:textColor="@color/white_66"
@@ -192,15 +192,15 @@
                             android:hint="@string/album"
                             android:inputType="textCapWords"
                             android:maxLines="1"
-                            android:paddingVertical="8dp"
+                            android:paddingVertical="@dimen/spacing_8"
                             android:textColor="@color/white"
                             android:textColorHint="@color/white_33"
                             android:textSize="@dimen/text_size_18" />
 
                         <View
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="4dp"
+                            android:layout_height="@dimen/divider_height"
+                            android:layout_marginTop="@dimen/spacing_tiny"
                             android:background="@color/white_10" />
 
                     </LinearLayout>
@@ -215,18 +215,18 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/spacing_xlarge"
                     android:layout_marginBottom="@dimen/spacing_30"
-                    android:minWidth="160dp"
-                    android:paddingHorizontal="32dp"
-                    android:paddingVertical="12dp"
+                    android:minWidth="@dimen/btn_min_width_large"
+                    android:paddingHorizontal="@dimen/spacing_xlarge"
+                    android:paddingVertical="@dimen/spacing_12"
                     android:text="@string/save"
                     android:textColor="@color/white"
                     android:textSize="@dimen/text_size_16"
                     android:textStyle="bold"
                     app:backgroundTint="@color/transparent"
-                    app:cornerRadius="12dp"
+                    app:cornerRadius="@dimen/radius_12"
                     app:rippleColor="@color/white_40"
                     app:strokeColor="?attr/mc_track"
-                    app:strokeWidth="2dp" />
+                    app:strokeWidth="@dimen/thickness_small" />
 
             </LinearLayout>
 

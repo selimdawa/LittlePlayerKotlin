@@ -10,7 +10,6 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.flatcode.littleplayer.R
-import androidx.core.graphics.toColorInt
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos

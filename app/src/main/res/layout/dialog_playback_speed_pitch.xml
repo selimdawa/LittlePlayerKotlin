@@ -34,7 +34,7 @@
             android:id="@+id/speedValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.0x"
+            android:text="@string/one_x"
             android:textColor="?attr/mc_track"
             android:textSize="@dimen/text_size_16"
             android:textStyle="bold" />
@@ -70,7 +70,7 @@
             android:id="@+id/pitchValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.0x"
+            android:text="@string/one_x"
             android:textColor="?attr/mc_track"
             android:textSize="@dimen/text_size_16"
             android:textStyle="bold" />

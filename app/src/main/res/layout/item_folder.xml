@@ -53,8 +53,8 @@
 
     <ImageButton
         android:id="@+id/btn_more"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="@dimen/icon_size_25"
+        android:layout_height="@dimen/icon_size_25"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/more_options"
         android:src="@drawable/ic_more"

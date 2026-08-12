@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.text.TextUtils.TruncateAt
 import android.view.Gravity
 import android.view.ViewGroup.MarginLayoutParams
@@ -93,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 gravity = Gravity.START or Gravity.CENTER_VERTICAL
                 textAlignment = android.view.View.TEXT_ALIGNMENT_VIEW_START
-                textSize = 14f
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.text_size_search_hint))
                 maxLines = 1
                 ellipsize = TruncateAt.END
                 setTextColor(ContextCompat.getColor(this@MainActivity, R.color.gray))

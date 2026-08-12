@@ -179,4 +179,7 @@
     <string name="error_loading_tags">خطأ في تحميل البيانات</string>
     <string name="error_saving_tags">خطأ في حفظ البيانات</string>
     <string name="tags_saved_successfully">تم حفظ البيانات بنجاح</string>
+    <string name="kbps_format">%1$s كيلوبت/ثانية</string>
+    <string name="kbps_placeholder">320 كيلوبت/ثانية</string>
+    <string name="one_x">1.0x</string>
 </resources>

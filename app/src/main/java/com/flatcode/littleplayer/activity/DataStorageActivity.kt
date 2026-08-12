@@ -1,6 +1,5 @@
 package com.flatcode.littleplayer.activity
 
-import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity

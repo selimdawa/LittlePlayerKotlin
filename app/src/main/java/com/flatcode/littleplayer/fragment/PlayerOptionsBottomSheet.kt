@@ -13,7 +13,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.media3.session.MediaController
 import androidx.media3.cast.MediaRouteButtonFactory
 import com.flatcode.littleplayer.databinding.DialogPlayerOptionsBinding
-import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.activity.InfoEditActivity
 import com.flatcode.littleplayer.activity.EqualizerActivity

@@ -82,8 +82,8 @@
 
     <io.selimdawa.multiwave.MultiWaveHeader
         android:id="@+id/wave"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="@dimen/icon_size_25"
+        android:layout_height="@dimen/icon_size_25"
         android:layout_marginEnd="@dimen/spacing_10"
         android:scaleY="-1"
         android:visibility="gone"
@@ -94,8 +94,8 @@
 
     <ImageView
         android:id="@+id/more"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="@dimen/icon_size_25"
+        android:layout_height="@dimen/icon_size_25"
         android:layout_marginEnd="@dimen/spacing_10"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:clickable="true"

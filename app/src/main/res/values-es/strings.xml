@@ -157,4 +157,7 @@
     <string name="error_loading_tags">Error al cargar etiquetas</string>
     <string name="error_saving_tags">Error al guardar etiquetas</string>
     <string name="tags_saved_successfully">Etiquetas guardadas con éxito</string>
+    <string name="kbps_format">%1$s kbps</string>
+    <string name="kbps_placeholder">320 kbps</string>
+    <string name="one_x">1.0x</string>
 </resources>

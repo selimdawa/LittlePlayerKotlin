@@ -22,16 +22,21 @@
 
     <!-- Transparency Colors -->
     <color name="transparent">@android:color/transparent</color>
+    <color name="white_80">#CCFFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
     <color name="white_66">#66FFFFFF</color>
+    <color name="white_50">#80FFFFFF</color>
     <color name="white_40">#40FFFFFF</color>
     <color name="white_33">#33FFFFFF</color>
     <color name="white_30">#4DFFFFFF</color>
+    <color name="white_20">#33FFFFFF</color>
     <color name="white_10">#1AFFFFFF</color>
-    <color name="white_70">#B3FFFFFF</color>
     <color name="black_80">#CC000000</color>
+    <color name="black_60">#99000000</color>
     <color name="black_50">#80000000</color>
     <color name="black_25">#40000000</color>
     <color name="black_12">#20000000</color>
+    <color name="splash_night_accent">#20880088</color>
 
     <!-- Splash Colors -->
     <color name="splash_bg_night_start">#0D0D14</color>

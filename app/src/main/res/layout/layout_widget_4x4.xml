@@ -59,7 +59,7 @@
                 android:gravity="center"
                 android:singleLine="true"
                 android:text="@string/artist_name"
-                android:textColor="#B3FFFFFF"
+                android:textColor="@color/white_70"
                 android:textSize="16sp" />
         </LinearLayout>
 

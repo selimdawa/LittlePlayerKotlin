@@ -4,9 +4,9 @@
     android:viewportWidth="200"
     android:viewportHeight="400">
     <path
-        android:fillColor="#80FFFFFF"
+        android:fillColor="@color/white_50"
         android:pathData="M10,20h1v1h-1z M50,40h1v1h-1z M120,30h1.5v1.5h-1.5z M180,60h1v1h-1z M30,100h2v2h-2z M90,120h1v1h-1z M150,90h1v1h-1z M20,180h1.5v1.5h-1.5z M70,220h1v1h-1z M130,200h2v2h-2z M190,150h1v1h-1z M40,280h1v1h-1z M110,320h1.5v1.5h-1.5z M170,300h1v1h-1z M60,380h2v2h-2z M140,360h1v1h-1z M25,350h1v1h-1z M85,50h1v1h-1z M165,130h1v1h-1z M105,250h1v1h-1z" />
     <path
-        android:fillColor="#40FFFFFF"
+        android:fillColor="@color/white_40"
         android:pathData="M15,80h1v1h-1z M45,150h1v1h-1z M115,70h1v1h-1z M175,110h1v1h-1z M35,230h1v1h-1z M95,270h1v1h-1z M155,210h1v1h-1z M25,310h1v1h-1z M75,370h1v1h-1z M135,330h1v1h-1z M195,290h1v1h-1z M55,20h1v1h-1z M125,50h1v1h-1z M185,250h1v1h-1z M65,120h1v1h-1z M145,180h1v1h-1z M5,390h1v1h-1z M75,10h1v1h-1z M165,30h1v1h-1z M105,380h1v1h-1z" />
 </vector>

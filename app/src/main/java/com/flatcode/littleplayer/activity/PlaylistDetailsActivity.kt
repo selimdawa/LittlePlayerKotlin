@@ -23,7 +23,6 @@ import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
-import com.flatcode.littleplayer.viewmodel.PlaylistDetailsEvent
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -95,9 +94,6 @@ class PlaylistDetailsActivity : AppCompatActivity() {
                 binding.recyclerView.adapter = adapter
             }
             adapter?.submitList(songs)
-        }
-
-        viewModel.event.collectWithLifecycle(this) { event ->
         }
 
         musicViewModel.event.collectWithLifecycle(this) { event ->

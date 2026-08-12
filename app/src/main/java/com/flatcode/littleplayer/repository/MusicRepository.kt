@@ -16,7 +16,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.flatcode.littleplayer.data.dao.AlbumImageDao
 import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
-import com.flatcode.littleplayer.data.entity.AlbumImageEntity
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
@@ -424,10 +423,6 @@ class MusicRepository @Inject constructor(
 
     fun getSongUri(songId: String): Uri {
         return ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong())
-    }
-
-    suspend fun getPlaybackStateSync() = withContext(Dispatchers.IO) {
-        musicDao.getPlaybackStateSync()
     }
 
     fun updateCurrentPlaylist(songs: List<MusicFiles>, saveToRoom: Boolean = true) {

@@ -13,7 +13,6 @@ import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
-import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicEvent

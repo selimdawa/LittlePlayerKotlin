@@ -3,7 +3,6 @@ package com.flatcode.littleplayer.activity
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
 import android.widget.SeekBar

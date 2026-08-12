@@ -12,7 +12,7 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardFavourites"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="@dimen/toolbar_bar_height"
         android:layout_marginStart="@dimen/spacing_5"
         android:layout_marginEnd="@dimen/spacing_5"
         android:layout_weight="1"
@@ -46,8 +46,8 @@
                 android:padding="@dimen/spacing_12">
 
                 <ImageView
-                    android:layout_width="21dp"
-                    android:layout_height="21dp"
+                    android:layout_width="@dimen/icon_size_21"
+                    android:layout_height="@dimen/icon_size_21"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_favorite"
                     app:tint="@color/white" />
@@ -70,7 +70,7 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardPlaylists"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="@dimen/toolbar_bar_height"
         android:layout_marginStart="@dimen/spacing_5"
         android:layout_marginEnd="@dimen/spacing_5"
         android:layout_weight="1"
@@ -104,8 +104,8 @@
                 android:padding="@dimen/spacing_12">
 
                 <ImageView
-                    android:layout_width="21dp"
-                    android:layout_height="21dp"
+                    android:layout_width="@dimen/icon_size_21"
+                    android:layout_height="@dimen/icon_size_21"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_music"
                     app:tint="@color/white" />
@@ -128,7 +128,7 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardRecent"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="@dimen/toolbar_bar_height"
         android:layout_marginStart="@dimen/spacing_5"
         android:layout_marginEnd="@dimen/spacing_5"
         android:layout_weight="1"
@@ -162,8 +162,8 @@
                 android:padding="@dimen/spacing_12">
 
                 <ImageView
-                    android:layout_width="21dp"
-                    android:layout_height="21dp"
+                    android:layout_width="@dimen/icon_size_21"
+                    android:layout_height="@dimen/icon_size_21"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_recent"
                     app:tint="@color/white" />

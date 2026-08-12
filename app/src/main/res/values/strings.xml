@@ -175,4 +175,7 @@
     <string name="error_loading_tags">Error loading tags</string>
     <string name="error_saving_tags">Error saving tags</string>
     <string name="tags_saved_successfully">Tags saved successfully</string>
+    <string name="kbps_format">%1$s kbps</string>
+    <string name="kbps_placeholder">320 kbps</string>
+    <string name="one_x">1.0x</string>
 </resources>

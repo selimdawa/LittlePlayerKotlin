@@ -24,6 +24,20 @@
     <dimen name="icon_size_64">64dp</dimen>
     <dimen name="icon_size_20">20dp</dimen>
     <dimen name="icon_size_40">40dp</dimen>
+    <dimen name="icon_size_35">35dp</dimen>
+    <dimen name="icon_size_18">18dp</dimen>
+    <dimen name="icon_size_45">45dp</dimen>
+    <dimen name="icon_size_25">25dp</dimen>
+    <dimen name="icon_size_36">36dp</dimen>
+    <dimen name="icon_size_44">44dp</dimen>
+    <dimen name="icon_size_21">21dp</dimen>
+    <dimen name="toolbar_bar_height">70dp</dimen>
+    <dimen name="icon_size_34">34dp</dimen>
+    <dimen name="cover_size_edit">240dp</dimen>
+    <dimen name="radius_17">17dp</dimen>
+    <dimen name="radius_12">12dp</dimen>
+    <dimen name="btn_min_width_large">160dp</dimen>
+    <dimen name="divider_height">1dp</dimen>
 
     <dimen name="flag_width">30dp</dimen>
     <dimen name="flag_height">20dp</dimen>
@@ -76,4 +90,14 @@
     <dimen name="icon_size_48">48dp</dimen>
     <dimen name="thumb_size">22dp</dimen>
     <dimen name="track_width">44dp</dimen>
+    <dimen name="stroke_width_active">4dp</dimen>
+    <dimen name="stroke_width_inactive">1dp</dimen>
+    <dimen name="text_size_search_hint">14sp</dimen>
+    <dimen name="text_size_splash_title">32sp</dimen>
+    <dimen name="text_size_10">10sp</dimen>
+    <dimen name="radius_28">28dp</dimen>
+    <dimen name="gradient_radius_large">600dp</dimen>
+    <dimen name="gradient_radius_medium">400dp</dimen>
+    <dimen name="wave_width_default">3dp</dimen>
+    <dimen name="gradient_radius_small">300dp</dimen>
 </resources>

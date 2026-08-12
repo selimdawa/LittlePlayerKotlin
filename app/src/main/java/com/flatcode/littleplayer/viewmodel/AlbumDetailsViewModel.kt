@@ -8,11 +8,8 @@ import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,9 +30,6 @@ class AlbumDetailsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AlbumDetailsUiState())
     val uiState: StateFlow<AlbumDetailsUiState> = _uiState.asStateFlow()
-
-    private val _event = MutableSharedFlow<AlbumDetailsEvent>()
-    val event = _event.asSharedFlow()
 
     fun filterSongsByAlbum(albumName: String?) {
         if (albumName == null) return
@@ -63,19 +57,4 @@ class AlbumDetailsViewModel @Inject constructor(
     fun updateCurrentPlaylist(songs: List<MusicFiles>) {
         repository.updateCurrentPlaylist(songs)
     }
-
-    fun shuffleSongs() {
-        viewModelScope.launch {
-            val shuffled = _uiState.value.songs.shuffled()
-            if (shuffled.isNotEmpty()) {
-                repository.saveShuffleMode(true)
-                repository.updateCurrentPlaylist(shuffled)
-                _event.emit(AlbumDetailsEvent.PlaySong(0))
-            }
-        }
-    }
-}
-
-sealed class AlbumDetailsEvent {
-    data class PlaySong(val position: Int) : AlbumDetailsEvent()
 }

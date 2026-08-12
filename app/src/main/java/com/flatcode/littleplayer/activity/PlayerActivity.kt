@@ -141,9 +141,20 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.waveformSeekBar.waveBackgroundColor =
             ContextCompat.getColor(this, R.color.white_30) // 30% White
 
-        binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC) 4 else 1
-        binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE) 4 else 1
-        binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE) 4 else 1
+        binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC)
+            resources.getDimensionPixelSize(R.dimen.stroke_width_active)
+        else
+            resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
+
+        binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE)
+            resources.getDimensionPixelSize(R.dimen.stroke_width_active)
+        else
+            resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
+
+        binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE)
+            resources.getDimensionPixelSize(R.dimen.stroke_width_active)
+        else
+            resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -299,7 +310,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             launch(Dispatchers.IO) {
                 val bitrate = getBitrate(song.path)
                 withContext(Dispatchers.Main) {
-                    binding.bitrate.text = bitrate?.let { "$it kbps" } ?: ""
+                    binding.bitrate.text = bitrate?.let { getString(R.string.kbps_format, it) } ?: ""
                     binding.bitrate.isVisible = bitrate != null
                 }
             }
@@ -351,9 +362,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun animateTextChange(textView: TextView, newText: String) {
         if (textView.text == newText) return
-        textView.animate().alpha(0f).setDuration(150).withEndAction {
+        val duration = resources.getInteger(R.integer.anim_duration_short).toLong()
+        textView.animate().alpha(0f).setDuration(duration).withEndAction {
             textView.text = newText
-            textView.animate().alpha(1f).setDuration(150).start()
+            textView.animate().alpha(1f).setDuration(duration).start()
         }.start()
     }
 
@@ -374,7 +386,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (songId.isEmpty() || path.isEmpty()) return
         waveformJob?.cancel()
         waveformJob = lifecycleScope.launch(Dispatchers.IO) {
-            delay(300.milliseconds)
+            delay(resources.getInteger(R.integer.anim_duration_medium).toLong().milliseconds)
             try {
                 val cachedSong = viewModel.getSongById(songId)
                 if (cachedSong?.waveform != null) {
@@ -485,7 +497,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val outX = if (toNext) -width else width
         val inX = if (toNext) width else -width
 
-        binding.card.animate().translationX(outX).alpha(0f).setDuration(200)
+        binding.card.animate().translationX(outX).alpha(0f)
+            .setDuration(resources.getInteger(R.integer.anim_duration_skip).toLong())
             .setInterpolator(AccelerateInterpolator()).withEndAction {
                 if (nextSong != null) {
                     val model =
@@ -534,7 +547,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (toNext) nextBtn(animate = false, forceIndex = targetIndex)
         else prevBtn(animate = false, forceIndex = targetIndex)
         binding.card.translationX = inX
-        binding.card.animate().translationX(0f).alpha(1f).setDuration(200)
+        binding.card.animate().translationX(0f).alpha(1f)
+            .setDuration(resources.getInteger(R.integer.anim_duration_skip).toLong())
             .setInterpolator(DecelerateInterpolator()).withEndAction { isAnimating = false }.start()
     }
 

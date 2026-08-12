@@ -111,8 +111,8 @@
 
             <ImageView
                 android:id="@+id/nextBtn"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="@dimen/icon_size_36"
+                android:layout_height="@dimen/icon_size_36"
                 android:layout_marginEnd="@dimen/spacing_8"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
