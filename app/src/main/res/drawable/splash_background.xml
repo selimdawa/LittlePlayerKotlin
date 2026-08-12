@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base light gradient -->
+    <item>
+        <shape>
+            <gradient
+                android:angle="270"
+                android:startColor="@color/splash_bg_day_start"
+                android:endColor="@color/splash_bg_day_end"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Subtle radial glow in the center -->
+    <item>
+        <shape>
+            <gradient
+                android:type="radial"
+                android:gradientRadius="400dp"
+                android:centerX="50%"
+                android:centerY="50%"
+                android:startColor="#40FFFFFF"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <!-- Star pattern (Visible in light mode as white dots on blue) -->
+    <item
+        android:drawable="@drawable/ic_stars"
+        android:alpha="0.6"
+        android:tint="@color/white" />
+</layer-list>

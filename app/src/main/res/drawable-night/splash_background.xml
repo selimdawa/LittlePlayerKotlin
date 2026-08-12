@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base dark color -->
+    <item>
+        <shape>
+            <solid android:color="@color/splash_bg_night_start" />
+        </shape>
+    </item>
+
+    <!-- Subtle radial glow in the center (purplish like the image) -->
+    <item>
+        <shape>
+            <gradient
+                android:type="radial"
+                android:gradientRadius="600dp"
+                android:centerX="50%"
+                android:centerY="50%"
+                android:startColor="#20880088"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <!-- Star pattern -->
+    <item
+        android:drawable="@drawable/ic_stars"
+        android:alpha="0.8" />
+</layer-list>
