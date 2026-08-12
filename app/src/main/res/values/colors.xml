@@ -33,4 +33,11 @@
     <color name="purple_700">#3700B3</color>
     <color name="purple_equalizer">#7c4dde</color>
     <color name="dark_equalizer">#263746</color>
+
+    <color name="splash_bg_night_start">#0D0D14</color>
+    <color name="splash_bg_night_end">#1B0B1B</color>
+    <color name="splash_bg_day_start">#2196F3</color>
+    <color name="splash_bg_day_end">#00BCD4</color>
+    <color name="star_color">#FFFFFF</color>
+    <color name="splash_text_color">#FFFFFF</color>
 </resources>
