@@ -17,9 +17,8 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.createBitmap
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.toColorInt
+import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
@@ -42,13 +41,12 @@ import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
-import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractVibrantColor
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
+import com.flatcode.littleplayer.utils.getSongArtwork
 import com.flatcode.littleplayer.utils.getSongImageModel
-import com.flatcode.littleplayer.utils.loadSongImage
-import com.flatcode.littleplayer.utils.loadSongImageBlur
+import com.flatcode.littleplayer.utils.loadBitmap
 import com.flatcode.littleplayer.utils.onProgressChanged
 import com.flatcode.littleplayer.utils.setHaloBackground
 import com.flatcode.littleplayer.utils.setHaloSolidBackground
@@ -63,14 +61,11 @@ import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
-import com.flatcode.littleplayer.utils.getSongArtwork
-import com.flatcode.littleplayer.utils.loadBitmap
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
@@ -120,7 +115,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val brightColor = color.ensureBrightColor()
         val colorStateList = ColorStateList.valueOf(brightColor)
         val backgroundColorStateList =
-            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white_66)) // 40% White for better visibility
+            ColorStateList.valueOf(
+                ContextCompat.getColor(
+                    this,
+                    R.color.white_66
+                )
+            ) // 40% White for better visibility
 
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
@@ -138,7 +138,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         binding.waveformSeekBar.waveProgressColor = brightColor
-        binding.waveformSeekBar.waveBackgroundColor = ContextCompat.getColor(this, R.color.white_30) // 30% White
+        binding.waveformSeekBar.waveBackgroundColor =
+            ContextCompat.getColor(this, R.color.white_30) // 30% White
 
         binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC) 4 else 1
         binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE) 4 else 1
@@ -289,13 +290,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private fun updateSongUI(song: MusicFiles) {
         updateSongJob?.cancel()
-        // 1. Immediate Text Updates
+
         animateTextChange(binding.songName, song.title ?: getString(R.string.unknown))
         animateTextChange(binding.songArtist, song.artist ?: getString(R.string.unknown))
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
         updateSongJob = lifecycleScope.launch {
-            // 2. Parallel Bitrate Loading (Independent)
             launch(Dispatchers.IO) {
                 val bitrate = getBitrate(song.path)
                 withContext(Dispatchers.Main) {
@@ -304,27 +304,28 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 }
             }
 
-            // 3. Parallel Artwork Loading (Independent)
-            val bitmap = withContext(Dispatchers.Default) {
-                getSongArtwork(song.albumId, song.path, song.cachedImagePath, 600)
+            launch {
+                val bitmap = withContext(Dispatchers.Default) {
+                    getSongArtwork(song.albumId, song.path, song.cachedImagePath, 600)
+                }
+                applyArtworkAndPalette(bitmap)
             }
-            
-            // 4. Apply Artwork and Extract Palette
-            applyArtworkAndPalette(bitmap)
         }
     }
 
     private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?) {
-        // Apply to ImageView
         binding.image.loadBitmap(bitmap) {
             if (!isTransitionStarted) {
                 isTransitionStarted = true
                 startPostponedEnterTransition()
             }
         }
-        
-        // Apply Blur Background (Very low res for speed)
-        binding.imageBlur.loadBitmap(bitmap, blurRadius = 100f, fallback = R.drawable.ic_cover_song_blur)
+
+        binding.imageBlur.loadBitmap(
+            bitmap,
+            blurRadius = 100f,
+            fallback = R.drawable.ic_cover_song_blur
+        )
 
         // Extract Palette
         if (bitmap != null) {

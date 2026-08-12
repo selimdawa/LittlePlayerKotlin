@@ -39,15 +39,15 @@ class MusicAdapter(
         val songDetailsText = context.getString(R.string.song_details_format, artist, album)
         holder.binding.songDetails.text = songDetailsText
 
-        // Pre-fetch check: using cachedImagePath or MediaStore URI via loadSongImage
+        // Optimized loading: Use album art (albumId/cachedPath) and small size for speed
         holder.binding.image.loadSongImage(
-            currentFile.albumId, currentFile.path, currentFile.cachedImagePath
+            currentFile.albumId, null, currentFile.cachedImagePath,
         )
 
-        // Re-enabled blur with optimized loading
+        // Optimized blur: Very small size for lightning speed
         holder.binding.imageBlur.visibility = View.VISIBLE
         holder.binding.imageBlur.loadSongImageBlur(
-            currentFile.albumId, 25, currentFile.path, currentFile.cachedImagePath
+            currentFile.albumId, 25, null, currentFile.cachedImagePath,
         )
 
         // Apply theme is also a potential bottleneck if it does complex calculations

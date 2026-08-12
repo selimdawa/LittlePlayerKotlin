@@ -117,8 +117,9 @@ object MusicWidgetUtils {
                 val bitmap = BitmapFactory.decodeFile(imagePath, options)
                 
                 if (bitmap != null) {
-                    views.setImageViewBitmap(R.id.widgetArtSmall, bitmap)
-                    views.setImageViewBitmap(R.id.widgetArtLarge, bitmap)
+                    val roundedBitmap = getRoundedCornerBitmap(bitmap, 40f) // 40px radius for art
+                    views.setImageViewBitmap(R.id.widgetArtSmall, roundedBitmap)
+                    views.setImageViewBitmap(R.id.widgetArtLarge, roundedBitmap)
                 }
             } catch (_: Exception) {
             }
@@ -129,6 +130,24 @@ object MusicWidgetUtils {
 
         setupButtons(context, views)
         appWidgetManager.updateAppWidget(componentName, views)
+    }
+
+    private fun getRoundedCornerBitmap(bitmap: android.graphics.Bitmap, pixels: Float): android.graphics.Bitmap {
+        val output = android.graphics.Bitmap.createBitmap(bitmap.width, bitmap.height, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(output)
+        val color = -0xbdbdbe
+        val paint = android.graphics.Paint()
+        val rect = android.graphics.Rect(0, 0, bitmap.width, bitmap.height)
+        val rectF = android.graphics.RectF(rect)
+        val roundPx = pixels
+
+        paint.isAntiAlias = true
+        canvas.drawARGB(0, 0, 0, 0)
+        paint.color = color
+        canvas.drawRoundRect(rectF, roundPx, roundPx, paint)
+        paint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(bitmap, rect, rect, paint)
+        return output
     }
 
     private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {

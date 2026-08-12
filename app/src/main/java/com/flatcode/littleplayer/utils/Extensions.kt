@@ -170,7 +170,7 @@ suspend fun Context.getSongArtwork(
         .size(size)
         .precision(coil.size.Precision.INEXACT)
         .allowHardware(false)
-        .bitmapConfig(Bitmap.Config.RGB_565) // 50% less memory
+        .bitmapConfig(Bitmap.Config.ARGB_8888)
         .build()
     
     val result = imageLoader.execute(request)
@@ -478,10 +478,10 @@ fun getSongImageModel(
     cachedPath: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
 ): Any {
-    // 1. Try Cached Path (Fastest - Local File)
+    // 1. Try Cached Path (Fastest)
     if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
 
-    // 2. Try Album ID (MediaStore - System Optimized)
+    // 2. Try Album ID (MediaStore - System Album Art)
     if ((!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(),
@@ -489,7 +489,23 @@ fun getSongImageModel(
         )
     }
 
-    // 3. Try Song Path (Embedded Art - Slowest)
+    // 3. Try folder art (cover.jpg, folder.jpg, etc.)
+    if (!path.isNullOrEmpty()) {
+        try {
+            val file = File(path)
+            val parent = file.parentFile
+            if (parent != null && parent.exists()) {
+                val imageFile = parent.listFiles { _, name ->
+                    val n = name.lowercase()
+                    n == "cover.jpg" || n == "cover.png" || n == "folder.jpg" || n == "album.jpg" || n == "albumart.jpg"
+                }?.firstOrNull()
+                if (imageFile != null) return imageFile
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    // 4. Try Song Path (Embedded Art - Slower) - only if requested or as fallback
     if (!path.isNullOrEmpty()) {
         val file = File(path)
         if (file.exists()) return file
