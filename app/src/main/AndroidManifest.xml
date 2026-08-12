@@ -34,10 +34,10 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:extractNativeLibs="false"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/ic_app_logo_modern"
+        android:icon="@drawable/logo_icon"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@drawable/ic_app_logo_modern"
+        android:roundIcon="@drawable/logo_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.MC.One"
         android:usesCleartextTraffic="true"
@@ -45,7 +45,8 @@
         <activity
             android:name=".activity.SplashActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -146,29 +147,68 @@
         </service>
 
         <receiver
-            android:name=".widget.MusicWidgetProvider"
+            android:name=".widget.MusicWidget2x1"
             android:exported="true"
-            android:label="Little Player (Full)">
+            android:label="Little Player (Tiny 2x1)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/music_widget_modern_info" />
+                android:resource="@xml/widget_2x1_info" />
         </receiver>
 
         <receiver
-            android:name=".widget.MusicWidgetProviderCompact"
+            android:name=".widget.MusicWidget2x2"
             android:exported="true"
-            android:label="Little Player (Compact)">
+            android:label="Little Player (Square 2x2)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/music_widget_modern_compact_info" />
+                android:resource="@xml/widget_2x2_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.MusicWidget4x1"
+            android:exported="true"
+            android:label="Little Player (Compact 4x1)">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_4x1_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.MusicWidget4x2"
+            android:exported="true"
+            android:label="Little Player (Modern 4x2)">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_4x2_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.MusicWidget4x4"
+            android:exported="true"
+            android:label="Little Player (Large 4x4)">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.flatcode.littleplayer.ACTION_UPDATE_WIDGET" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_4x4_info" />
         </receiver>
 
         <meta-data

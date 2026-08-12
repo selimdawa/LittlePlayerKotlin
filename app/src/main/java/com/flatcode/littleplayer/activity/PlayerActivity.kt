@@ -63,10 +63,14 @@ import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.abs
+import com.flatcode.littleplayer.utils.getSongArtwork
+import com.flatcode.littleplayer.utils.loadBitmap
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
@@ -81,6 +85,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
     private var progressJob: Job? = null
     private var waveformJob: Job? = null
+    private var updateSongJob: Job? = null
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private lateinit var amplituda: Amplituda
@@ -173,18 +178,17 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 when {
                     (!controller.shuffleModeEnabled) && (controller.repeatMode != Player.REPEAT_MODE_ONE) -> {
                         controller.repeatMode = Player.REPEAT_MODE_ONE
-                        controller.shuffleModeEnabled = false
+                        musicViewModel.saveShuffleMode(false)
                     }
 
                     (!controller.shuffleModeEnabled) && (controller.repeatMode == Player.REPEAT_MODE_ONE) -> {
                         controller.repeatMode = Player.REPEAT_MODE_ALL
-                        controller.shuffleModeEnabled = true
-                        musicViewModel.smartShuffle("Current", viewModel.currentSong.value)
+                        musicViewModel.saveShuffleMode(true)
                     }
 
                     else -> {
                         controller.repeatMode = Player.REPEAT_MODE_ALL
-                        controller.shuffleModeEnabled = false
+                        musicViewModel.saveShuffleMode(false)
                     }
                 }
             }
@@ -256,10 +260,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         viewModel.currentSong.collectWithLifecycle(this) { song ->
             if (song != null) {
                 updateSongUI(song)
-                lifecycleScope.launch {
-                    delay(300.milliseconds)
-                    song.path?.let { path -> song.id?.let { id -> loadWaveform(id, path) } }
-                }
+                loadWaveform(song.id ?: "", song.path ?: "")
             } else {
                 if (!isTransitionStarted) {
                     isTransitionStarted = true
@@ -287,34 +288,63 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updateSongUI(song: MusicFiles) {
+        updateSongJob?.cancel()
+        // 1. Immediate Text Updates
         animateTextChange(binding.songName, song.title ?: getString(R.string.unknown))
         animateTextChange(binding.songArtist, song.artist ?: getString(R.string.unknown))
         animateTextChange(binding.durationTotal, song.durationDuration.formatAsTime())
 
-        val bitrate = getBitrate(song.path)
-        binding.bitrate.text = bitrate?.let { "$it kbps" } ?: ""
-        binding.bitrate.isVisible = bitrate != null
+        updateSongJob = lifecycleScope.launch {
+            // 2. Parallel Bitrate Loading (Independent)
+            launch(Dispatchers.IO) {
+                val bitrate = getBitrate(song.path)
+                withContext(Dispatchers.Main) {
+                    binding.bitrate.text = bitrate?.let { "$it kbps" } ?: ""
+                    binding.bitrate.isVisible = bitrate != null
+                }
+            }
 
-        binding.image.loadSongImage(song.albumId, song.path, song.cachedImagePath) {
+            // 3. Parallel Artwork Loading (Independent)
+            val bitmap = withContext(Dispatchers.Default) {
+                getSongArtwork(song.albumId, song.path, song.cachedImagePath, 600)
+            }
+            
+            // 4. Apply Artwork and Extract Palette
+            applyArtworkAndPalette(bitmap)
+        }
+    }
+
+    private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?) {
+        // Apply to ImageView
+        binding.image.loadBitmap(bitmap) {
             if (!isTransitionStarted) {
                 isTransitionStarted = true
                 startPostponedEnterTransition()
             }
         }
-        binding.imageBlur.loadSongImageBlur(song.albumId, 100, song.path, song.cachedImagePath)
+        
+        // Apply Blur Background (Very low res for speed)
+        binding.imageBlur.loadBitmap(bitmap, blurRadius = 100f, fallback = R.drawable.ic_cover_song_blur)
 
-        val model = getSongImageModel(song.albumId, song.path, song.cachedImagePath)
+        // Extract Palette
+        if (bitmap != null) {
+            Palette.from(bitmap).generate { palette ->
+                val defaultColor = getLibraryColor("mc_track")
+                currentDominantColor = palette.extractVibrantColor(defaultColor)
 
-        extractPalette(model) { palette ->
+                binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
+                nowPlayerViewModel.updateThemeColor(currentDominantColor)
+
+                if (currentMode == DATA.MODE_PALETTE) {
+                    applyCurrentModeColors()
+                }
+            }
+        } else {
             val defaultColor = getLibraryColor("mc_track")
-            currentDominantColor = palette.extractVibrantColor(defaultColor)
-
+            currentDominantColor = defaultColor
             binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
             nowPlayerViewModel.updateThemeColor(currentDominantColor)
-
-            if (currentMode == DATA.MODE_PALETTE) {
-                applyCurrentModeColors()
-            }
+            if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
         }
     }
 
@@ -340,8 +370,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun loadWaveform(songId: String, path: String) {
+        if (songId.isEmpty() || path.isEmpty()) return
         waveformJob?.cancel()
         waveformJob = lifecycleScope.launch(Dispatchers.IO) {
+            delay(300.milliseconds)
             try {
                 val cachedSong = viewModel.getSongById(songId)
                 if (cachedSong?.waveform != null) {

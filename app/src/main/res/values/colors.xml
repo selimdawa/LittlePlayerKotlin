@@ -11,6 +11,10 @@
     <color name="pure_black">#FF000000</color>
     <color name="link">#2196F3</color>
     <color name="blue">#2196F3</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="purple_equalizer">#7c4dde</color>
+    <color name="dark_equalizer">#263746</color>
 
     <!-- Syrian Flag Colors -->
     <color name="syria_green">#007A3D</color>
@@ -29,11 +33,7 @@
     <color name="black_25">#40000000</color>
     <color name="black_12">#20000000</color>
 
-    <color name="purple_500">#6200EE</color>
-    <color name="purple_700">#3700B3</color>
-    <color name="purple_equalizer">#7c4dde</color>
-    <color name="dark_equalizer">#263746</color>
-
+    <!-- Splash Colors -->
     <color name="splash_bg_night_start">#0D0D14</color>
     <color name="splash_bg_night_end">#1B0B1B</color>
     <color name="splash_bg_day_start">#2196F3</color>

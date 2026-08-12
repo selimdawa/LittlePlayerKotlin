@@ -139,8 +139,13 @@
     <string name="enter_minutes">أدخل الدقائق</string>
     <string name="share_song">مشاركة الأغنية</string>
     <string name="add_widget_to_home">ويدجت الشاشة</string>
-    <string name="small_widget">ويدجت مصغر</string>
-    <string name="large_widget">ويدجت كامل</string>
+    <string name="widget_tiny">مصغر جداً (2x1)</string>
+    <string name="widget_square">مربع (2x2)</string>
+    <string name="widget_compact">أفقي (4x1)</string>
+    <string name="widget_modern">حديث (4x2)</string>
+    <string name="widget_large">كامل (4x4)</string>
+    <string name="refresh_widgets">تحديث الويدجت</string>
+    <string name="widgets_refreshed">تم تحديث الويدجت بنجاح</string>
     <string name="widget_pinning_not_supported">تثبيت الويدجت غير مدعوم على هذا الجهاز.</string>
     <string name="widget_added_success">تمت إضافة الويدجت! تحقق من الشاشة الرئيسية.</string>
     <string name="widget_already_exists">الويدجت موجود بالفعل على الشاشة الرئيسية.</string>

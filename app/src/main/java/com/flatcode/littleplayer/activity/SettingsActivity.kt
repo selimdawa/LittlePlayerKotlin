@@ -29,9 +29,9 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.SettingsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import dagger.hilt.android.AndroidEntryPoint
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
@@ -124,36 +124,46 @@ class SettingsActivity : AppCompatActivity() {
             val appWidgetManager = getSystemService(android.appwidget.AppWidgetManager::class.java)
             if (appWidgetManager.isRequestPinAppWidgetSupported) {
                 val options = arrayOf(
-                    getString(R.string.small_widget),
-                    getString(R.string.large_widget)
+                    getString(R.string.widget_tiny),
+                    getString(R.string.widget_square),
+                    getString(R.string.widget_compact),
+                    getString(R.string.widget_modern),
+                    getString(R.string.widget_large)
                 )
-                MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.add_widget_to_home)
+                MaterialAlertDialogBuilder(this).setTitle(R.string.add_widget_to_home)
                     .setItems(options) { dialog, which ->
                         dialog.dismiss()
-                        
-                        val providerClass = if (which == 0) {
-                            "com.flatcode.littleplayer.widget.MusicWidgetProviderCompact"
-                        } else {
-                            "com.flatcode.littleplayer.widget.MusicWidgetProvider"
+
+                        val providerClass = when (which) {
+                            0 -> "com.flatcode.littleplayer.widget.MusicWidget2x1"
+                            1 -> "com.flatcode.littleplayer.widget.MusicWidget2x2"
+                            2 -> "com.flatcode.littleplayer.widget.MusicWidget4x1"
+                            3 -> "com.flatcode.littleplayer.widget.MusicWidget4x2"
+                            4 -> "com.flatcode.littleplayer.widget.MusicWidget4x4"
+                            else -> "com.flatcode.littleplayer.widget.MusicWidget4x2"
                         }
                         val provider = ComponentName(this, providerClass)
-                        
+
                         // Check if widget already exists
                         val existingIds = appWidgetManager.getAppWidgetIds(provider)
                         if (existingIds.isNotEmpty()) {
                             binding.root.snackbar(getString(R.string.widget_already_exists))
                             return@setItems
                         }
-                        
+
                         try {
                             val success = appWidgetManager.requestPinAppWidget(provider, null, null)
                             if (success) {
-                                android.widget.Toast.makeText(this, getString(R.string.widget_added_success), android.widget.Toast.LENGTH_SHORT).show()
-                                
+                                android.widget.Toast.makeText(
+                                    this,
+                                    getString(R.string.widget_added_success),
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+
                                 lifecycleScope.launch {
                                     delay(500.milliseconds)
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_MAIN)
+                                    val intent =
+                                        android.content.Intent(android.content.Intent.ACTION_MAIN)
                                     intent.addCategory(android.content.Intent.CATEGORY_HOME)
                                     intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
                                     startActivity(intent)
@@ -162,8 +172,7 @@ class SettingsActivity : AppCompatActivity() {
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
-                    }
-                    .show()
+                    }.show()
             } else {
                 binding.root.snackbar(getString(R.string.widget_pinning_not_supported))
             }
@@ -178,9 +187,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun showLanguageDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_language, null)
-        val alertDialog = MaterialAlertDialogBuilder(this)
-            .setView(view)
-            .create()
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(view).create()
 
         alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
@@ -213,10 +220,8 @@ class SettingsActivity : AppCompatActivity() {
     private fun showAboutDialog() {
         val aboutBinding = DialogAboutBinding.inflate(layoutInflater)
         aboutBinding.tvVersion.text = getString(R.string.version_format, appVersionName)
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setView(aboutBinding.root)
-            .setPositiveButton(R.string.ok, null)
-            .create()
+        val dialog = MaterialAlertDialogBuilder(this).setView(aboutBinding.root)
+            .setPositiveButton(R.string.ok, null).create()
 
         dialog.setCanceledOnTouchOutside(false)
         dialog.show()

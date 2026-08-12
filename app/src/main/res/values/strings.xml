@@ -135,8 +135,13 @@
     <string name="enter_minutes">Enter minutes</string>
     <string name="share_song">Share Song</string>
     <string name="add_widget_to_home">Home Widget</string>
-    <string name="small_widget">Small Widget</string>
-    <string name="large_widget">Large Widget</string>
+    <string name="widget_tiny">Tiny (2x1)</string>
+    <string name="widget_square">Square (2x2)</string>
+    <string name="widget_compact">Compact (4x1)</string>
+    <string name="widget_modern">Modern (4x2)</string>
+    <string name="widget_large">Large (4x4)</string>
+    <string name="refresh_widgets">Refresh Widgets</string>
+    <string name="widgets_refreshed">Widgets updated successfully</string>
     <string name="widget_pinning_not_supported">Widget pinning is not supported on this device.</string>
     <string name="widget_added_success">Widget added! Check your home screen.</string>
     <string name="widget_already_exists">Widget already exists on your home screen.</string>

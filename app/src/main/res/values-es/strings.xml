@@ -135,8 +135,13 @@
     <string name="enter_minutes">Ingrese los minutos</string>
     <string name="share_song">Compartir canción</string>
     <string name="add_widget_to_home">Widget de inicio</string>
-    <string name="small_widget">Widget pequeño</string>
-    <string name="large_widget">Widget grande</string>
+    <string name="widget_tiny">Diminuto (2x1)</string>
+    <string name="widget_square">Cuadrado (2x2)</string>
+    <string name="widget_compact">Compacto (4x1)</string>
+    <string name="widget_modern">Moderno (4x2)</string>
+    <string name="widget_large">Grande (4x4)</string>
+    <string name="refresh_widgets">Actualizar widgets</string>
+    <string name="widgets_refreshed">Widgets actualizados con éxito</string>
     <string name="widget_pinning_not_supported">El anclaje de widgets no es compatible con este dispositivo.</string>
     <string name="unknown">Desconocido</string>
     <string name="widget_added_success">Widget añadido! Revisa tu pantalla de inicio.</string>
