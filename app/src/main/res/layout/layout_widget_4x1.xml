@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="4dp">
@@ -8,8 +9,8 @@
         android:id="@+id/widgetBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
         android:contentDescription="@null"
+        android:scaleType="centerCrop"
         android:src="@drawable/widget_bg_shape" />
 
     <RelativeLayout
@@ -23,10 +24,10 @@
             android:layout_height="36dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:scaleType="centerCrop"
+            android:background="@drawable/widget_art_bg"
             android:contentDescription="@null"
             android:padding="1dp"
-            android:background="@drawable/widget_art_bg"
+            android:scaleType="centerCrop"
             android:src="@drawable/logo_icon" />
 
         <LinearLayout
@@ -34,8 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginStart="12dp"
-            android:layout_toEndOf="@id/widgetArtSmall"
             android:layout_toStartOf="@+id/controls"
+            android:layout_toEndOf="@id/widgetArtSmall"
             android:orientation="vertical">
 
             <TextView
@@ -73,25 +74,30 @@
                 android:id="@+id/widgetPrev"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:padding="8dp"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_skip_previous" />
+                android:padding="8dp"
+                android:src="@drawable/ic_skip_previous"
+                app:tint="@color/white" />
 
             <ImageView
                 android:id="@+id/widgetPlayPause"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:padding="8dp"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_play" />
+                android:padding="8dp"
+                android:src="@drawable/ic_play"
+                app:tint="@color/white" />
 
             <ImageView
                 android:id="@+id/widgetNext"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:padding="8dp"
                 android:contentDescription="@null"
-                android:src="@drawable/ic_skip_next" />
+                android:padding="8dp"
+                android:src="@drawable/ic_skip_next"
+                app:tint="@color/white" />
         </LinearLayout>
+
     </RelativeLayout>
+
 </FrameLayout>
