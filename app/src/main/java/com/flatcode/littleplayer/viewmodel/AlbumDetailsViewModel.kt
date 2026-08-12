@@ -68,6 +68,7 @@ class AlbumDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val shuffled = _uiState.value.songs.shuffled()
             if (shuffled.isNotEmpty()) {
+                repository.saveShuffleMode(true)
                 repository.updateCurrentPlaylist(shuffled)
                 _event.emit(AlbumDetailsEvent.PlaySong(0))
             }

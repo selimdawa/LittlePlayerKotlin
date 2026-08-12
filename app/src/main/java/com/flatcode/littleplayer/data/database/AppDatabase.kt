@@ -17,9 +17,10 @@ import com.flatcode.littleplayer.data.entity.SongEntity
 
 @Database(
     entities = [SongEntity::class, AlbumImageEntity::class, FavoriteEntity::class, PlaylistEntity::class, RecentEntity::class, CurrentQueueEntity::class, EqualizerEntity::class, PlaybackStateEntity::class],
-    version = 18,
+    version = 19,
     autoMigrations = [
-        AutoMigration(from = 17, to = 18)
+        AutoMigration(from = 17, to = 18),
+        AutoMigration(from = 18, to = 19)
     ],
     exportSchema = true
 )

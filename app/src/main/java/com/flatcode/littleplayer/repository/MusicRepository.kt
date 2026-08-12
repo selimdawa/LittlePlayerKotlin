@@ -93,6 +93,16 @@ class MusicRepository @Inject constructor(
         }
     }
 
+    val shuffleMode: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] ?: false
+    }.distinctUntilChanged()
+
+    suspend fun saveShuffleMode(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] = enabled
+        }
+    }
+
     val excludedFolders: Flow<Set<String>> = dataStore.data.map { preferences ->
         preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] ?: emptySet()
     }.distinctUntilChanged()
@@ -113,8 +123,8 @@ class MusicRepository @Inject constructor(
 
     fun getSongsFlow(sortOrder: String): Flow<List<MusicFiles>> {
         return combine(
-            songDao.getAllSongs(), albumImageDao.getAllAlbumImages(), excludedFolders
-        ) { dbSongs, cachedImages, excluded ->
+            songDao.getAllSongs(), excludedFolders
+        ) { dbSongs, excluded ->
             val filteredDbSongs = dbSongs.filter { song ->
                 excluded.none { excludedPath -> song.path.startsWith(excludedPath) }
             }
@@ -128,14 +138,10 @@ class MusicRepository @Inject constructor(
                 else -> filteredDbSongs
             }
 
-            val imageMap = cachedImages.associateBy { it.albumName }
             sortedDbSongs.map { dbSong ->
                 val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                     val folderName = File(dbSong.path).parentFile?.name
-                    if (dbSong.album.equals(
-                            folderName, ignoreCase = true
-                        )
-                    ) DATA.UNKNOWN else dbSong.album
+                    if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
                 } else {
                     dbSong.album ?: DATA.UNKNOWN
                 }
@@ -150,7 +156,7 @@ class MusicRepository @Inject constructor(
                     albumId = dbSong.albumId,
                     waveform = dbSong.waveform,
                     playCount = dbSong.playCount,
-                    cachedImagePath = imageMap[cleanedAlbum]?.imagePath,
+                    cachedImagePath = dbSong.cachedImagePath,
                     dateAdded = dbSong.dateAdded,
                     size = dbSong.size,
                     year = dbSong.year
@@ -171,21 +177,12 @@ class MusicRepository @Inject constructor(
             try {
                 val dbSongs = songDao.getAllSongsSync()
                 if (dbSongs.isNotEmpty()) {
-                    val cachedImages = try {
-                        albumImageDao.getAllAlbumImagesSync().associateBy { it.albumName }
-                    } catch (_: Exception) {
-                        emptyMap()
-                    }
-
                     dbSongs.forEach { dbSong ->
                         if (excluded.any { dbSong.path.startsWith(it) }) return@forEach
 
                         val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                             val folderName = File(dbSong.path).parentFile?.name
-                            if (dbSong.album.equals(
-                                    folderName, ignoreCase = true
-                                )
-                            ) DATA.UNKNOWN else dbSong.album
+                            if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
                         } else {
                             dbSong.album ?: DATA.UNKNOWN
                         }
@@ -201,7 +198,7 @@ class MusicRepository @Inject constructor(
                                 albumId = dbSong.albumId,
                                 waveform = dbSong.waveform,
                                 playCount = dbSong.playCount,
-                                cachedImagePath = cachedImages[cleanedAlbum]?.imagePath,
+                                cachedImagePath = dbSong.cachedImagePath,
                                 dateAdded = dbSong.dateAdded,
                                 size = dbSong.size,
                                 year = dbSong.year
@@ -268,18 +265,12 @@ class MusicRepository @Inject constructor(
 
                         while (cursor.moveToNext()) {
                             val path = cursor.getString(pathColumn) ?: ""
-                            if (path.contains(
-                                    "/Android/data", true
-                                ) || path.contains("/Android/media", true)
-                            ) continue
+                            if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
                             if (excluded.any { path.startsWith(it) }) continue
 
                             val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
                             val folderName = File(path).parentFile?.name
-                            val cleanedAlbum = if (rawAlbum.equals(
-                                    folderName, ignoreCase = true
-                                )
-                            ) DATA.UNKNOWN else rawAlbum
+                            val cleanedAlbum = if (rawAlbum.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else rawAlbum
 
                             tempAudioList.add(
                                 MusicFiles(
@@ -328,6 +319,7 @@ class MusicRepository @Inject constructor(
             MediaStore.Audio.Media.YEAR
         )
 
+        val dbSongs = songDao.getAllSongsSync()
         val cursor: Cursor? = context.contentResolver.query(uri, projection, null, null, null)
         val songEntities = mutableListOf<com.flatcode.littleplayer.data.entity.SongEntity>()
         cursor?.use { c ->
@@ -344,10 +336,7 @@ class MusicRepository @Inject constructor(
 
             while (c.moveToNext()) {
                 val path = c.getString(pathColumn) ?: ""
-                if (path.contains("/Android/data", true) || path.contains(
-                        "/Android/media", true
-                    )
-                ) continue
+                if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
                 if (excluded.any { path.startsWith(it) }) continue
 
                 val album = c.getString(albumColumn) ?: DATA.UNKNOWN
@@ -371,13 +360,13 @@ class MusicRepository @Inject constructor(
                         albumId = albumId,
                         dateAdded = dateAdded,
                         size = size,
-                        year = year
+                        year = year,
+                        cachedImagePath = dbSongs.find { it.id == id }?.cachedImagePath
                     )
                 )
             }
         }
 
-        val dbSongs = songDao.getAllSongsSync()
         val mediaStoreIds = songEntities.map { it.id }.toSet()
         dbSongs.filter { it.id !in mediaStoreIds }.forEach {
             songDao.deleteSongById(it.id)
@@ -389,41 +378,41 @@ class MusicRepository @Inject constructor(
     }
 
     suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {
-        val albumName = song.album ?: DATA.UNKNOWN
-        if (albumName == DATA.UNKNOWN) return@withContext
-
-        val existing = albumImageDao.getAlbumImageByName(albumName)
-        if ((existing != null) && File(existing.imagePath).exists()) return@withContext
-
-        val artBytes = getAlbumArtBytes(song.path) ?: return@withContext
-
-        val folder = File(context.filesDir, "album_art")
+        val songId = song.id ?: return@withContext
+        val path = song.path ?: ""
+        
+        val folder = File(context.filesDir, "song_art")
         if (!folder.exists()) folder.mkdirs()
 
-        val fileName = "${albumName.hashCode()}.jpg"
-        val file = File(folder, fileName)
+        val file = File(folder, "$songId.jpg")
+        if (file.exists()) {
+            songDao.updateCachedImagePath(songId, file.absolutePath)
+            return@withContext
+        }
+
+        val artBytes = getAlbumArtBytes(path) ?: return@withContext
 
         try {
             FileOutputStream(file).use { out ->
                 out.write(artBytes)
             }
-            albumImageDao.insertAlbumImage(AlbumImageEntity(albumName, file.absolutePath))
+            songDao.updateCachedImagePath(songId, file.absolutePath)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
     suspend fun startBackgroundArtCaching(songs: List<MusicFiles>) = withContext(Dispatchers.IO) {
-        val processedAlbums = mutableSetOf<String>()
-        songs.forEach { song ->
-            val album = song.album ?: DATA.UNKNOWN
-            if (album != DATA.UNKNOWN && !processedAlbums.contains(album)) {
-                cacheAlbumArt(song)
-                processedAlbums.add(album)
-            }
+        val uncachedSongs = songs.filter { it.cachedImagePath == null }
+        if (uncachedSongs.isEmpty()) return@withContext
+
+        uncachedSongs.chunked(10).forEach { chunk ->
+            chunk.map { song ->
+                launch { cacheAlbumArt(song) }
+            }.forEach { it.join() }
+            delay(50)
         }
     }
-
 
     suspend fun deleteFromDatabase(songId: String) {
         songDao.deleteSongById(songId)
@@ -434,9 +423,7 @@ class MusicRepository @Inject constructor(
     }
 
     fun getSongUri(songId: String): Uri {
-        return ContentUris.withAppendedId(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()
-        )
+        return ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong())
     }
 
     suspend fun getPlaybackStateSync() = withContext(Dispatchers.IO) {
@@ -490,7 +477,7 @@ class MusicRepository @Inject constructor(
 
     suspend fun clearArtCache() = withContext(Dispatchers.IO) {
         albumImageDao.clearAllAlbumImages()
-        val folder = File(context.filesDir, "album_art")
+        val folder = File(context.filesDir, "song_art")
         if (folder.exists()) {
             folder.listFiles()?.forEach { it.delete() }
         }
@@ -501,7 +488,7 @@ class MusicRepository @Inject constructor(
     }
 
     fun getCacheSize(): Long {
-        val folder = File(context.filesDir, "album_art")
+        val folder = File(context.filesDir, "song_art")
         return if (folder.exists()) {
             folder.walkTopDown().filter { it.isFile }.sumOf { it.length() }
         } else 0L

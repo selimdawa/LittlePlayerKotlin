@@ -158,11 +158,32 @@ fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
     setGradientBackground(color, color, layerIndex)
 }
 
+suspend fun Context.getSongArtwork(
+    albumId: String?,
+    path: String? = null,
+    cachedPath: String? = null,
+    size: Int = 600
+): Bitmap? {
+    val model = getSongImageModel(albumId, path, cachedPath)
+    val request = ImageRequest.Builder(this)
+        .data(model)
+        .size(size)
+        .precision(coil.size.Precision.INEXACT)
+        .allowHardware(false)
+        .bitmapConfig(Bitmap.Config.RGB_565) // 50% less memory
+        .build()
+    
+    val result = imageLoader.execute(request)
+    return (result.drawable as? BitmapDrawable)?.bitmap
+}
+
 fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
-    val request = ImageRequest.Builder(this).data(data).allowHardware(enable = false).listener(
-        onError = { _, _ -> onPaletteGenerated(null) },
-        onCancel = { onPaletteGenerated(null) },
-    ).target { result ->
+    val request = ImageRequest.Builder(this).data(data).allowHardware(enable = false)
+        .size(200, 200) // Optimization: Downsample for palette extraction
+        .listener(
+            onError = { _, _ -> onPaletteGenerated(null) },
+            onCancel = { onPaletteGenerated(null) },
+        ).target { result ->
         val bitmap = (result as? BitmapDrawable)?.bitmap
         if (bitmap != null) {
             Palette.from(bitmap).generate { palette ->
@@ -348,6 +369,29 @@ fun View.gone() {
     visibility = View.GONE
 }
 
+fun ImageView.loadBitmap(
+    bitmap: Bitmap?,
+    blurRadius: Float = 0f,
+    fallback: Int = R.drawable.ic_cover_song,
+    onComplete: (() -> Unit)? = null
+) {
+    if (bitmap == null) {
+        load(fallback) {
+            crossfade(true)
+            listener(onSuccess = { _, _ -> onComplete?.invoke() }, onError = { _, _ -> onComplete?.invoke() })
+        }
+        return
+    }
+
+    load(bitmap) {
+        crossfade(true)
+        if (blurRadius > 0) {
+            transformations(SimpleBlurTransformation(blurRadius))
+        }
+        listener(onSuccess = { _, _ -> onComplete?.invoke() }, onError = { _, _ -> onComplete?.invoke() })
+    }
+}
+
 fun View?.isVisible(show: Boolean) {
     this?.visibility = if (show) View.VISIBLE else View.GONE
 }
@@ -409,6 +453,7 @@ fun ImageView.loadSongImageBlur(
         placeholder(R.color.image_profile)
         error(actualFallback)
         allowHardware(enable = false)
+        size(400, 400) // Optimization: Downsample before blurring
         if ((model is Int) && (model == R.drawable.ic_cover_song)) {
             target { _ ->
                 this@loadSongImageBlur.load(R.drawable.ic_cover_song_blur)
@@ -433,22 +478,21 @@ fun getSongImageModel(
     cachedPath: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
 ): Any {
-    // 1. Try Song Path (Embedded Art) - Prioritize for "Song Image" as requested by user
-    // We return the File object. Coil will use our custom AudioArtFetcher to extract the art.
-    if (!path.isNullOrEmpty()) {
-        val file = File(path)
-        if (file.exists()) return file
-    }
-
-    // 2. Try Cached Path (might be per-album)
+    // 1. Try Cached Path (Fastest - Local File)
     if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
 
-    // 3. Try Album ID (MediaStore) - THIS IS THE ALBUM IMAGE
+    // 2. Try Album ID (MediaStore - System Optimized)
     if ((!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(),
             albumId.toLong(),
         )
+    }
+
+    // 3. Try Song Path (Embedded Art - Slowest)
+    if (!path.isNullOrEmpty()) {
+        val file = File(path)
+        if (file.exists()) return file
     }
 
     return fallback

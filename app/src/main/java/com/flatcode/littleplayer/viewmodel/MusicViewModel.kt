@@ -212,6 +212,12 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }
 
+    fun saveShuffleMode(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.saveShuffleMode(enabled)
+        }
+    }
+
     fun smartShuffle(category: String, currentSong: MusicFiles? = null) {
         viewModelScope.launch {
             val fullList = repository.getAllAudio(DATA.SORT_BY_DATE)
@@ -243,6 +249,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
                     shuffledSongs
                 }
                 
+                saveShuffleMode(true)
                 updateCurrentPlaylist(finalSongs)
                 _event.emit(MusicEvent.PlaySong(0, keepProgress = currentSong != null))
             }

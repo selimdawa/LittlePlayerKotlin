@@ -10,18 +10,21 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.toColorInt
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.service.MusicService
+import java.io.File
 
 @UnstableApi
-class MusicWidgetProvider : AppWidgetProvider() {
+open class MusicWidgetBase : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, R.layout.layout_widget_modern)
+            val layoutId = getLayoutId()
+            val views = RemoteViews(context.packageName, layoutId)
+            MusicWidgetUtils.setupButtons(context, views)
+            appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
 
@@ -37,105 +40,107 @@ class MusicWidgetProvider : AppWidgetProvider() {
 
             val appWidgetManager = AppWidgetManager.getInstance(context)
             
-            // Update Full Version
-            updateWidgetUI(context, appWidgetManager, ComponentName(context, MusicWidgetProvider::class.java), 
-                R.layout.layout_widget_modern, title, artist, isPlaying, isShuffle, isFavorite, imagePath)
-                
-            // Update Compact Version
-            updateWidgetUI(context, appWidgetManager, ComponentName(context, MusicWidgetProviderCompact::class.java), 
-                R.layout.layout_widget_modern_compact, title, artist, isPlaying, isShuffle, isFavorite, imagePath)
+            val widgets = listOf(
+                MusicWidget2x1::class.java to R.layout.layout_widget_2x1,
+                MusicWidget2x2::class.java to R.layout.layout_widget_2x2,
+                MusicWidget4x1::class.java to R.layout.layout_widget_4x1,
+                MusicWidget4x2::class.java to R.layout.layout_widget_4x2,
+                MusicWidget4x4::class.java to R.layout.layout_widget_4x4
+            )
+
+            widgets.forEach { (clazz, layoutId) ->
+                MusicWidgetUtils.updateWidgetUI(
+                    context, appWidgetManager, ComponentName(context, clazz),
+                    layoutId, title, artist, isPlaying, isShuffle, isFavorite, imagePath
+                )
+            }
         }
     }
 
-    private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, layoutId: Int) {
-        val views = RemoteViews(context.packageName, layoutId)
-        setupButtons(context, views)
-        appWidgetManager.updateAppWidget(appWidgetId, views)
-    }
-
-    companion object {
-        fun setupButtons(context: Context, views: RemoteViews) {
-            val playPauseIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_PLAY_PAUSE }
-            val nextIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_NEXT }
-            val prevIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_PREV }
-            val shuffleIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_SHUFFLE }
-            val favoriteIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_FAVORITE }
-            val openAppIntent = Intent(context, PlayerActivity::class.java)
-
-            val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-
-            views.setOnClickPendingIntent(R.id.widgetPlayPause, PendingIntent.getService(context, 0, playPauseIntent, flags))
-            views.setOnClickPendingIntent(R.id.widgetNext, PendingIntent.getService(context, 1, nextIntent, flags))
-            views.setOnClickPendingIntent(R.id.widgetPrev, PendingIntent.getService(context, 2, prevIntent, flags))
-            views.setOnClickPendingIntent(R.id.widgetShuffle, PendingIntent.getService(context, 3, shuffleIntent, flags))
-            views.setOnClickPendingIntent(R.id.widgetFavorite, PendingIntent.getService(context, 4, favoriteIntent, flags))
-            views.setOnClickPendingIntent(R.id.widgetBackground, PendingIntent.getActivity(context, 5, openAppIntent, flags))
-        }
-
-        fun updateWidgetUI(
-            context: Context, appWidgetManager: AppWidgetManager, componentName: ComponentName, layoutId: Int,
-            title: String, artist: String, isPlaying: Boolean, isShuffle: Boolean, isFavorite: Boolean, imagePath: String?
-        ) {
-            val views = RemoteViews(context.packageName, layoutId)
-            views.setTextViewText(R.id.widgetTitle, title)
-            views.setTextViewText(R.id.widgetArtist, artist)
-            views.setImageViewResource(R.id.widgetPlayPause, if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
-            
-            val activeColor = ContextCompat.getColor(context, R.color.syria_red)
-            
-            // Buttons that might exist only in Full layout
-            try {
-                views.setInt(R.id.widgetShuffle, "setColorFilter", if (isShuffle) activeColor else Color.WHITE)
-                views.setImageViewResource(R.id.widgetFavorite, if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border)
-                views.setInt(R.id.widgetFavorite, "setColorFilter", if (isFavorite) activeColor else Color.WHITE)
-            } catch (_: Exception) {
-            }
-
-            if (imagePath != null) {
-                try {
-                    val options = BitmapFactory.Options().apply {
-                        inJustDecodeBounds = true
-                    }
-                    BitmapFactory.decodeFile(imagePath, options)
-                    options.inSampleSize = calculateInSampleSize(options, 512, 512)
-                    options.inJustDecodeBounds = false
-                    val bitmap = BitmapFactory.decodeFile(imagePath, options)
-                    
-                    if (bitmap != null) views.setImageViewBitmap(R.id.widgetBackground, bitmap)
-                    else views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
-                } catch (e: Exception) {
-                    views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
-                }
-            } else {
-                views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
-            }
-
-            setupButtons(context, views)
-            appWidgetManager.updateAppWidget(componentName, views)
-        }
-
-        private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
-            val (height: Int, width: Int) = options.outHeight to options.outWidth
-            var inSampleSize = 1
-            if (height > reqHeight || width > reqWidth) {
-                val halfHeight: Int = height / 2
-                val halfWidth: Int = width / 2
-                while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
-                    inSampleSize *= 2
-                }
-            }
-            return inSampleSize
-        }
-    }
+    open fun getLayoutId(): Int = R.layout.layout_widget_4x2
 }
 
+@UnstableApi class MusicWidget2x1 : MusicWidgetBase() { override fun getLayoutId() = R.layout.layout_widget_2x1 }
+@UnstableApi class MusicWidget2x2 : MusicWidgetBase() { override fun getLayoutId() = R.layout.layout_widget_2x2 }
+@UnstableApi class MusicWidget4x1 : MusicWidgetBase() { override fun getLayoutId() = R.layout.layout_widget_4x1 }
+@UnstableApi class MusicWidget4x2 : MusicWidgetBase() { override fun getLayoutId() = R.layout.layout_widget_4x2 }
+@UnstableApi class MusicWidget4x4 : MusicWidgetBase() { override fun getLayoutId() = R.layout.layout_widget_4x4 }
+
 @UnstableApi
-class MusicWidgetProviderCompact : AppWidgetProvider() {
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.layout_widget_modern_compact)
-            MusicWidgetProvider.setupButtons(context, views)
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+object MusicWidgetUtils {
+    fun setupButtons(context: Context, views: RemoteViews) {
+        val playPauseIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_PLAY_PAUSE }
+        val nextIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_NEXT }
+        val prevIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_PREV }
+        val shuffleIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_SHUFFLE }
+        val favoriteIntent = Intent(context, MusicService::class.java).apply { action = MusicService.ACTION_FAVORITE }
+        val openAppIntent = Intent(context, PlayerActivity::class.java)
+
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+
+        // Safety check for IDs that might not exist in all layouts
+        views.setOnClickPendingIntent(R.id.widgetPlayPause, PendingIntent.getService(context, 0, playPauseIntent, flags))
+        views.setOnClickPendingIntent(R.id.widgetNext, PendingIntent.getService(context, 1, nextIntent, flags))
+        views.setOnClickPendingIntent(R.id.widgetPrev, PendingIntent.getService(context, 2, prevIntent, flags))
+        views.setOnClickPendingIntent(R.id.widgetShuffle, PendingIntent.getService(context, 3, shuffleIntent, flags))
+        views.setOnClickPendingIntent(R.id.widgetFavorite, PendingIntent.getService(context, 4, favoriteIntent, flags))
+        
+        // Background click to open app
+        views.setOnClickPendingIntent(R.id.widgetBackground, PendingIntent.getActivity(context, 5, openAppIntent, flags))
+    }
+
+    fun updateWidgetUI(
+        context: Context, appWidgetManager: AppWidgetManager, componentName: ComponentName, layoutId: Int,
+        title: String, artist: String, isPlaying: Boolean, isShuffle: Boolean, isFavorite: Boolean, imagePath: String?
+    ) {
+        val views = RemoteViews(context.packageName, layoutId)
+        views.setTextViewText(R.id.widgetTitle, title)
+        views.setTextViewText(R.id.widgetArtist, artist)
+        views.setImageViewResource(R.id.widgetPlayPause, if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
+        
+        val activeColor = ContextCompat.getColor(context, R.color.syria_red)
+        
+        // Update Shuffle and Favorite if they exist
+        try {
+            views.setInt(R.id.widgetShuffle, "setColorFilter", if (isShuffle) activeColor else Color.WHITE)
+            views.setImageViewResource(R.id.widgetFavorite, if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border)
+            views.setInt(R.id.widgetFavorite, "setColorFilter", if (isFavorite) activeColor else Color.WHITE)
+        } catch (_: Exception) {}
+
+        // Handle Album Art with scaling
+        if (imagePath != null) {
+            try {
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(imagePath, options)
+                options.inSampleSize = calculateInSampleSize(options, 512, 512)
+                options.inJustDecodeBounds = false
+                val bitmap = BitmapFactory.decodeFile(imagePath, options)
+                
+                if (bitmap != null) {
+                    views.setImageViewBitmap(R.id.widgetArtSmall, bitmap)
+                    views.setImageViewBitmap(R.id.widgetArtLarge, bitmap)
+                }
+            } catch (_: Exception) {
+            }
         }
+
+        // Ensure background is always the glass shape
+        views.setImageViewResource(R.id.widgetBackground, R.drawable.widget_bg_shape)
+
+        setupButtons(context, views)
+        appWidgetManager.updateAppWidget(componentName, views)
+    }
+
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.outHeight to options.outWidth
+        var inSampleSize = 1
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 }

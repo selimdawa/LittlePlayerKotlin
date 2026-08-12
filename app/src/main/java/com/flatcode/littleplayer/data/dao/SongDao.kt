@@ -35,6 +35,9 @@ interface SongDao {
     @Query("UPDATE songs_table SET title = :title, artist = :artist, album = :album WHERE id = :songId")
     suspend fun updateMetadata(songId: String, title: String, artist: String, album: String?)
 
+    @Query("UPDATE songs_table SET cachedImagePath = :path WHERE id = :songId")
+    suspend fun updateCachedImagePath(songId: String, path: String?)
+
     @Query("SELECT * FROM songs_table WHERE id = :songId")
     suspend fun getSongById(songId: String): SongEntity?
 

@@ -107,6 +107,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private val showSongToastKey = booleanPreferencesKey(DATA.SHOW_SONG_TOAST)
     private val playbackSpeedKey = floatPreferencesKey(DATA.PLAYBACK_SPEED)
     private val playbackPitchKey = floatPreferencesKey(DATA.PLAYBACK_PITCH)
+    private val shuffleModeKey = booleanPreferencesKey(DATA.SHUFFLE_MODE)
 
     private val customCommandFavorite = SessionCommand(COMMAND_FAVORITE, Bundle.EMPTY)
     private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
@@ -203,6 +204,22 @@ class MusicService : MediaLibraryService(), Player.Listener {
             initAudioEffects(basePlayer?.audioSessionId ?: -1)
             loadPlaybackStateAndQueue()
             loadPlaybackParameters()
+            observeShuffleMode()
+        }
+    }
+
+    private fun observeShuffleMode() {
+        serviceScope.launch {
+            musicRepository.shuffleMode.collect { enabled ->
+                exoPlayer?.let { player ->
+                    if (player.shuffleModeEnabled != enabled) {
+                        player.shuffleModeEnabled = enabled
+                        if (enabled) {
+                            basePlayer?.setShuffleOrder(androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder(player.mediaItemCount))
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -366,11 +383,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
             ACTION_SHUFFLE -> {
                 exoPlayer?.let {
                     val nextShuffle = !it.shuffleModeEnabled
-                    it.shuffleModeEnabled = nextShuffle
-                    if (nextShuffle) {
-                        basePlayer?.setShuffleOrder(androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder(it.mediaItemCount))
+                    serviceScope.launch {
+                        musicRepository.saveShuffleMode(nextShuffle)
                     }
-                    sendWidgetUpdate()
                 }
             }
 
@@ -460,6 +475,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 preferences[albumIdKey] = albumId ?: ""
                 preferences[cachedImagePathKey] = cachedPath ?: ""
                 preferences[intPreferencesKey(DATA.LAST_POSITION)] = currentIndex
+                preferences[shuffleModeKey] = shuffleMode
             }
         }
     }
@@ -889,32 +905,23 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     when {
                         !player.shuffleModeEnabled && player.repeatMode != Player.REPEAT_MODE_ONE -> {
                             player.repeatMode = Player.REPEAT_MODE_ONE
-                            player.shuffleModeEnabled = false
+                            serviceScope.launch {
+                                musicRepository.saveShuffleMode(false)
+                            }
                         }
 
                         !player.shuffleModeEnabled && player.repeatMode == Player.REPEAT_MODE_ONE -> {
-                            // When triggered from notification cycle, we still want the smart shuffle behavior
-                            // For simplicity in the service, we'll shuffle the current queue items
-                            val items = mutableListOf<MediaItem>()
-                            for (i in 0 until player.mediaItemCount) {
-                                items.add(player.getMediaItemAt(i))
-                            }
-                            
-                            val currentIndex = player.currentMediaItemIndex
-                            val currentItem = if (currentIndex != -1) items.removeAt(currentIndex) else null
-                            
-                            items.shuffle()
-                            if (currentItem != null) items.add(0, currentItem)
-                            
-                            player.setMediaItems(items, 0, player.currentPosition)
                             player.repeatMode = Player.REPEAT_MODE_ALL
-                            player.shuffleModeEnabled = true
-                            player.prepare()
+                            serviceScope.launch {
+                                musicRepository.saveShuffleMode(true)
+                            }
                         }
 
                         else -> {
                             player.repeatMode = Player.REPEAT_MODE_ALL
-                            player.shuffleModeEnabled = false
+                            serviceScope.launch {
+                                musicRepository.saveShuffleMode(false)
+                            }
                         }
                     }
                     updateNotificationLayout()
