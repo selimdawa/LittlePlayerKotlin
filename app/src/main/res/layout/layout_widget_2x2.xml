@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/widgetMainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="4dp">
-
-    <ImageView
-        android:id="@+id/widgetBackground"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@null"
-        android:scaleType="centerCrop"
-        android:src="@drawable/widget_bg_shape" />
 
     <RelativeLayout
         android:layout_width="match_parent"

@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/widgetMainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/spacing_tiny">
-
-    <ImageView
-        android:id="@+id/widgetBackground"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:contentDescription="@null"
-        android:src="@drawable/widget_bg_shape" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,9 +19,7 @@
             android:layout_height="@dimen/icon_size_44"
             android:scaleType="centerCrop"
             android:contentDescription="@null"
-            android:padding="@dimen/spacing_1"
-            android:background="@drawable/widget_art_bg"
-            android:src="@color/image_profile" />
+            android:src="@drawable/widget_art_placeholder" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -67,5 +58,7 @@
             android:contentDescription="@null"
             android:src="@drawable/ic_play"
             app:tint="@color/white" />
+
     </LinearLayout>
+
 </FrameLayout>
