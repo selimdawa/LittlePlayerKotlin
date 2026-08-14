@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -46,20 +47,17 @@ class PlayerViewModel @Inject constructor(
                     val savedSongId = state?.currentSongId
                     lastProgress = state?.lastProgress ?: 0L
 
-                    if (savedSongId != null) {
-                        val index = it.indexOfFirst { s -> s.id == savedSongId }
-                        if (index != -1) {
-                            updatePositionAndSong(index)
-                        } else if (position != -1) {
-                            updatePositionAndSong(position)
+                    if (_currentSong.value == null) {
+                        if (savedSongId != null) {
+                            val index = it.indexOfFirst { s -> s.id == savedSongId }
+                            if (index != -1) {
+                                updatePositionAndSong(index)
+                            }
                         }
-                    } else if (position != -1) {
-                        updatePositionAndSong(position)
-                    } else if (_currentSong.value != null) {
-                        val index = it.indexOfFirst { s -> s.path == _currentSong.value?.path }
-                        if (index != -1) {
-                            updatePositionAndSong(index)
-                        }
+                    } else {
+                        // Keep current song but update index if list changed
+                        val index = it.indexOfFirst { s -> s.id == _currentSong.value?.id }
+                        if (index != -1) position = index
                     }
                 }
             }
@@ -74,44 +72,44 @@ class PlayerViewModel @Inject constructor(
             val savedSongId = state?.currentSongId
             lastProgress = state?.lastProgress ?: 0L
 
-            dataStore.data.collect { preferences ->
-                // Priority 1: Restore by Song ID from PlaybackState (most accurate)
-                if (_currentSong.value == null && savedSongId != null && listSongs.isNotEmpty()) {
-                    val index = listSongs.indexOfFirst { it.id == savedSongId }
-                    if (index != -1) {
-                        position = index
-                        _currentSong.value = listSongs[index]
+            val preferences = dataStore.data.first()
+            
+            // Priority 1: Restore by Song ID from PlaybackState
+            if (_currentSong.value == null && savedSongId != null && listSongs.isNotEmpty()) {
+                val index = listSongs.indexOfFirst { it.id == savedSongId }
+                if (index != -1) {
+                    position = index
+                    _currentSong.value = listSongs[index]
+                }
+            }
+
+            // Priority 2: Restore by Path from DataStore
+            if (_currentSong.value == null) {
+                val path = preferences[stringPreferencesKey(DATA.MUSIC_FILE)]
+                if (!path.isNullOrEmpty()) {
+                    val song = MusicFiles(
+                        path = path,
+                        artist = preferences[stringPreferencesKey(DATA.ARTIST_NAME)],
+                        title = preferences[stringPreferencesKey(DATA.SONG_NAME)],
+                        duration = preferences[stringPreferencesKey(DATA.DURATION)],
+                        id = preferences[stringPreferencesKey(DATA.SONG_ID)],
+                        albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
+                        cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)]
+                    )
+                    _currentSong.value = song
+
+                    if (listSongs.isNotEmpty()) {
+                        val index = listSongs.indexOfFirst { it.path == path }
+                        if (index != -1) position = index
                     }
                 }
+            }
 
-                // Priority 2: Restore by Path from DataStore
-                if (_currentSong.value == null) {
-                    val path = preferences[stringPreferencesKey(DATA.MUSIC_FILE)]
-                    if (!path.isNullOrEmpty()) {
-                        val song = MusicFiles(
-                            path = path,
-                            artist = preferences[stringPreferencesKey(DATA.ARTIST_NAME)],
-                            title = preferences[stringPreferencesKey(DATA.SONG_NAME)],
-                            duration = preferences[stringPreferencesKey(DATA.DURATION)],
-                            id = preferences[stringPreferencesKey(DATA.SONG_ID)],
-                            albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
-                            cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)]
-                        )
-                        _currentSong.value = song
-
-                        if (listSongs.isNotEmpty()) {
-                            val index = listSongs.indexOfFirst { it.path == path }
-                            if (index != -1) position = index
-                        }
-                    }
-                }
-
-                // Priority 3: Restore by index (last resort)
-                if (position == -1) {
-                    val savedPos = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
-                    if (savedPos != -1 && listSongs.isNotEmpty() && savedPos in listSongs.indices) {
-                        position = savedPos
-                    }
+            // Priority 3: Restore by index (last resort)
+            if (position == -1) {
+                val savedPos = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
+                if (savedPos != -1 && listSongs.isNotEmpty() && savedPos in listSongs.indices) {
+                    position = savedPos
                 }
             }
         }

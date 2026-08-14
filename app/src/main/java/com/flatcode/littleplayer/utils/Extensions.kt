@@ -452,7 +452,7 @@ fun ImageView.loadSongImageBlur(
         placeholder(R.color.image_profile)
         error(actualFallback)
         allowHardware(enable = false)
-        size(400, 400) // Optimization: Downsample before blurring
+        size(80, 80) // High optimization: Tiny size for blur
         if ((model is Int) && (model == R.drawable.ic_cover_song)) {
             target { _ ->
                 this@loadSongImageBlur.load(R.drawable.ic_cover_song_blur)
@@ -670,7 +670,7 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
     override val cacheKey: String = "${SimpleBlurTransformation::class.java.name}-$radius"
 
     override suspend fun transform(input: Bitmap, size: coil.size.Size): Bitmap {
-        val scaleFactor = 8
+        val scaleFactor = 4
         val w = (input.width / scaleFactor).coerceAtLeast(1)
         val h = (input.height / scaleFactor).coerceAtLeast(1)
         val small = input.scale(w, h, true)

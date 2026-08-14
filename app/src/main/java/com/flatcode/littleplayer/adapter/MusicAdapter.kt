@@ -14,7 +14,6 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollableAdapter
 import com.flatcode.littleplayer.utils.getAppCompatActivity
 import com.flatcode.littleplayer.utils.loadSongImage
-import com.flatcode.littleplayer.utils.loadSongImageBlur
 
 class MusicAdapter(
     private val context: Context,
@@ -39,19 +38,13 @@ class MusicAdapter(
         val songDetailsText = context.getString(R.string.song_details_format, artist, album)
         holder.binding.songDetails.text = songDetailsText
 
-        // Optimized loading: Use album art (albumId/cachedPath) and small size for speed
+        // Optimized loading: Use album art and small size
         holder.binding.image.loadSongImage(
             currentFile.albumId, null, currentFile.cachedImagePath,
         )
 
-        // Optimized blur: Very small size for lightning speed
-        holder.binding.imageBlur.visibility = View.VISIBLE
-        holder.binding.imageBlur.loadSongImageBlur(
-            currentFile.albumId, 25, null, currentFile.cachedImagePath,
-        )
-
-        // Apply theme is also a potential bottleneck if it does complex calculations
-        holder.binding.applyTheme(context, currentFile.path)
+        // Apply theme and indicator
+        holder.binding.applyTheme(context, currentFile)
 
         holder.itemView.setOnClickListener {
             onItemClick(currentFile, holder.bindingAdapterPosition, holder.binding.image)
@@ -82,11 +75,7 @@ class MusicAdapter(
 
         override fun areContentsTheSame(oldItem: MusicFiles, newItem: MusicFiles): Boolean {
             // Only compare fields that affect the list UI to improve performance
-            return oldItem.title == newItem.title &&
-                    oldItem.artist == newItem.artist &&
-                    oldItem.album == newItem.album &&
-                    oldItem.path == newItem.path &&
-                    oldItem.cachedImagePath == newItem.cachedImagePath
+            return oldItem.title == newItem.title && oldItem.artist == newItem.artist && oldItem.album == newItem.album && oldItem.path == newItem.path && oldItem.cachedImagePath == newItem.cachedImagePath
         }
     }
 }

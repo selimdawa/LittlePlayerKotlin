@@ -89,6 +89,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var isIntentProcessed = false
     private var isTransitionStarted = false
     private var isAnimating = false
+    private var lastSongId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -271,8 +272,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
             if (song != null) {
-                updateSongUI(song)
-                loadWaveform(song.id ?: "", song.path ?: "")
+                if (song.id != lastSongId || !isTransitionStarted) {
+                    lastSongId = song.id
+                    updateSongUI(song)
+                    loadWaveform(song.id ?: "", song.path ?: "")
+                }
             } else {
                 if (!isTransitionStarted) {
                     isTransitionStarted = true
@@ -300,6 +304,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updateSongUI(song: MusicFiles) {
+        if (binding.songName.text == song.title && binding.songArtist.text == song.artist && isTransitionStarted) {
+            return
+        }
         updateSongJob?.cancel()
 
         animateTextChange(binding.songName, song.title ?: getString(R.string.unknown))
@@ -661,55 +668,33 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 isIntentProcessed = true
                 intent.removeExtra(DATA.POSITION)
 
-                val checkAndPlay = {
-                    val currentItem = controller.currentMediaItem
-                    val targetSong = viewModel.listSongs.getOrNull(intentPosition)
-                    val isAlreadyPlaying =
-                        currentItem != null && controller.currentMediaItemIndex == intentPosition && currentItem.mediaId == targetSong?.id
+                val currentItem = controller.currentMediaItem
+                val targetSong = viewModel.listSongs.getOrNull(intentPosition)
+                val isAlreadyPlaying =
+                    currentItem != null && controller.currentMediaItemIndex == intentPosition && currentItem.mediaId == targetSong?.id
 
-                    if (isAlreadyPlaying) {
-                        viewModel.updatePositionAndSong(intentPosition)
-                    } else {
-                        forcePlaySong(controller, intentPosition)
-                    }
-                }
-
-                if (viewModel.listSongs.isNotEmpty()) {
-                    checkAndPlay()
+                if (isAlreadyPlaying) {
+                    viewModel.updatePositionAndSong(intentPosition)
                 } else {
-                    lifecycleScope.launch {
-                        while (viewModel.listSongs.isEmpty()) {
-                            delay(30.milliseconds)
-                        }
-                        checkAndPlay()
-                    }
-                }
-            } else {
-                if (controller.currentMediaItem != null) {
-                    val index = controller.currentMediaItemIndex
-                    if (index in viewModel.listSongs.indices) {
-                        viewModel.updatePositionAndSong(index)
+                    if (viewModel.listSongs.isNotEmpty()) {
+                        forcePlaySong(controller, intentPosition)
                     } else {
                         lifecycleScope.launch {
                             while (viewModel.listSongs.isEmpty()) {
                                 delay(30.milliseconds)
                             }
-                            if (index in viewModel.listSongs.indices) {
-                                viewModel.updatePositionAndSong(index)
-                            }
+                            forcePlaySong(controller, intentPosition)
                         }
                     }
-                } else {
-                    lifecycleScope.launch {
-                        var count = 0
-                        while (viewModel.listSongs.isEmpty() || (viewModel.position == -1 && count < 50)) {
-                            delay(30.milliseconds)
-                            count++
-                        }
-                        if (viewModel.position != -1 && viewModel.listSongs.isNotEmpty()) {
-                            setupMediaItems(controller)
-                        }
+                }
+            } else {
+                val index = controller.currentMediaItemIndex
+                if (index != -1 && index in viewModel.listSongs.indices) {
+                    if (viewModel.position != index) {
+                        viewModel.updatePositionAndSong(index)
                     }
+                } else if (controller.currentMediaItem == null && viewModel.position != -1) {
+                    setupMediaItems(controller)
                 }
             }
 
