@@ -25,6 +25,7 @@ object DATA {
     const val SONG_NAME = "SONG NAME"
     const val SONG_ID = "SONG_ID"
     const val DURATION = "DURATION"
+    const val ALBUM = "ALBUM"
     const val ALBUM_ID = "ALBUM ID"
     const val CACHED_IMAGE_PATH = "CACHED_IMAGE_PATH"
     const val LAST_POSITION = "LAST_POSITION"

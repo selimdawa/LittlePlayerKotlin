@@ -298,12 +298,14 @@ fun LifecycleOwner.observePlaybackSync(
 ) {
     val sync = {
         adapterProvider()?.let { adapter ->
+            val context = if (this is Context) this else viewBindingRoot?.context ?: return@let
+            val trackColor = context.getLibraryColor("mc_track")
             val song = nowPlayerViewModel.currentPlayingSong.value
             viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
             adapter.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
             adapter.updateThemeState(
                 nowPlayerViewModel.themeColorMode.value,
-                nowPlayerViewModel.currentThemeColor.value ?: Color.WHITE
+                nowPlayerViewModel.currentThemeColor.value ?: trackColor
             )
             adapter.updateListThemeState(nowPlayerViewModel.listItemThemeEnabled.value)
         }
@@ -323,15 +325,19 @@ fun LifecycleOwner.observePlaybackSync(
         )
     }
     nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { mode ->
+        val context = if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
+        val trackColor = context.getLibraryColor("mc_track")
         adapterProvider()?.updateThemeState(
             mode,
-            nowPlayerViewModel.currentThemeColor.value ?: Color.WHITE,
+            nowPlayerViewModel.currentThemeColor.value ?: trackColor,
         )
     }
     nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
+        val context = if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
+        val trackColor = context.getLibraryColor("mc_track")
         adapterProvider()?.updateThemeState(
             nowPlayerViewModel.themeColorMode.value,
-            color ?: Color.WHITE,
+            color ?: trackColor,
         )
     }
     nowPlayerViewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
@@ -373,19 +379,21 @@ fun ImageView.loadBitmap(
     bitmap: Bitmap?,
     blurRadius: Float = 0f,
     fallback: Int = R.drawable.ic_cover_song,
+    crossfade: Boolean = true,
     onComplete: (() -> Unit)? = null
 ) {
     if (bitmap == null) {
         load(fallback) {
-            crossfade(true)
+            crossfade(crossfade)
             listener(onSuccess = { _, _ -> onComplete?.invoke() }, onError = { _, _ -> onComplete?.invoke() })
         }
         return
     }
 
     load(bitmap) {
-        crossfade(true)
+        crossfade(crossfade)
         if (blurRadius > 0) {
+            size(200)
             transformations(SimpleBlurTransformation(blurRadius))
         }
         listener(onSuccess = { _, _ -> onComplete?.invoke() }, onError = { _, _ -> onComplete?.invoke() })
@@ -486,7 +494,7 @@ fun getSongImageModel(
 
     // 2. Try Album ID (MediaStore - System Album Art)
     // Avoid using MediaStore album art for "Unknown" albums as it's often incorrect
-    val isUnknownAlbum = album == DATA.UNKNOWN
+    val isUnknownAlbum = album == null || album == DATA.UNKNOWN
     if (!isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(),
@@ -496,7 +504,7 @@ fun getSongImageModel(
 
     // 3. Try folder art (cover.jpg, folder.jpg, etc.)
     // Also risky for unknown albums if they are all in one generic folder
-    if (!path.isNullOrEmpty()) {
+    if (!isUnknownAlbum && !path.isNullOrEmpty()) {
         try {
             val file = File(path)
             val parent = file.parentFile
@@ -510,6 +518,7 @@ fun getSongImageModel(
         } catch (_: Exception) {
         }
     }
+
 
     // 4. Try Song Path (Embedded Art - Slower) - only if requested or as fallback
     if (!path.isNullOrEmpty()) {
@@ -678,7 +687,7 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
     override val cacheKey: String = "${SimpleBlurTransformation::class.java.name}-$radius"
 
     override suspend fun transform(input: Bitmap, size: coil.size.Size): Bitmap {
-        val scaleFactor = 4
+        val scaleFactor = 8
         val w = (input.width / scaleFactor).coerceAtLeast(1)
         val h = (input.height / scaleFactor).coerceAtLeast(1)
         val small = input.scale(w, h, true)

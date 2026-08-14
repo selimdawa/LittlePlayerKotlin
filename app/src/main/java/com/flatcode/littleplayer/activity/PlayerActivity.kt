@@ -272,6 +272,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 if (currentMode == DATA.MODE_PALETTE) {
                     applyCurrentModeColors()
                 }
+            } ?: run {
+                // Fallback to default if no palette color extracted yet
+                val defaultColor = getLibraryColor("mc_track")
+                binding.paletteColor.setCardBackgroundColor(defaultColor.ensureBrightColor())
             }
         }
 
@@ -305,11 +309,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
 
     private fun applyCurrentModeColors() {
-        when (currentMode) {
-            DATA.MODE_BASIC -> updatePlayerUIColors(getLibraryColor("mc_track"))
-            DATA.MODE_PALETTE -> updatePlayerUIColors(currentDominantColor)
-            DATA.MODE_WHITE -> updatePlayerUIColors(Color.WHITE)
+        val color = when (currentMode) {
+            DATA.MODE_BASIC -> getLibraryColor("mc_track")
+            DATA.MODE_PALETTE -> currentDominantColor
+            DATA.MODE_WHITE -> Color.WHITE
+            else -> getLibraryColor("mc_track")
         }
+        updatePlayerUIColors(color)
+        
+        // Always ensure the palette button shows the current extracted color
+        binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
     }
 
     private fun updateSongUI(song: MusicFiles) {
@@ -341,18 +350,29 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?) {
-        binding.image.loadBitmap(bitmap) {
-            if (!isTransitionStarted) {
+        var imageLoaded = false
+        var blurLoaded = false
+
+        val checkReady = {
+            if (imageLoaded && blurLoaded && !isTransitionStarted) {
                 isTransitionStarted = true
                 startPostponedEnterTransition()
             }
+        }
+
+        binding.image.loadBitmap(bitmap) {
+            imageLoaded = true
+            checkReady()
         }
 
         binding.imageBlur.loadBitmap(
             bitmap,
             blurRadius = 100f,
             fallback = R.drawable.ic_cover_song_blur
-        )
+        ) {
+            blurLoaded = true
+            checkReady()
+        }
 
         // Extract Palette
         if (bitmap != null) {
@@ -600,8 +620,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
             // Apply preloaded bitmap immediately
             preloadedBitmap?.let { bmp ->
-                binding.image.loadBitmap(bmp)
-                binding.imageBlur.loadBitmap(bmp, blurRadius = 100f)
+                binding.image.loadBitmap(bmp, crossfade = false)
+                binding.imageBlur.loadBitmap(bmp, blurRadius = 100f, crossfade = false)
             } ?: run {
                 binding.image.setImageResource(R.drawable.ic_cover_song)
                 binding.imageBlur.setImageResource(R.drawable.ic_cover_song_blur)
