@@ -83,7 +83,7 @@
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="@dimen/spacing_12"
                 app:cardElevation="@dimen/spacing_0"
-                app:strokeColor="@color/white"
+                app:strokeColor="@color/black"
                 app:strokeWidth="@dimen/spacing_1" />
 
         </RelativeLayout>
@@ -154,14 +154,12 @@
 
             <TextView
                 android:id="@+id/song_name"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/spacing_xlarge"
                 android:ellipsize="marquee"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:gravity="start"
-                android:textAlignment="viewStart"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:maxLines="1"
                 android:scrollHorizontally="true"

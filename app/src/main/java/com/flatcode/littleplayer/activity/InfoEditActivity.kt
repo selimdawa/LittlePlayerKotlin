@@ -91,8 +91,8 @@ class InfoEditActivity : AppCompatActivity() {
         binding.etTitle.setText(song?.title)
         binding.etArtist.setText(song?.artist)
         binding.etAlbum.setText(song?.album)
-        binding.ivCover.loadSongImage(song?.albumId, song?.path, song?.cachedImagePath)
-        binding.imageBlur.loadSongImageBlur(song?.albumId, 100, song?.path, song?.cachedImagePath)
+        binding.ivCover.loadSongImage(song?.albumId, song?.path, song?.cachedImagePath, song?.album)
+        binding.imageBlur.loadSongImageBlur(song?.albumId, 100, song?.path, song?.cachedImagePath, song?.album)
     }
 
     private fun setupListeners() {

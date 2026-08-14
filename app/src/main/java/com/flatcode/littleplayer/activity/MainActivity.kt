@@ -144,7 +144,9 @@ class MainActivity : AppCompatActivity() {
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
             song?.let {
-                binding.toolbar2.ivRecent.loadSongImage(it.albumId, it.path, it.cachedImagePath)
+                binding.toolbar2.ivRecent.loadSongImage(
+                    it.albumId, it.path, it.cachedImagePath, it.album
+                )
             }
         }
 

@@ -154,7 +154,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
             song?.let {
                 binding.playerContent.albumArt.loadSongImage(
-                    it.albumId, it.path, it.cachedImagePath
+                    it.albumId, it.path, it.cachedImagePath, it.album
                 )
                 binding.playerContent.name.text = it.safeTitle
                 binding.playerContent.artist.text = it.safeArtist
@@ -226,6 +226,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                 currentMediaItem.mediaMetadata.title?.toString() ?: getString(R.string.unknown)
             val artist =
                 currentMediaItem.mediaMetadata.artist?.toString() ?: getString(R.string.unknown)
+            val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
             val id = currentMediaItem.mediaId
             val path = currentMediaItem.localConfiguration?.uri?.path
             val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
@@ -236,6 +237,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                     path = path,
                     title = title,
                     artist = artist,
+                    album = album,
                     id = id,
                     albumId = albumId,
                     cachedImagePath = cachedPath,
@@ -244,12 +246,14 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
             if (lastLoadedPath != path) {
                 lastLoadedPath = path
-                binding.playerContent.albumArt.loadSongImage(albumId, path, cachedPath)
+                binding.playerContent.albumArt.loadSongImage(
+                    albumId, path, cachedPath, album
+                )
                 binding.playerContent.name.text = title
                 binding.playerContent.artist.text = artist
 
                 // Extract Palette Color
-                val model = getSongImageModel(albumId, path, cachedPath)
+                val model = getSongImageModel(albumId, path, cachedPath, album)
                 requireContext().extractPalette(model) { palette ->
                     val defaultColor = requireContext().getLibraryColor("mc_track")
                     val color = palette.extractVibrantColor(defaultColor)
@@ -260,14 +264,14 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             val song = viewModel.currentPlayingSong.value
             song?.let {
                 binding.playerContent.albumArt.loadSongImage(
-                    it.albumId, it.path, it.cachedImagePath
+                    it.albumId, it.path, it.cachedImagePath, it.album
                 )
                 binding.playerContent.name.text = it.safeTitle
                 binding.playerContent.artist.text = it.safeArtist
 
                 // Extract Palette Color if missing
                 if (viewModel.currentThemeColor.value == null) {
-                    val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath)
+                    val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath, it.album)
                     requireContext().extractPalette(model) { palette ->
                         val defaultColor = requireContext().getLibraryColor("mc_track")
                         val color = palette.extractVibrantColor(defaultColor)

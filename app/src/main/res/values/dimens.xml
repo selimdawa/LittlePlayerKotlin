@@ -90,7 +90,7 @@
     <dimen name="icon_size_48">48dp</dimen>
     <dimen name="thumb_size">22dp</dimen>
     <dimen name="track_width">44dp</dimen>
-    <dimen name="stroke_width_active">4dp</dimen>
+    <dimen name="stroke_width_active">2dp</dimen>
     <dimen name="stroke_width_inactive">1dp</dimen>
     <dimen name="text_size_search_hint">14sp</dimen>
     <dimen name="text_size_splash_title">32sp</dimen>

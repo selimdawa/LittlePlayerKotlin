@@ -30,15 +30,16 @@ class AlbumDetailsActivity : AppCompatActivity() {
     private val musicViewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: MusicAdapter? = null
+    private var albumName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAlbumDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        albumName = intent.extras?.getString("ALBUM_NAME")
         observeViewModel()
 
-        val albumName = intent.extras?.getString("ALBUM_NAME")
         initUI(albumName)
         viewModel.filterSongsByAlbum(albumName)
     }
@@ -53,12 +54,18 @@ class AlbumDetailsActivity : AppCompatActivity() {
                 if (!state.imagePath.isNullOrEmpty()) {
                     binding.image.loadCachedAlbumImage(state.imagePath)
                 } else {
-                    binding.image.loadSongImage(state.firstSongAlbumId, state.firstSongPath)
+                    binding.image.loadSongImage(
+                        state.firstSongAlbumId, state.firstSongPath, album = albumName
+                    )
                 }
 
                 if (!state.firstSongAlbumId.isNullOrEmpty() || !state.imagePath.isNullOrEmpty()) {
                     binding.imageBlur.loadSongImageBlur(
-                        state.firstSongAlbumId, 50, state.firstSongPath, state.imagePath
+                        state.firstSongAlbumId,
+                        50,
+                        state.firstSongPath,
+                        state.imagePath,
+                        albumName
                     )
                 }
 

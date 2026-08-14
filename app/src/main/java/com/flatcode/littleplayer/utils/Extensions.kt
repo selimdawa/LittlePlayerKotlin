@@ -161,9 +161,10 @@ suspend fun Context.getSongArtwork(
     albumId: String?,
     path: String? = null,
     cachedPath: String? = null,
+    album: String? = null,
     size: Int = 600
 ): Bitmap? {
-    val model = getSongImageModel(albumId, path, cachedPath)
+    val model = getSongImageModel(albumId, path, cachedPath, album)
     val request = ImageRequest.Builder(this)
         .data(model)
         .size(size)
@@ -403,10 +404,11 @@ fun ImageView.loadSongImage(
     albumId: String?,
     path: String? = null,
     cachedPath: String? = null,
+    album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
     onComplete: (() -> Unit)? = null,
 ) {
-    val model = getSongImageModel(albumId, path, cachedPath, fallback)
+    val model = getSongImageModel(albumId, path, cachedPath, album, fallback)
 
     load(model) {
         crossfade(enable = true)
@@ -441,9 +443,10 @@ fun ImageView.loadSongImageBlur(
     level: Int,
     path: String? = null,
     cachedPath: String? = null,
+    album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
 ) {
-    val model = getSongImageModel(albumId, path, cachedPath, fallback)
+    val model = getSongImageModel(albumId, path, cachedPath, album, fallback)
     val actualFallback =
         if (fallback == R.drawable.ic_cover_song) R.drawable.ic_cover_song_blur else fallback
 
@@ -475,13 +478,16 @@ fun getSongImageModel(
     albumId: String?,
     path: String? = null,
     cachedPath: String? = null,
+    album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
 ): Any {
     // 1. Try Cached Path (Fastest)
     if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
 
     // 2. Try Album ID (MediaStore - System Album Art)
-    if ((!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
+    // Avoid using MediaStore album art for "Unknown" albums as it's often incorrect
+    val isUnknownAlbum = album == DATA.UNKNOWN
+    if (!isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(),
             albumId.toLong(),
@@ -489,6 +495,7 @@ fun getSongImageModel(
     }
 
     // 3. Try folder art (cover.jpg, folder.jpg, etc.)
+    // Also risky for unknown albums if they are all in one generic folder
     if (!path.isNullOrEmpty()) {
         try {
             val file = File(path)
@@ -512,6 +519,7 @@ fun getSongImageModel(
 
     return fallback
 }
+
 
 class AudioArtFetcher(private val file: File, private val context: Context) : Fetcher {
     override suspend fun fetch(): FetchResult? {

@@ -40,7 +40,7 @@ class MusicAdapter(
 
         // Optimized loading: Use album art and small size
         holder.binding.image.loadSongImage(
-            currentFile.albumId, null, currentFile.cachedImagePath,
+            currentFile.albumId, currentFile.path, currentFile.cachedImagePath, currentFile.album
         )
 
         // Apply theme and indicator

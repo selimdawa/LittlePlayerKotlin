@@ -86,7 +86,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
         
         // Ensure blur is always visible and loaded for all items
         imageBlur.visibility = android.view.View.VISIBLE
-        imageBlur.loadSongImageBlur(song.albumId, 25, null, song.cachedImagePath)
+        imageBlur.loadSongImageBlur(song.albumId, 25, song.path, song.cachedImagePath, song.album)
 
         if (isCurrentlyPlaying) {
             if (wave.visibility != android.view.View.VISIBLE) {

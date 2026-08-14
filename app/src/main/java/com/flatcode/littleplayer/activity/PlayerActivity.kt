@@ -90,6 +90,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var isTransitionStarted = false
     private var isAnimating = false
     private var lastSongId: String? = null
+    private var preloadedBitmap: android.graphics.Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -207,8 +208,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             }
         }
 
-        binding.prev.setOnClickListener { prevBtn() }
-        binding.next.setOnClickListener { nextBtn() }
+        binding.prev.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.pulse)
+            binding.prev.startAnimation(animation)
+            prevBtn()
+        }
+        binding.next.setOnClickListener {
+            val animation = AnimationUtils.loadAnimation(this, R.anim.pulse)
+            binding.next.startAnimation(animation)
+            nextBtn()
+        }
         binding.playPauseBtn.setOnClickListener {
             val animation = AnimationUtils.loadAnimation(this, R.anim.pulse)
             binding.playPause.startAnimation(animation)
@@ -324,7 +333,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
             launch {
                 val bitmap = withContext(Dispatchers.Default) {
-                    getSongArtwork(song.albumId, song.path, song.cachedImagePath, 600)
+                    getSongArtwork(song.albumId, song.path, song.cachedImagePath, song.album, 600)
                 }
                 applyArtworkAndPalette(bitmap)
             }
@@ -372,6 +381,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val duration = resources.getInteger(R.integer.anim_duration_short).toLong()
         textView.animate().alpha(0f).setDuration(duration).withEndAction {
             textView.text = newText
+            textView.isSelected = true
             textView.animate().alpha(1f).setDuration(duration).start()
         }.start()
     }
@@ -487,91 +497,139 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (itemCount <= 0) return
 
         isAnimating = true
-        val targetIndex =
-            if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
 
-        if (targetIndex == -1) {
-            isAnimating = false
-            return
-        }
+        lifecycleScope.launch {
+            // 0. Wait 500ms as requested before starting the transition
+            delay(500)
 
-        val nextSong =
-            if (targetIndex in viewModel.listSongs.indices) viewModel.listSongs[targetIndex] else null
+            val targetIndex =
+                if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
 
-        val width = binding.card.width.toFloat()
-        val outX = if (toNext) -width else width
-        val inX = if (toNext) width else -width
-
-        var animationDone = false
-        var dataReady = false
-
-        val onReady = {
-            if (animationDone && dataReady) {
-                performSkipAndSlideIn(toNext, inX, targetIndex)
+            if (targetIndex == -1) {
+                isAnimating = false
+                return@launch
             }
-        }
 
-        // 1. Start Out Animation
-        binding.card.animate().translationX(outX).alpha(0f)
-            .setDuration(resources.getInteger(R.integer.anim_duration_skip).toLong())
-            .setInterpolator(AccelerateInterpolator()).withEndAction {
-                animationDone = true
+            val nextSong =
+                if (targetIndex in viewModel.listSongs.indices) viewModel.listSongs[targetIndex] else null
+
+            val width = binding.card.width.toFloat()
+            val outX = if (toNext) -width else width
+            val inX = if (toNext) width else -width
+
+            var animationDone = false
+            var dataReady = false
+
+            val onReady = {
+                if (animationDone && dataReady) {
+                    performSkipAndSlideIn(toNext, inX, targetIndex, nextSong)
+                }
+            }
+
+            // 1. Start Out Animation
+            binding.card.animate().translationX(outX).alpha(0f)
+                .setDuration(resources.getInteger(R.integer.anim_duration_skip).toLong())
+                .setInterpolator(AccelerateInterpolator()).withEndAction {
+                    animationDone = true
+                    onReady()
+                }.start()
+
+            // 2. Pre-load Data in parallel
+            if (nextSong != null) {
+                val model =
+                    getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath, nextSong.album)
+
+                // Pre-load Bitmap and Palette
+                val request = ImageRequest.Builder(this@PlayerActivity)
+                    .data(model)
+                    .allowHardware(enable = false)
+                    .precision(coil.size.Precision.INEXACT)
+                    .size(600)
+                    .listener(
+                        onError = { _, _ ->
+                            currentDominantColor = getLibraryColor("mc_track")
+                            preloadedBitmap = null
+                            dataReady = true
+                            onReady()
+                        },
+                        onCancel = {
+                            currentDominantColor = getLibraryColor("mc_track")
+                            preloadedBitmap = null
+                            dataReady = true
+                            onReady()
+                        }
+                    ).target { result ->
+                        val bitmap = (result as? BitmapDrawable)?.bitmap
+                        preloadedBitmap = bitmap
+
+                        if (bitmap != null) {
+                            Palette.from(bitmap).generate { palette ->
+                                val defaultColor = getLibraryColor("mc_track")
+                                currentDominantColor = palette.extractVibrantColor(defaultColor)
+                                dataReady = true
+                                onReady()
+                            }
+                        } else {
+                            currentDominantColor = getLibraryColor("mc_track")
+                            dataReady = true
+                            onReady()
+                        }
+                    }.build()
+                imageLoader.enqueue(request)
+            } else {
+                currentDominantColor = getLibraryColor("mc_track")
+                preloadedBitmap = null
+                dataReady = true
                 onReady()
-            }.start()
-
-        // 2. Pre-load Data in parallel
-        if (nextSong != null) {
-            val model = getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath)
-            val request = ImageRequest.Builder(this)
-                .data(model)
-                .allowHardware(enable = false)
-                .listener(
-                    onSuccess = { _, _ -> },
-                    onError = { _, _ ->
-                        currentDominantColor = getLibraryColor("mc_track")
-                        dataReady = true
-                        onReady()
-                    },
-                    onCancel = {
-                        currentDominantColor = getLibraryColor("mc_track")
-                        dataReady = true
-                        onReady()
-                    }
-                ).target { result ->
-                    val bitmap = if (result is BitmapDrawable) {
-                        result.bitmap
-                    } else {
-                        val w = if (result.intrinsicWidth > 0) result.intrinsicWidth else 200
-                        val h = if (result.intrinsicHeight > 0) result.intrinsicHeight else 200
-                        val bmp = createBitmap(w, h)
-                        val canvas = Canvas(bmp)
-                        result.setBounds(0, 0, canvas.width, canvas.height)
-                        result.draw(canvas)
-                        bmp
-                    }
-
-                    Palette.from(bitmap).generate { palette ->
-                        val defaultColor = getLibraryColor("mc_track")
-                        currentDominantColor = palette.extractVibrantColor(defaultColor)
-                        dataReady = true
-                        onReady()
-                    }
-                }.build()
-            imageLoader.enqueue(request)
-        } else {
-            currentDominantColor = getLibraryColor("mc_track")
-            dataReady = true
-            onReady()
+            }
         }
     }
 
-    private fun performSkipAndSlideIn(toNext: Boolean, inX: Float, targetIndex: Int) {
+    private fun performSkipAndSlideIn(
+        toNext: Boolean,
+        inX: Float,
+        targetIndex: Int,
+        nextSong: MusicFiles?
+    ) {
+        // Update UI manually before sliding in to ensure it's ready
+        nextSong?.let { song ->
+            lastSongId = song.id
+            binding.songName.text = song.title ?: getString(R.string.unknown)
+            binding.songArtist.text = song.artist ?: getString(R.string.unknown)
+            binding.durationTotal.text = song.durationDuration.formatAsTime()
+
+            // Apply preloaded bitmap immediately
+            preloadedBitmap?.let { bmp ->
+                binding.image.loadBitmap(bmp)
+                binding.imageBlur.loadBitmap(bmp, blurRadius = 100f)
+            } ?: run {
+                binding.image.setImageResource(R.drawable.ic_cover_song)
+                binding.imageBlur.setImageResource(R.drawable.ic_cover_song_blur)
+            }
+
+            applyCurrentModeColors()
+            loadWaveform(song.id ?: "", song.path ?: "")
+
+            // Update bitrate in background
+            lifecycleScope.launch(Dispatchers.IO) {
+                val bitrate = getBitrate(song.path)
+                withContext(Dispatchers.Main) {
+                    binding.bitrate.text = bitrate?.let { getString(R.string.kbps_format, it) } ?: ""
+                    binding.bitrate.isVisible = bitrate != null
+                }
+            }
+        }
+
         if (toNext) nextBtn(animate = false, forceIndex = targetIndex)
         else prevBtn(animate = false, forceIndex = targetIndex)
+
         binding.card.translationX = inX
         binding.card.animate().translationX(0f).alpha(1f)
             .setDuration(resources.getInteger(R.integer.anim_duration_skip).toLong())
-            .setInterpolator(DecelerateInterpolator()).withEndAction { isAnimating = false }.start()
+            .setInterpolator(DecelerateInterpolator()).withEndAction {
+                isAnimating = false
+                preloadedBitmap = null // Clear after use
+            }.start()
     }
 
     private inner class SwipeGestureListener : GestureDetector.SimpleOnGestureListener() {
