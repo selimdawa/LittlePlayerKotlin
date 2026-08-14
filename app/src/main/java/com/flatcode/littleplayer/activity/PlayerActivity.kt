@@ -39,7 +39,7 @@ import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
-import com.flatcode.littleplayer.utils.extractVibrantColor
+import com.flatcode.littleplayer.utils.extractPaletteColors
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongArtwork
@@ -82,7 +82,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
     private lateinit var amplituda: Amplituda
-    private var currentDominantColor: Int = Color.BLACK // Will be initialized in onCreate
+    private var currentDominantColor: Pair<Int, Int> = Pair(Color.BLACK, Color.BLACK)
     private var currentMode: Int = DATA.MODE_BASIC
     private var isIntentProcessed = false
     private var isTransitionStarted = false
@@ -104,22 +104,22 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         setContentView(binding.root)
 
         amplituda = Amplituda(this)
-        currentDominantColor = getLibraryColor("mc_track")
+        val defaultColor = getLibraryColor("mc_track")
+        currentDominantColor = Pair(defaultColor, defaultColor)
 
         getIntentMethod()
         setupListeners()
         observeViewModel()
     }
 
-    private fun updatePlayerUIColors(color: Int) {
-        val brightColor = color.ensureBrightColor()
-        val colorStateList = ColorStateList.valueOf(brightColor)
+    private fun updatePlayerUIColors(startColor: Int, endColor: Int) {
+        val brightStart = startColor.ensureBrightColor()
+        val brightEnd = endColor.ensureBrightColor()
+        
+        val colorStateList = ColorStateList.valueOf(brightStart)
         val backgroundColorStateList = ColorStateList.valueOf(
-            ContextCompat.getColor(
-                this,
-                R.color.white_66,
-            ),
-        ) // 40% White for better visibility
+            ContextCompat.getColor(this, R.color.white_66)
+        )
 
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
@@ -132,13 +132,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             binding.playPauseBtn.setHaloBackground(track, tick)
             binding.imageBorder.setHaloBackground(track, tick)
         } else {
-            binding.playPauseBtn.setHaloSolidBackground(brightColor)
-            binding.imageBorder.setHaloSolidBackground(brightColor)
+            binding.playPauseBtn.setHaloBackground(brightStart, brightEnd)
+            binding.imageBorder.setHaloBackground(brightStart, brightEnd)
         }
 
-        binding.waveformSeekBar.waveProgressColor = brightColor
+        binding.waveformSeekBar.waveProgressColor = brightStart
         binding.waveformSeekBar.waveBackgroundColor =
-            ContextCompat.getColor(this, R.color.white_30) // 30% White
+            ContextCompat.getColor(this, R.color.white_30)
 
         binding.basicColor.strokeWidth =
             if (currentMode == DATA.MODE_BASIC) resources.getDimensionPixelSize(R.dimen.stroke_width_active)
@@ -258,15 +258,14 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             applyCurrentModeColors()
         }
 
-        nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
-            color?.let {
+        nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { colorPair ->
+            colorPair?.let {
                 currentDominantColor = it
-                binding.paletteColor.setCardBackgroundColor(it.ensureBrightColor())
+                binding.paletteColor.setCardBackgroundColor(it.first.ensureBrightColor())
                 if (currentMode == DATA.MODE_PALETTE) {
                     applyCurrentModeColors()
                 }
             } ?: run {
-                // Fallback to default if no palette color extracted yet
                 val defaultColor = getLibraryColor("mc_track")
                 binding.paletteColor.setCardBackgroundColor(defaultColor.ensureBrightColor())
             }
@@ -302,16 +301,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
 
     private fun applyCurrentModeColors() {
-        val color = when (currentMode) {
-            DATA.MODE_BASIC -> getLibraryColor("mc_track")
+        val colors = when (currentMode) {
+            DATA.MODE_BASIC -> Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
             DATA.MODE_PALETTE -> currentDominantColor
-            DATA.MODE_WHITE -> Color.WHITE
-            else -> getLibraryColor("mc_track")
+            DATA.MODE_WHITE -> Pair(Color.WHITE, Color.WHITE)
+            else -> Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
         }
-        updatePlayerUIColors(color)
+        updatePlayerUIColors(colors.first, colors.second)
 
-        // Always ensure the palette button shows the current extracted color
-        binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
+        // Always ensure the palette button shows the primary extracted color
+        binding.paletteColor.setCardBackgroundColor(currentDominantColor.first.ensureBrightColor())
     }
 
     private fun updateSongUI(song: MusicFiles) {
@@ -369,21 +368,24 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         // Extract Palette
         if (bitmap != null) {
             Palette.from(bitmap).generate { palette ->
-                val defaultColor = getLibraryColor("mc_track")
-                currentDominantColor = palette.extractVibrantColor(defaultColor)
+                val track = getLibraryColor("mc_track")
+                val tick = getLibraryColor("mc_tick")
+                val colors = palette.extractPaletteColors(track, tick)
+                currentDominantColor = colors
 
-                binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
-                nowPlayerViewModel.updateThemeColor(currentDominantColor)
+                binding.paletteColor.setCardBackgroundColor(colors.first.ensureBrightColor())
+                nowPlayerViewModel.updateThemeColor(colors.first, colors.second)
 
                 if (currentMode == DATA.MODE_PALETTE) {
                     applyCurrentModeColors()
                 }
             }
         } else {
-            val defaultColor = getLibraryColor("mc_track")
-            currentDominantColor = defaultColor
-            binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
-            nowPlayerViewModel.updateThemeColor(currentDominantColor)
+            val track = getLibraryColor("mc_track")
+            val tick = getLibraryColor("mc_tick")
+            currentDominantColor = Pair(track, tick)
+            binding.paletteColor.setCardBackgroundColor(track.ensureBrightColor())
+            nowPlayerViewModel.updateThemeColor(track, tick)
             if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
         }
     }
@@ -556,12 +558,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 val request = ImageRequest.Builder(this@PlayerActivity).data(model)
                     .allowHardware(enable = false).precision(coil.size.Precision.INEXACT).size(600)
                     .listener(onError = { _, _ ->
-                        currentDominantColor = getLibraryColor("mc_track")
+                        val track = getLibraryColor("mc_track")
+                        val tick = getLibraryColor("mc_tick")
+                        currentDominantColor = Pair(track, tick)
                         preloadedBitmap = null
                         dataReady = true
                         onReady()
                     }, onCancel = {
-                        currentDominantColor = getLibraryColor("mc_track")
+                        val track = getLibraryColor("mc_track")
+                        val tick = getLibraryColor("mc_tick")
+                        currentDominantColor = Pair(track, tick)
                         preloadedBitmap = null
                         dataReady = true
                         onReady()
@@ -571,20 +577,25 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
                         if (bitmap != null) {
                             Palette.from(bitmap).generate { palette ->
-                                val defaultColor = getLibraryColor("mc_track")
-                                currentDominantColor = palette.extractVibrantColor(defaultColor)
+                                val track = getLibraryColor("mc_track")
+                                val tick = getLibraryColor("mc_tick")
+                                currentDominantColor = palette.extractPaletteColors(track, tick)
                                 dataReady = true
                                 onReady()
                             }
                         } else {
-                            currentDominantColor = getLibraryColor("mc_track")
+                            val track = getLibraryColor("mc_track")
+                            val tick = getLibraryColor("mc_tick")
+                            currentDominantColor = Pair(track, tick)
                             dataReady = true
                             onReady()
                         }
                     }.build()
                 imageLoader.enqueue(request)
             } else {
-                currentDominantColor = getLibraryColor("mc_track")
+                val track = getLibraryColor("mc_track")
+                val tick = getLibraryColor("mc_tick")
+                currentDominantColor = Pair(track, tick)
                 preloadedBitmap = null
                 dataReady = true
                 onReady()

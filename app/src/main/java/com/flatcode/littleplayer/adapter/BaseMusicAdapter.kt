@@ -25,6 +25,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
     protected var isPlaying: Boolean = false
     protected var currentThemeMode: Int = DATA.MODE_BASIC
     protected var currentThemeColor: Int = Color.WHITE
+    protected var currentThemeColorSecond: Int = Color.WHITE
     protected var listItemThemeEnabled: Boolean = false
 
     private var colorOnSurface: Int = Color.GRAY
@@ -55,14 +56,16 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
         }
     }
 
-    override fun updateThemeState(mode: Int, color: Int) {
+    override fun updateThemeState(mode: Int, color: Int, colorSecond: Int) {
         val oldMode = this.currentThemeMode
         val oldColor = this.currentThemeColor
+        val oldColorSecond = this.currentThemeColorSecond
 
         this.currentThemeMode = mode
         this.currentThemeColor = color
+        this.currentThemeColorSecond = colorSecond
 
-        if (listItemThemeEnabled && ((oldMode != mode) || (oldColor != color))) {
+        if (listItemThemeEnabled && ((oldMode != mode) || (oldColor != color) || (oldColorSecond != colorSecond))) {
             // Only update the playing item to avoid full list refresh
             currentList.forEachIndexed { index, musicFiles ->
                 if (musicFiles.path == playingPath) {
@@ -106,7 +109,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
 
             val closeColor = if (listItemThemeEnabled) {
                 when (currentThemeMode) {
-                    DATA.MODE_PALETTE -> trackColor
+                    DATA.MODE_PALETTE -> currentThemeColorSecond.ensureBrightColor()
                     DATA.MODE_WHITE -> ContextCompat.getColor(context, R.color.white)
                     else -> mcTick
                 }

@@ -269,7 +269,7 @@ fun <T> Flow<T>.collectWithLifecycle(
 
 interface PlaybackAnimatable {
     fun updatePlaybackState(path: String?, isPlaying: Boolean)
-    fun updateThemeState(mode: Int, color: Int)
+    fun updateThemeState(mode: Int, color: Int, colorSecond: Int)
     fun updateListThemeState(enabled: Boolean)
 }
 
@@ -296,12 +296,16 @@ fun LifecycleOwner.observePlaybackSync(
         adapterProvider()?.let { adapter ->
             val context = if (this is Context) this else viewBindingRoot?.context ?: return@let
             val trackColor = context.getLibraryColor("mc_track")
+            val tickColor = context.getLibraryColor("mc_tick")
             val song = nowPlayerViewModel.currentPlayingSong.value
             viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
             adapter.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
+            
+            val colors = nowPlayerViewModel.currentThemeColor.value ?: Pair(trackColor, tickColor)
             adapter.updateThemeState(
                 nowPlayerViewModel.themeColorMode.value,
-                nowPlayerViewModel.currentThemeColor.value ?: trackColor
+                colors.first,
+                colors.second
             )
             adapter.updateListThemeState(nowPlayerViewModel.listItemThemeEnabled.value)
         }
@@ -324,18 +328,24 @@ fun LifecycleOwner.observePlaybackSync(
         val context =
             if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
         val trackColor = context.getLibraryColor("mc_track")
+        val tickColor = context.getLibraryColor("mc_tick")
+        val colors = nowPlayerViewModel.currentThemeColor.value ?: Pair(trackColor, tickColor)
         adapterProvider()?.updateThemeState(
             mode,
-            nowPlayerViewModel.currentThemeColor.value ?: trackColor,
+            colors.first,
+            colors.second
         )
     }
-    nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
+    nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { colorPair ->
         val context =
             if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
         val trackColor = context.getLibraryColor("mc_track")
+        val tickColor = context.getLibraryColor("mc_tick")
+        val colors = colorPair ?: Pair(trackColor, tickColor)
         adapterProvider()?.updateThemeState(
             nowPlayerViewModel.themeColorMode.value,
-            color ?: trackColor,
+            colors.first,
+            colors.second
         )
     }
     nowPlayerViewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
@@ -669,6 +679,16 @@ fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
             Color.TRANSPARENT,
         ).takeIf { it != Color.TRANSPARENT } ?: this?.getLightMutedColor(Color.TRANSPARENT)
             .takeIf { it != Color.TRANSPARENT } ?: dominantColor
+}
+
+fun Palette?.extractPaletteColors(defaultStart: Int, defaultEnd: Int): Pair<Int, Int> {
+    val startColor = this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: defaultStart
+
+    val endColor = this?.getDominantColor(defaultEnd) ?: defaultEnd
+    return Pair(startColor, endColor)
 }
 
 fun Context.getAppCompatActivity(): AppCompatActivity? {

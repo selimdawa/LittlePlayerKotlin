@@ -28,7 +28,7 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPalette
-import com.flatcode.littleplayer.utils.extractVibrantColor
+import com.flatcode.littleplayer.utils.extractPaletteColors
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -164,9 +164,10 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                     // Extract Palette Color
                     val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath, it.album)
                     requireContext().extractPalette(model) { palette ->
-                        val defaultColor = requireContext().getLibraryColor("mc_track")
-                        val color = palette.extractVibrantColor(defaultColor)
-                        viewModel.updateThemeColor(color)
+                        val track = requireContext().getLibraryColor("mc_track")
+                        val tick = requireContext().getLibraryColor("mc_tick")
+                        val colors = palette.extractPaletteColors(track, tick)
+                        viewModel.updateThemeColor(colors.first, colors.second)
                     }
                 }
             }
@@ -193,7 +194,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         val first: A, val second: B, val third: C, val fourth: D
     )
 
-    private fun updateThemeColors(enabled: Boolean, mode: Int, color: Int?) {
+    private fun updateThemeColors(enabled: Boolean, mode: Int, colorPair: Pair<Int, Int>?) {
         val track = requireContext().getLibraryColor("mc_track")
         val tick = requireContext().getLibraryColor("mc_tick")
 
@@ -207,13 +208,17 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
             gradient?.let {
                 if (enabled) {
-                    val targetColor = when (mode) {
-                        DATA.MODE_PALETTE -> color?.ensureBrightColor() ?: track
-                        DATA.MODE_WHITE -> Color.WHITE
+                    val colors = when (mode) {
+                        DATA.MODE_PALETTE -> {
+                            val start = colorPair?.first?.ensureBrightColor() ?: track
+                            val end = colorPair?.second?.ensureBrightColor() ?: tick
+                            intArrayOf(start, end)
+                        }
+                        DATA.MODE_WHITE -> intArrayOf(Color.WHITE, Color.WHITE)
                         else -> null
                     }
-                    if (targetColor != null) {
-                        it.colors = intArrayOf(targetColor, targetColor)
+                    if (colors != null) {
+                        it.colors = colors
                     } else {
                         it.colors = intArrayOf(track, tick)
                     }

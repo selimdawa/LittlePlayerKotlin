@@ -16,7 +16,7 @@ import com.flatcode.littleplayer.utils.SimpleBlurTransformation
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPalette
-import com.flatcode.littleplayer.utils.extractVibrantColor
+import com.flatcode.littleplayer.utils.extractPaletteColors
 import com.flatcode.littleplayer.utils.formatAsSize
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
@@ -35,7 +35,7 @@ class DataStorageActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDataStorageBinding
     private val viewModel: NowPlayerViewModel by viewModels()
     private val dataViewModel: DataStorageViewModel by viewModels()
-    private var currentDominantColor: Int = 0 // Will be initialized in onCreate
+    private var currentDominantColor: Pair<Int, Int>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,11 +43,11 @@ class DataStorageActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         initToolbar(getString(R.string.data_storage))
-        currentDominantColor = ContextCompat.getColor(this, R.color.pure_black)
-        currentDominantColor = getLibraryColor("mc_track")
+        val track = getLibraryColor("mc_track")
+        val tick = getLibraryColor("mc_tick")
+        currentDominantColor = Pair(track, tick)
         extractPalette(R.drawable.ic_image_preview) { palette ->
-            val defaultColor = getLibraryColor("mc_track")
-            currentDominantColor = palette.extractVibrantColor(defaultColor)
+            currentDominantColor = palette.extractPaletteColors(track, tick)
             updatePreview()
         }
         setupListeners()
@@ -167,7 +167,7 @@ class DataStorageActivity : AppCompatActivity() {
         imageSource: Any?,
         progress: Int,
         mode: Int,
-        targetColor: Int?,
+        colorPair: Any?,
     ) {
         itemBinding.tvThemeLabel.text = label
 
@@ -179,16 +179,24 @@ class DataStorageActivity : AppCompatActivity() {
         val track = getLibraryColor("mc_track")
         val tick = getLibraryColor("mc_tick")
 
-        val colorToApply = when (mode) {
-            DATA.MODE_PALETTE -> targetColor?.ensureBrightColor()
-            DATA.MODE_WHITE -> ContextCompat.getColor(this, R.color.white)
+        val colors = when (mode) {
+            DATA.MODE_PALETTE -> {
+                val pair = colorPair as? Pair<*, *>
+                val start = (pair?.first as? Int)?.ensureBrightColor() ?: track
+                val end = (pair?.second as? Int)?.ensureBrightColor() ?: tick
+                intArrayOf(start, end)
+            }
+            DATA.MODE_WHITE -> {
+                val white = ContextCompat.getColor(this, R.color.white)
+                intArrayOf(white, white)
+            }
             else -> null
         }
 
-        if (colorToApply != null) {
-            itemBinding.playerContent.bottomPlayerContainer.setSolidBackground(colorToApply)
-            itemBinding.playerContent.albumArtContainer.setSolidBackground(colorToApply)
-            itemBinding.playerContent.playPauseBtn.setSolidBackground(colorToApply)
+        if (colors != null) {
+            itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(colors[0], colors[1])
+            itemBinding.playerContent.albumArtContainer.setGradientBackground(colors[0], colors[1])
+            itemBinding.playerContent.playPauseBtn.setGradientBackground(colors[0], colors[1])
         } else {
             itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(track, tick)
             itemBinding.playerContent.albumArtContainer.setGradientBackground(track, tick)
@@ -208,7 +216,7 @@ class DataStorageActivity : AppCompatActivity() {
         label: String,
         imageSource: Any?,
         mode: Int,
-        targetColor: Int?
+        colorPair: Any?
     ) {
         itemBinding.tvThemeLabel.text = label
         itemBinding.musicItem.songName.text = getString(R.string.blinding_lights)
@@ -216,21 +224,29 @@ class DataStorageActivity : AppCompatActivity() {
         val songDetailsText = getString(
             R.string.song_details_format,
             getString(R.string.the_weeknd),
-            "After Hours" // More realistic album name
+            "After Hours"
         )
         itemBinding.musicItem.songDetails.text = songDetailsText
 
         val track = getLibraryColor("mc_track")
         val tick = getLibraryColor("mc_tick")
 
-        val colorToApply = when (mode) {
-            DATA.MODE_PALETTE -> targetColor?.ensureBrightColor()
-            DATA.MODE_WHITE -> ContextCompat.getColor(this, R.color.white)
+        val colors = when (mode) {
+            DATA.MODE_PALETTE -> {
+                val pair = colorPair as? Pair<*, *>
+                val start = (pair?.first as? Int)?.ensureBrightColor() ?: track
+                val end = (pair?.second as? Int)?.ensureBrightColor() ?: tick
+                intArrayOf(start, end)
+            }
+            DATA.MODE_WHITE -> {
+                val white = ContextCompat.getColor(this, R.color.white)
+                intArrayOf(white, white)
+            }
             else -> null
         }
 
-        val listColor = colorToApply ?: track
-        val listTick = colorToApply ?: tick
+        val listColor = colors?.get(0) ?: track
+        val listTick = colors?.get(1) ?: tick
 
         itemBinding.musicItem.songName.setTextColor(listColor)
         itemBinding.musicItem.wave.startColor = listColor

@@ -33,8 +33,8 @@ class NowPlayerViewModel @Inject constructor(
     private val _isPlaying = MutableStateFlow(value = false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
-    private val _currentThemeColor = MutableStateFlow<Int?>(null)
-    val currentThemeColor: StateFlow<Int?> = _currentThemeColor.asStateFlow()
+    private val _currentThemeColor = MutableStateFlow<Pair<Int, Int>?>(null)
+    val currentThemeColor: StateFlow<Pair<Int, Int>?> = _currentThemeColor.asStateFlow()
 
     private val _themeColorMode = MutableStateFlow(DATA.MODE_BASIC)
     val themeColorMode: StateFlow<Int> = _themeColorMode.asStateFlow()
@@ -56,6 +56,7 @@ class NowPlayerViewModel @Inject constructor(
     private val albumIdKey = stringPreferencesKey(DATA.ALBUM_ID)
     private val cachedImagePathKey = stringPreferencesKey(DATA.CACHED_IMAGE_PATH)
     private val themeExtractedColorKey = intPreferencesKey(DATA.THEME_EXTRACTED_COLOR)
+    private val themeExtractedColorSecondKey = intPreferencesKey(DATA.THEME_EXTRACTED_COLOR_SECOND)
     private val bottomPlayerThemeKey = booleanPreferencesKey(DATA.BOTTOM_PLAYER_THEME)
     private val listItemThemeKey = booleanPreferencesKey(DATA.LIST_ITEM_THEME)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
@@ -82,7 +83,14 @@ class NowPlayerViewModel @Inject constructor(
                 _bottomPlayerThemeEnabled.value = preferences[bottomPlayerThemeKey] ?: true
                 _listItemThemeEnabled.value = preferences[listItemThemeKey] ?: true
                 _marqueeEnabled.value = preferences[marqueeEnabledKey] ?: true
-                _currentThemeColor.value = preferences[themeExtractedColorKey]
+
+                val colorStart = preferences[themeExtractedColorKey]
+                val colorEnd = preferences[themeExtractedColorSecondKey]
+                if (colorStart != null && colorEnd != null) {
+                    _currentThemeColor.value = Pair(colorStart, colorEnd)
+                } else if (colorStart != null) {
+                    _currentThemeColor.value = Pair(colorStart, colorStart)
+                }
 
                 if (_currentPlayingSong.value == null) {
                     val path = preferences[musicFileKey]
@@ -107,11 +115,12 @@ class NowPlayerViewModel @Inject constructor(
         _isPlaying.value = playing
     }
 
-    fun updateThemeColor(color: Int) {
-        _currentThemeColor.value = color
+    fun updateThemeColor(start: Int, end: Int) {
+        _currentThemeColor.value = Pair(start, end)
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
-                preferences[themeExtractedColorKey] = color
+                preferences[themeExtractedColorKey] = start
+                preferences[themeExtractedColorSecondKey] = end
             }
         }
     }
