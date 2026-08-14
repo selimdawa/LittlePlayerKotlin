@@ -14,6 +14,11 @@ import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
 import com.flatcode.littleplayer.service.MusicService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @UnstableApi
 open class MusicWidgetBase : AppWidgetProvider() {
@@ -30,8 +35,10 @@ open class MusicWidgetBase : AppWidgetProvider() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
         if (intent.action == MusicService.ACTION_UPDATE_WIDGET) {
+            val pendingResult = goAsync()
+            val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
             val title = intent.getStringExtra("title") ?: context.getString(R.string.song_title)
             val artist = intent.getStringExtra("artist") ?: context.getString(R.string.artist_name)
             val isPlaying = intent.getBooleanExtra("isPlaying", false)
@@ -39,30 +46,48 @@ open class MusicWidgetBase : AppWidgetProvider() {
             val isFavorite = intent.getBooleanExtra("isFavorite", false)
             val imagePath = intent.getStringExtra("imagePath")
 
-            val appWidgetManager = AppWidgetManager.getInstance(context)
+            scope.launch {
+                try {
+                    val appWidgetManager = AppWidgetManager.getInstance(context)
 
-            val widgets = listOf(
-                MusicWidget2x1::class.java to R.layout.layout_widget_2x1,
-                MusicWidget2x2::class.java to R.layout.layout_widget_2x2,
-                MusicWidget4x1::class.java to R.layout.layout_widget_4x1,
-                MusicWidget4x2::class.java to R.layout.layout_widget_4x2,
-                MusicWidget4x4::class.java to R.layout.layout_widget_4x4
-            )
+                    // Process bitmap once on IO thread
+                    val processedBitmap = withContext(Dispatchers.IO) {
+                        MusicWidgetUtils.loadAndProcessBitmap(imagePath)
+                    }
 
-            widgets.forEach { (clazz, layoutId) ->
-                MusicWidgetUtils.updateWidgetUI(
-                    context,
-                    appWidgetManager,
-                    ComponentName(context, clazz),
-                    layoutId,
-                    title,
-                    artist,
-                    isPlaying,
-                    isShuffle,
-                    isFavorite,
-                    imagePath
-                )
+                    val widgets = listOf(
+                        MusicWidget2x1::class.java to R.layout.layout_widget_2x1,
+                        MusicWidget2x2::class.java to R.layout.layout_widget_2x2,
+                        MusicWidget4x1::class.java to R.layout.layout_widget_4x1,
+                        MusicWidget4x2::class.java to R.layout.layout_widget_4x2,
+                        MusicWidget4x4::class.java to R.layout.layout_widget_4x4
+                    )
+
+                    widgets.forEach { (clazz, layoutId) ->
+                        val component = ComponentName(context, clazz)
+                        if (appWidgetManager.getAppWidgetIds(component).isNotEmpty()) {
+                            MusicWidgetUtils.updateWidgetUI(
+                                context,
+                                appWidgetManager,
+                                component,
+                                layoutId,
+                                title,
+                                artist,
+                                isPlaying,
+                                isShuffle,
+                                isFavorite,
+                                processedBitmap
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    pendingResult.finish()
+                }
             }
+        } else {
+            super.onReceive(context, intent)
         }
     }
 
@@ -96,6 +121,40 @@ class MusicWidget4x4 : MusicWidgetBase() {
 
 @UnstableApi
 object MusicWidgetUtils {
+    private var lastImagePath: String? = null
+    private var cachedBitmap: android.graphics.Bitmap? = null
+
+    fun loadAndProcessBitmap(imagePath: String?): android.graphics.Bitmap? {
+        if (imagePath == null) {
+            lastImagePath = null
+            cachedBitmap = null
+            return null
+        }
+        if (imagePath == lastImagePath && cachedBitmap != null) {
+            return cachedBitmap
+        }
+
+        return try {
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(imagePath, options)
+            options.inSampleSize = calculateInSampleSize(options, 512, 512)
+            options.inJustDecodeBounds = false
+            val bitmap = BitmapFactory.decodeFile(imagePath, options)
+
+            if (bitmap != null) {
+                val radius = bitmap.width.coerceAtMost(bitmap.height) / 2f
+                val rounded = getRoundedCornerBitmap(bitmap, radius)
+                lastImagePath = imagePath
+                cachedBitmap = rounded
+                rounded
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun setupButtons(context: Context, views: RemoteViews) {
         val playPauseIntent = Intent(context, MusicService::class.java).apply {
             action = MusicService.ACTION_PLAY_PAUSE
@@ -153,7 +212,7 @@ object MusicWidgetUtils {
         isPlaying: Boolean,
         isShuffle: Boolean,
         isFavorite: Boolean,
-        imagePath: String?
+        processedBitmap: android.graphics.Bitmap?
     ) {
         val views = RemoteViews(context.packageName, layoutId)
         views.setTextViewText(R.id.widgetTitle, title)
@@ -186,24 +245,10 @@ object MusicWidgetUtils {
         } catch (_: Exception) {
         }
 
-        // Handle Album Art with scaling
-        if (imagePath != null) {
-            try {
-                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(imagePath, options)
-                options.inSampleSize = calculateInSampleSize(options, 512, 512)
-                options.inJustDecodeBounds = false
-                val bitmap = BitmapFactory.decodeFile(imagePath, options)
-
-                if (bitmap != null) {
-                    // Back to Circle (radius = half of width)
-                    val radius = bitmap.width.coerceAtMost(bitmap.height) / 2f
-                    val roundedBitmap = getRoundedCornerBitmap(bitmap, radius)
-                    views.setImageViewBitmap(R.id.widgetArtSmall, roundedBitmap)
-                    views.setImageViewBitmap(R.id.widgetArtLarge, roundedBitmap)
-                }
-            } catch (_: Exception) {
-            }
+        // Handle Album Art
+        if (processedBitmap != null) {
+            views.setImageViewBitmap(R.id.widgetArtSmall, processedBitmap)
+            views.setImageViewBitmap(R.id.widgetArtLarge, processedBitmap)
         } else {
             // Back to circular placeholder
             views.setImageViewResource(R.id.widgetArtSmall, R.drawable.widget_art_placeholder)

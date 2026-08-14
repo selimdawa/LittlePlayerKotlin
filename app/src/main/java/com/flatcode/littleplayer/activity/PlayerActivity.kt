@@ -386,33 +386,36 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (songId.isEmpty() || path.isEmpty()) return
         waveformJob?.cancel()
         waveformJob = lifecycleScope.launch(Dispatchers.IO) {
-            delay(resources.getInteger(R.integer.anim_duration_medium).toLong().milliseconds)
+            delay(500)
             try {
                 val cachedSong = viewModel.getSongById(songId)
                 if (cachedSong?.waveform != null) {
                     val amplitudes =
                         cachedSong.waveform.split(",").mapNotNull { it.toIntOrNull() }.toIntArray()
                     if (isActive && amplitudes.isNotEmpty()) {
-                        runOnUiThread {
+                        withContext(Dispatchers.Main) {
                             binding.waveformSeekBar.setSampleFrom(amplitudes)
                         }
                         return@launch
                     }
                 }
 
-                val result = amplituda.processAudio(path).get()
-                val amplitudesArray = result.amplitudesAsList().toIntArray()
-
-                if (amplitudesArray.isNotEmpty()) {
-                    val waveformString = amplitudesArray.joinToString(",")
-                    viewModel.updateWaveform(songId, waveformString)
-                }
-
-                if (isActive) {
-                    runOnUiThread {
-                        binding.waveformSeekBar.setSampleFrom(amplitudesArray)
+                amplituda.processAudio(path).get({ result ->
+                    val amplitudesArray = result.amplitudesAsList().toIntArray()
+                    if (amplitudesArray.isNotEmpty()) {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val waveformString = amplitudesArray.joinToString(",")
+                            viewModel.updateWaveform(songId, waveformString)
+                        }
                     }
-                }
+                    if (isActive) {
+                        runOnUiThread {
+                            binding.waveformSeekBar.setSampleFrom(amplitudesArray)
+                        }
+                    }
+                }, { error ->
+                    error.printStackTrace()
+                })
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -488,59 +491,71 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val nextSong =
             if (targetIndex in viewModel.listSongs.indices) viewModel.listSongs[targetIndex] else null
 
-        nextSong?.let {
-            binding.songName.text = it.title ?: getString(R.string.unknown)
-            binding.songArtist.text = it.artist ?: getString(R.string.unknown)
-        }
-
         val width = binding.card.width.toFloat()
         val outX = if (toNext) -width else width
         val inX = if (toNext) width else -width
 
+        var animationDone = false
+        var dataReady = false
+
+        val onReady = {
+            if (animationDone && dataReady) {
+                performSkipAndSlideIn(toNext, inX, targetIndex)
+            }
+        }
+
+        // 1. Start Out Animation
         binding.card.animate().translationX(outX).alpha(0f)
             .setDuration(resources.getInteger(R.integer.anim_duration_skip).toLong())
             .setInterpolator(AccelerateInterpolator()).withEndAction {
-                if (nextSong != null) {
-                    val model =
-                        getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath)
-                    val request =
-                        ImageRequest.Builder(this).data(model).allowHardware(enable = false)
-                            .listener(
-                                onError = { _, _ ->
-                                    currentDominantColor = getLibraryColor("mc_track")
-                                    performSkipAndSlideIn(toNext, inX, targetIndex)
-                                },
-                                onCancel = {
-                                    currentDominantColor = getLibraryColor("mc_track")
-                                    performSkipAndSlideIn(toNext, inX, targetIndex)
-                                },
-                            ).target { result ->
-                                val bitmap = if (result is BitmapDrawable) {
-                                    result.bitmap
-                                } else {
-                                    val width =
-                                        if (result.intrinsicWidth > 0) result.intrinsicWidth else 200
-                                    val height =
-                                        if (result.intrinsicHeight > 0) result.intrinsicHeight else 200
-                                    val bmp = createBitmap(width, height)
-                                    val canvas = Canvas(bmp)
-                                    result.setBounds(0, 0, canvas.width, canvas.height)
-                                    result.draw(canvas)
-                                    bmp
-                                }
-
-                                Palette.from(bitmap).generate { palette ->
-                                    val defaultColor = getLibraryColor("mc_track")
-                                    currentDominantColor = palette.extractVibrantColor(defaultColor)
-                                    performSkipAndSlideIn(toNext, inX, targetIndex)
-                                }
-                            }.build()
-                    imageLoader.enqueue(request)
-                } else {
-                    currentDominantColor = getLibraryColor("mc_track")
-                    performSkipAndSlideIn(toNext, inX, targetIndex)
-                }
+                animationDone = true
+                onReady()
             }.start()
+
+        // 2. Pre-load Data in parallel
+        if (nextSong != null) {
+            val model = getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath)
+            val request = ImageRequest.Builder(this)
+                .data(model)
+                .allowHardware(enable = false)
+                .listener(
+                    onSuccess = { _, _ -> },
+                    onError = { _, _ ->
+                        currentDominantColor = getLibraryColor("mc_track")
+                        dataReady = true
+                        onReady()
+                    },
+                    onCancel = {
+                        currentDominantColor = getLibraryColor("mc_track")
+                        dataReady = true
+                        onReady()
+                    }
+                ).target { result ->
+                    val bitmap = if (result is BitmapDrawable) {
+                        result.bitmap
+                    } else {
+                        val w = if (result.intrinsicWidth > 0) result.intrinsicWidth else 200
+                        val h = if (result.intrinsicHeight > 0) result.intrinsicHeight else 200
+                        val bmp = createBitmap(w, h)
+                        val canvas = Canvas(bmp)
+                        result.setBounds(0, 0, canvas.width, canvas.height)
+                        result.draw(canvas)
+                        bmp
+                    }
+
+                    Palette.from(bitmap).generate { palette ->
+                        val defaultColor = getLibraryColor("mc_track")
+                        currentDominantColor = palette.extractVibrantColor(defaultColor)
+                        dataReady = true
+                        onReady()
+                    }
+                }.build()
+            imageLoader.enqueue(request)
+        } else {
+            currentDominantColor = getLibraryColor("mc_track")
+            dataReady = true
+            onReady()
+        }
     }
 
     private fun performSkipAndSlideIn(toNext: Boolean, inX: Float, targetIndex: Int) {

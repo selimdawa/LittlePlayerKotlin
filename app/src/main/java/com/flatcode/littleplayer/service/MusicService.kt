@@ -30,6 +30,7 @@ import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
@@ -44,6 +45,7 @@ import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getDefaultArtBytes
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.CoroutineScope
@@ -632,6 +634,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                             index,
                             currentMediaItem.buildUpon().setMediaMetadata(updatedMetadata).build()
                         )
+                        sendWidgetUpdate()
                     }
                 }
             }
@@ -644,7 +647,8 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 Player.EVENT_REPEAT_MODE_CHANGED,
                 Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
                 Player.EVENT_PLAY_WHEN_READY_CHANGED,
-                Player.EVENT_PLAYBACK_STATE_CHANGED
+                Player.EVENT_PLAYBACK_STATE_CHANGED,
+                Player.EVENT_MEDIA_METADATA_CHANGED
             )
         ) {
             if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) && player.playbackState == Player.STATE_READY) {
@@ -656,6 +660,14 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 )
             ) {
                 updateLastPlayedInfo()
+            }
+            if (events.containsAny(
+                    Player.EVENT_MEDIA_ITEM_TRANSITION,
+                    Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                    Player.EVENT_PLAYBACK_STATE_CHANGED
+                )
+            ) {
+                sendWidgetUpdate()
             }
         }
     }
@@ -683,94 +695,103 @@ class MusicService : MediaLibraryService(), Player.Listener {
             pageSize: Int,
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>> {
-            return when (parentId) {
-                ROOT_ID -> {
-                    val children = listOf(
-                        createBrowsableItem(
-                            CATEGORY_SONGS,
-                            getString(R.string.songs),
-                            MediaMetadata.MEDIA_TYPE_MUSIC
-                        ), createBrowsableItem(
-                            CATEGORY_ALBUMS,
-                            getString(R.string.albums),
-                            MediaMetadata.MEDIA_TYPE_ALBUM
-                        ), createBrowsableItem(
-                            CATEGORY_ARTISTS,
-                            getString(R.string.artists),
-                            MediaMetadata.MEDIA_TYPE_ARTIST
-                        ), createBrowsableItem(
-                            CATEGORY_PLAYLISTS,
-                            getString(R.string.playlists),
-                            MediaMetadata.MEDIA_TYPE_PLAYLIST
-                        ), createBrowsableItem(
-                            CATEGORY_FAVORITES,
-                            getString(R.string.favourites),
-                            MediaMetadata.MEDIA_TYPE_PLAYLIST
-                        ), createBrowsableItem(
-                            CATEGORY_RECENT,
-                            getString(R.string.recent),
-                            MediaMetadata.MEDIA_TYPE_PLAYLIST
-                        )
-                    )
-                    Futures.immediateFuture(LibraryResult.ofItemList(children, params))
-                }
+            val executor = MoreExecutors.listeningDecorator(java.util.concurrent.Executors.newSingleThreadExecutor())
+            return executor.submit<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>> {
+                try {
+                    when (parentId) {
+                        ROOT_ID -> {
+                            val children = listOf(
+                                createBrowsableItem(
+                                    CATEGORY_SONGS,
+                                    getString(R.string.songs),
+                                    MediaMetadata.MEDIA_TYPE_MUSIC
+                                ), createBrowsableItem(
+                                    CATEGORY_ALBUMS,
+                                    getString(R.string.albums),
+                                    MediaMetadata.MEDIA_TYPE_ALBUM
+                                ), createBrowsableItem(
+                                    CATEGORY_ARTISTS,
+                                    getString(R.string.artists),
+                                    MediaMetadata.MEDIA_TYPE_ARTIST
+                                ), createBrowsableItem(
+                                    CATEGORY_PLAYLISTS,
+                                    getString(R.string.playlists),
+                                    MediaMetadata.MEDIA_TYPE_PLAYLIST
+                                ), createBrowsableItem(
+                                    CATEGORY_FAVORITES,
+                                    getString(R.string.favourites),
+                                    MediaMetadata.MEDIA_TYPE_PLAYLIST
+                                ), createBrowsableItem(
+                                    CATEGORY_RECENT,
+                                    getString(R.string.recent),
+                                    MediaMetadata.MEDIA_TYPE_PLAYLIST
+                                )
+                            )
+                            LibraryResult.ofItemList(children, params)
+                        }
 
-                CATEGORY_SONGS -> {
-                    val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
-                    val mediaItems = songs.map { it.toMediaItem() }
-                    Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
-                }
+                        CATEGORY_SONGS -> {
+                            val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                            val mediaItems = songs.map { it.toMediaItem() }
+                            LibraryResult.ofItemList(mediaItems, params)
+                        }
 
-                CATEGORY_ALBUMS -> {
-                    val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
-                    val albums = songs.groupBy { it.album ?: DATA.UNKNOWN }
-                    val albumItems = albums.keys.map { albumName ->
-                        createBrowsableItem(
-                            "album|$albumName", albumName, MediaMetadata.MEDIA_TYPE_ALBUM
-                        )
+                        CATEGORY_ALBUMS -> {
+                            val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                            val albums = songs.groupBy { it.album ?: DATA.UNKNOWN }
+                            val albumItems = albums.keys.map { albumName ->
+                                createBrowsableItem(
+                                    "album|$albumName", albumName, MediaMetadata.MEDIA_TYPE_ALBUM
+                                )
+                            }
+                            LibraryResult.ofItemList(albumItems, params)
+                        }
+
+                        CATEGORY_ARTISTS -> {
+                            val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                            val artists = songs.groupBy { it.artist ?: DATA.UNKNOWN }
+                            val artistItems = artists.keys.map { artistName ->
+                                createBrowsableItem(
+                                    "artist|$artistName", artistName, MediaMetadata.MEDIA_TYPE_ARTIST
+                                )
+                            }
+                            LibraryResult.ofItemList(artistItems, params)
+                        }
+
+                        CATEGORY_FAVORITES -> {
+                            val favorites = runBlocking { repository.getAllFavorites().first() }
+                            val mediaItems = favorites.map { it.toMediaItem() }
+                            LibraryResult.ofItemList(mediaItems, params)
+                        }
+
+                        CATEGORY_RECENT -> {
+                            val recent = runBlocking { repository.getAllRecent().first() }
+                            val mediaItems = recent.map { it.toMediaItem() }
+                            LibraryResult.ofItemList(mediaItems, params)
+                        }
+
+                        else -> {
+                            if (parentId.startsWith("album|")) {
+                                val albumName = parentId.removePrefix("album|")
+                                val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                                val mediaItems =
+                                    songs.filter { it.album == albumName }.map { it.toMediaItem() }
+                                LibraryResult.ofItemList(mediaItems, params)
+                            } else if (parentId.startsWith("artist|")) {
+                                val artistName = parentId.removePrefix("artist|")
+                                val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                                val mediaItems =
+                                    songs.filter { it.artist == artistName }.map { it.toMediaItem() }
+                                LibraryResult.ofItemList(mediaItems, params)
+                            } else {
+                                LibraryResult.ofItemList(listOf(), params)
+                            }
+                        }
                     }
-                    Futures.immediateFuture(LibraryResult.ofItemList(albumItems, params))
-                }
-
-                CATEGORY_ARTISTS -> {
-                    val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
-                    val artists = songs.groupBy { it.artist ?: DATA.UNKNOWN }
-                    val artistItems = artists.keys.map { artistName ->
-                        createBrowsableItem(
-                            "artist|$artistName", artistName, MediaMetadata.MEDIA_TYPE_ARTIST
-                        )
-                    }
-                    Futures.immediateFuture(LibraryResult.ofItemList(artistItems, params))
-                }
-
-                CATEGORY_FAVORITES -> {
-                    val favorites = runBlocking { repository.getAllFavorites().first() }
-                    val mediaItems = favorites.map { it.toMediaItem() }
-                    Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
-                }
-
-                CATEGORY_RECENT -> {
-                    val recent = runBlocking { repository.getAllRecent().first() }
-                    val mediaItems = recent.map { it.toMediaItem() }
-                    Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
-                }
-
-                else -> {
-                    if (parentId.startsWith("album|")) {
-                        val albumName = parentId.removePrefix("album|")
-                        val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
-                        val mediaItems =
-                            songs.filter { it.album == albumName }.map { it.toMediaItem() }
-                        Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
-                    } else if (parentId.startsWith("artist|")) {
-                        val artistName = parentId.removePrefix("artist|")
-                        val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
-                        val mediaItems =
-                            songs.filter { it.artist == artistName }.map { it.toMediaItem() }
-                        Futures.immediateFuture(LibraryResult.ofItemList(mediaItems, params))
-                    } else {
-                        Futures.immediateFuture(LibraryResult.ofItemList(listOf(), params))
-                    }
+                } catch (e: Exception) {
+                    LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
+                } finally {
+                    executor.shutdown()
                 }
             }
         }
