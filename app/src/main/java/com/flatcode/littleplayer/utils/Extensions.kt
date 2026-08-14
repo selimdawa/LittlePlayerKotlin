@@ -31,9 +31,9 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -45,9 +45,16 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.palette.graphics.Palette
+import coil.ImageLoader
+import coil.decode.DataSource
+import coil.decode.ImageSource
+import coil.fetch.FetchResult
+import coil.fetch.Fetcher
+import coil.fetch.SourceResult
 import coil.imageLoader
 import coil.load
 import coil.request.ImageRequest
+import coil.request.Options
 import coil.size.Scale
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
@@ -58,13 +65,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import coil.ImageLoader
-import coil.decode.DataSource
-import coil.decode.ImageSource
-import coil.fetch.FetchResult
-import coil.fetch.Fetcher
-import coil.fetch.SourceResult
-import coil.request.Options
 import okio.buffer
 import okio.source
 import java.io.ByteArrayInputStream
@@ -165,14 +165,10 @@ suspend fun Context.getSongArtwork(
     size: Int = 600
 ): Bitmap? {
     val model = getSongImageModel(albumId, path, cachedPath, album)
-    val request = ImageRequest.Builder(this)
-        .data(model)
-        .size(size)
-        .precision(coil.size.Precision.INEXACT)
-        .allowHardware(false)
-        .bitmapConfig(Bitmap.Config.ARGB_8888)
-        .build()
-    
+    val request =
+        ImageRequest.Builder(this).data(model).size(size).precision(coil.size.Precision.INEXACT)
+            .allowHardware(false).bitmapConfig(Bitmap.Config.ARGB_8888).build()
+
     val result = imageLoader.execute(request)
     return (result.drawable as? BitmapDrawable)?.bitmap
 }
@@ -184,15 +180,15 @@ fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
             onError = { _, _ -> onPaletteGenerated(null) },
             onCancel = { onPaletteGenerated(null) },
         ).target { result ->
-        val bitmap = (result as? BitmapDrawable)?.bitmap
-        if (bitmap != null) {
-            Palette.from(bitmap).generate { palette ->
-                onPaletteGenerated(palette)
+            val bitmap = (result as? BitmapDrawable)?.bitmap
+            if (bitmap != null) {
+                Palette.from(bitmap).generate { palette ->
+                    onPaletteGenerated(palette)
+                }
+            } else {
+                onPaletteGenerated(null)
             }
-        } else {
-            onPaletteGenerated(null)
-        }
-    }.build()
+        }.build()
     imageLoader.enqueue(request)
 }
 
@@ -325,7 +321,8 @@ fun LifecycleOwner.observePlaybackSync(
         )
     }
     nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { mode ->
-        val context = if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
+        val context =
+            if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
         val trackColor = context.getLibraryColor("mc_track")
         adapterProvider()?.updateThemeState(
             mode,
@@ -333,7 +330,8 @@ fun LifecycleOwner.observePlaybackSync(
         )
     }
     nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { color ->
-        val context = if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
+        val context =
+            if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
         val trackColor = context.getLibraryColor("mc_track")
         adapterProvider()?.updateThemeState(
             nowPlayerViewModel.themeColorMode.value,
@@ -385,7 +383,9 @@ fun ImageView.loadBitmap(
     if (bitmap == null) {
         load(fallback) {
             crossfade(crossfade)
-            listener(onSuccess = { _, _ -> onComplete?.invoke() }, onError = { _, _ -> onComplete?.invoke() })
+            listener(
+                onSuccess = { _, _ -> onComplete?.invoke() },
+                onError = { _, _ -> onComplete?.invoke() })
         }
         return
     }
@@ -396,7 +396,9 @@ fun ImageView.loadBitmap(
             size(200)
             transformations(SimpleBlurTransformation(blurRadius))
         }
-        listener(onSuccess = { _, _ -> onComplete?.invoke() }, onError = { _, _ -> onComplete?.invoke() })
+        listener(
+            onSuccess = { _, _ -> onComplete?.invoke() },
+            onError = { _, _ -> onComplete?.invoke() })
     }
 }
 
@@ -535,11 +537,8 @@ class AudioArtFetcher(private val file: File, private val context: Context) : Fe
         val art = getAlbumArtBytes(file.absolutePath) ?: return null
         return SourceResult(
             source = ImageSource(
-                source = ByteArrayInputStream(art).source().buffer(),
-                context = context
-            ),
-            mimeType = "image/jpeg",
-            dataSource = DataSource.DISK
+                source = ByteArrayInputStream(art).source().buffer(), context = context
+            ), mimeType = "image/jpeg", dataSource = DataSource.DISK
         )
     }
 

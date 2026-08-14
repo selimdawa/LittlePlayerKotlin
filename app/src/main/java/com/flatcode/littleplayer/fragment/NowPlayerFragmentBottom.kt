@@ -107,7 +107,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
                                                 Bundle().apply {
                                                     putString("ALBUM_ID", item.albumId)
                                                     putString(
-                                                        "CACHED_IMAGE_PATH", item.cachedImagePath
+                                                        "CACHED_IMAGE_PATH", item.cachedImagePath,
                                                     )
                                                 },
                                             ).build(),
@@ -273,7 +273,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         controllerFuture?.addListener(
             {
                 try {
-                    if (_binding != null && isAdded) {
+                    if ((_binding != null) && isAdded) {
                         mediaController = controllerFuture?.get()
                         mediaController?.addListener(this)
                         mediaController?.let { updateUiFromPlayer(it) }

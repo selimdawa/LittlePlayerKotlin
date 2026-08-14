@@ -24,7 +24,7 @@ import javax.inject.Inject
 class NowPlayerViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val repository: MusicRepository,
-    private val roomRepository: MusicRoomRepository
+    private val roomRepository: MusicRoomRepository,
 ) : ViewModel() {
 
     private val _currentPlayingSong = MutableStateFlow<MusicFiles?>(null)
@@ -39,7 +39,7 @@ class NowPlayerViewModel @Inject constructor(
     private val _themeColorMode = MutableStateFlow(DATA.MODE_BASIC)
     val themeColorMode: StateFlow<Int> = _themeColorMode.asStateFlow()
 
-    private val _bottomPlayerThemeEnabled = MutableStateFlow(true)
+    private val _bottomPlayerThemeEnabled = MutableStateFlow(value = true)
     val bottomPlayerThemeEnabled: StateFlow<Boolean> = _bottomPlayerThemeEnabled.asStateFlow()
 
     private val _listItemThemeEnabled = MutableStateFlow(true)

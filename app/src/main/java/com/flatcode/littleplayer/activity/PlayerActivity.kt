@@ -3,7 +3,6 @@ package com.flatcode.littleplayer.activity
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.res.ColorStateList
-import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.media.MediaMetadataRetriever
@@ -18,7 +17,6 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
@@ -116,13 +114,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun updatePlayerUIColors(color: Int) {
         val brightColor = color.ensureBrightColor()
         val colorStateList = ColorStateList.valueOf(brightColor)
-        val backgroundColorStateList =
-            ColorStateList.valueOf(
-                ContextCompat.getColor(
-                    this,
-                    R.color.white_66
-                )
-            ) // 40% White for better visibility
+        val backgroundColorStateList = ColorStateList.valueOf(
+            ContextCompat.getColor(
+                this,
+                R.color.white_66,
+            ),
+        ) // 40% White for better visibility
 
         binding.seekBar.progressTintList = colorStateList
         binding.seekBar.thumbTintList = colorStateList
@@ -143,20 +140,17 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         binding.waveformSeekBar.waveBackgroundColor =
             ContextCompat.getColor(this, R.color.white_30) // 30% White
 
-        binding.basicColor.strokeWidth = if (currentMode == DATA.MODE_BASIC)
-            resources.getDimensionPixelSize(R.dimen.stroke_width_active)
-        else
-            resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
+        binding.basicColor.strokeWidth =
+            if (currentMode == DATA.MODE_BASIC) resources.getDimensionPixelSize(R.dimen.stroke_width_active)
+            else resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
 
-        binding.paletteColor.strokeWidth = if (currentMode == DATA.MODE_PALETTE)
-            resources.getDimensionPixelSize(R.dimen.stroke_width_active)
-        else
-            resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
+        binding.paletteColor.strokeWidth =
+            if (currentMode == DATA.MODE_PALETTE) resources.getDimensionPixelSize(R.dimen.stroke_width_active)
+            else resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
 
-        binding.whiteColor.strokeWidth = if (currentMode == DATA.MODE_WHITE)
-            resources.getDimensionPixelSize(R.dimen.stroke_width_active)
-        else
-            resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
+        binding.whiteColor.strokeWidth =
+            if (currentMode == DATA.MODE_WHITE) resources.getDimensionPixelSize(R.dimen.stroke_width_active)
+            else resources.getDimensionPixelSize(R.dimen.stroke_width_inactive)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -192,17 +186,17 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 when {
                     (!controller.shuffleModeEnabled) && (controller.repeatMode != Player.REPEAT_MODE_ONE) -> {
                         controller.repeatMode = Player.REPEAT_MODE_ONE
-                        musicViewModel.saveShuffleMode(false)
+                        musicViewModel.saveShuffleMode(enabled = false)
                     }
 
                     (!controller.shuffleModeEnabled) && (controller.repeatMode == Player.REPEAT_MODE_ONE) -> {
                         controller.repeatMode = Player.REPEAT_MODE_ALL
-                        musicViewModel.saveShuffleMode(true)
+                        musicViewModel.saveShuffleMode(enabled = true)
                     }
 
                     else -> {
                         controller.repeatMode = Player.REPEAT_MODE_ALL
-                        musicViewModel.saveShuffleMode(false)
+                        musicViewModel.saveShuffleMode(enabled = false)
                     }
                 }
             }
@@ -236,8 +230,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 onDeleteClick = { song ->
                     musicViewModel.deleteSong(song)
                     nextBtn(animate = false)
-                }
-            ) { /* onCastClick */ }
+                }) { /* onCastClick */ }
             bottomSheet.show(supportFragmentManager, "PlayerOptions")
         }
 
@@ -285,7 +278,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
             if (song != null) {
-                if (song.id != lastSongId || !isTransitionStarted) {
+                if ((song.id != lastSongId) || !isTransitionStarted) {
                     lastSongId = song.id
                     updateSongUI(song)
                     loadWaveform(song.id ?: "", song.path ?: "")
@@ -316,13 +309,13 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             else -> getLibraryColor("mc_track")
         }
         updatePlayerUIColors(color)
-        
+
         // Always ensure the palette button shows the current extracted color
         binding.paletteColor.setCardBackgroundColor(currentDominantColor.ensureBrightColor())
     }
 
     private fun updateSongUI(song: MusicFiles) {
-        if (binding.songName.text == song.title && binding.songArtist.text == song.artist && isTransitionStarted) {
+        if ((binding.songName.text == song.title) && (binding.songArtist.text == song.artist) && isTransitionStarted) {
             return
         }
         updateSongJob?.cancel()
@@ -335,7 +328,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             launch(Dispatchers.IO) {
                 val bitrate = getBitrate(song.path)
                 withContext(Dispatchers.Main) {
-                    binding.bitrate.text = bitrate?.let { getString(R.string.kbps_format, it) } ?: ""
+                    binding.bitrate.text =
+                        bitrate?.let { getString(R.string.kbps_format, it) } ?: ""
                     binding.bitrate.isVisible = bitrate != null
                 }
             }
@@ -366,9 +360,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         binding.imageBlur.loadBitmap(
-            bitmap,
-            blurRadius = 100f,
-            fallback = R.drawable.ic_cover_song_blur
+            bitmap, blurRadius = 100f, fallback = R.drawable.ic_cover_song_blur
         ) {
             blurLoaded = true
             checkReady()
@@ -423,7 +415,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         if (songId.isEmpty() || path.isEmpty()) return
         waveformJob?.cancel()
         waveformJob = lifecycleScope.launch(Dispatchers.IO) {
-            delay(500)
+            delay(500.milliseconds)
             try {
                 val cachedSong = viewModel.getSongById(songId)
                 if (cachedSong?.waveform != null) {
@@ -520,7 +512,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         lifecycleScope.launch {
             // 0. Wait 500ms as requested before starting the transition
-            delay(500)
+            delay(500.milliseconds)
 
             val targetIndex =
                 if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
@@ -556,29 +548,24 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
             // 2. Pre-load Data in parallel
             if (nextSong != null) {
-                val model =
-                    getSongImageModel(nextSong.albumId, nextSong.path, nextSong.cachedImagePath, nextSong.album)
+                val model = getSongImageModel(
+                    nextSong.albumId, nextSong.path, nextSong.cachedImagePath, nextSong.album
+                )
 
                 // Pre-load Bitmap and Palette
-                val request = ImageRequest.Builder(this@PlayerActivity)
-                    .data(model)
-                    .allowHardware(enable = false)
-                    .precision(coil.size.Precision.INEXACT)
-                    .size(600)
-                    .listener(
-                        onError = { _, _ ->
-                            currentDominantColor = getLibraryColor("mc_track")
-                            preloadedBitmap = null
-                            dataReady = true
-                            onReady()
-                        },
-                        onCancel = {
-                            currentDominantColor = getLibraryColor("mc_track")
-                            preloadedBitmap = null
-                            dataReady = true
-                            onReady()
-                        }
-                    ).target { result ->
+                val request = ImageRequest.Builder(this@PlayerActivity).data(model)
+                    .allowHardware(enable = false).precision(coil.size.Precision.INEXACT).size(600)
+                    .listener(onError = { _, _ ->
+                        currentDominantColor = getLibraryColor("mc_track")
+                        preloadedBitmap = null
+                        dataReady = true
+                        onReady()
+                    }, onCancel = {
+                        currentDominantColor = getLibraryColor("mc_track")
+                        preloadedBitmap = null
+                        dataReady = true
+                        onReady()
+                    }).target { result ->
                         val bitmap = (result as? BitmapDrawable)?.bitmap
                         preloadedBitmap = bitmap
 
@@ -606,10 +593,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun performSkipAndSlideIn(
-        toNext: Boolean,
-        inX: Float,
-        targetIndex: Int,
-        nextSong: MusicFiles?
+        toNext: Boolean, inX: Float, targetIndex: Int, nextSong: MusicFiles?
     ) {
         // Update UI manually before sliding in to ensure it's ready
         nextSong?.let { song ->
@@ -634,7 +618,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             lifecycleScope.launch(Dispatchers.IO) {
                 val bitrate = getBitrate(song.path)
                 withContext(Dispatchers.Main) {
-                    binding.bitrate.text = bitrate?.let { getString(R.string.kbps_format, it) } ?: ""
+                    binding.bitrate.text =
+                        bitrate?.let { getString(R.string.kbps_format, it) } ?: ""
                     binding.bitrate.isVisible = bitrate != null
                 }
             }
