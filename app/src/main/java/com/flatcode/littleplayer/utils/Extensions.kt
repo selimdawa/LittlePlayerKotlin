@@ -157,6 +157,16 @@ fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
     setGradientBackground(color, color, layerIndex)
 }
 
+fun View.applySimpleGradient(@ColorInt startColor: Int, @ColorInt endColor: Int) {
+    background = GradientDrawable(
+        GradientDrawable.Orientation.TL_BR,
+        intArrayOf(startColor, endColor)
+    ).apply {
+        shape = GradientDrawable.RECTANGLE
+        cornerRadius = 1000f // Circular
+    }
+}
+
 suspend fun Context.getSongArtwork(
     albumId: String?,
     path: String? = null,
@@ -300,12 +310,10 @@ fun LifecycleOwner.observePlaybackSync(
             val song = nowPlayerViewModel.currentPlayingSong.value
             viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
             adapter.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
-            
+
             val colors = nowPlayerViewModel.currentThemeColor.value ?: Pair(trackColor, tickColor)
             adapter.updateThemeState(
-                nowPlayerViewModel.themeColorMode.value,
-                colors.first,
-                colors.second
+                nowPlayerViewModel.themeColorMode.value, colors.first, colors.second
             )
             adapter.updateListThemeState(nowPlayerViewModel.listItemThemeEnabled.value)
         }
@@ -331,9 +339,7 @@ fun LifecycleOwner.observePlaybackSync(
         val tickColor = context.getLibraryColor("mc_tick")
         val colors = nowPlayerViewModel.currentThemeColor.value ?: Pair(trackColor, tickColor)
         adapterProvider()?.updateThemeState(
-            mode,
-            colors.first,
-            colors.second
+            mode, colors.first, colors.second
         )
     }
     nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { colorPair ->
@@ -343,9 +349,7 @@ fun LifecycleOwner.observePlaybackSync(
         val tickColor = context.getLibraryColor("mc_tick")
         val colors = colorPair ?: Pair(trackColor, tickColor)
         adapterProvider()?.updateThemeState(
-            nowPlayerViewModel.themeColorMode.value,
-            colors.first,
-            colors.second
+            nowPlayerViewModel.themeColorMode.value, colors.first, colors.second
         )
     }
     nowPlayerViewModel.listItemThemeEnabled.collectWithLifecycle(this) { enabled ->
@@ -682,10 +686,11 @@ fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
 }
 
 fun Palette?.extractPaletteColors(defaultStart: Int, defaultEnd: Int): Pair<Int, Int> {
-    val startColor = this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: defaultStart
+    val startColor =
+        this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+            ?: this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+            ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+            ?: defaultStart
 
     val endColor = this?.getDominantColor(defaultEnd) ?: defaultEnd
     return Pair(startColor, endColor)

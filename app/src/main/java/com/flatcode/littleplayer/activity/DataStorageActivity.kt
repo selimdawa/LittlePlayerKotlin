@@ -14,7 +14,6 @@ import com.flatcode.littleplayer.databinding.ItemNowPlayerPreviewBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.SimpleBlurTransformation
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractPaletteColors
 import com.flatcode.littleplayer.utils.formatAsSize
@@ -23,7 +22,6 @@ import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.setGradientBackground
-import com.flatcode.littleplayer.utils.setSolidBackground
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.viewmodel.DataStorageViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -143,7 +141,12 @@ class DataStorageActivity : AppCompatActivity() {
             currentDominantColor
         )
         setupThemeItem(
-            binding.itemWhite, getString(R.string.white), imageRes, 20, DATA.MODE_WHITE, ContextCompat.getColor(this, R.color.white)
+            binding.itemWhite,
+            getString(R.string.white),
+            imageRes,
+            20,
+            DATA.MODE_WHITE,
+            ContextCompat.getColor(this, R.color.white)
         )
 
         // List Item Previews
@@ -158,7 +161,11 @@ class DataStorageActivity : AppCompatActivity() {
             currentDominantColor
         )
         setupListItemThemeItem(
-            binding.itemListWhite, getString(R.string.white), imageRes, DATA.MODE_WHITE, ContextCompat.getColor(this, R.color.white)
+            binding.itemListWhite,
+            getString(R.string.white),
+            imageRes,
+            DATA.MODE_WHITE,
+            ContextCompat.getColor(this, R.color.white)
         )
     }
 
@@ -179,8 +186,12 @@ class DataStorageActivity : AppCompatActivity() {
 
         val colors = getCurrentThemeColors(mode, colorPair as? Pair<Int, Int>)
 
-        itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(colors.first, colors.second)
-        itemBinding.playerContent.albumArtContainer.setGradientBackground(colors.first, colors.second)
+        itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(
+            colors.first, colors.second
+        )
+        itemBinding.playerContent.albumArtContainer.setGradientBackground(
+            colors.first, colors.second
+        )
         itemBinding.playerContent.playPauseBtn.setGradientBackground(colors.first, colors.second)
 
         itemBinding.playerContent.albumArt.load(imageSource ?: R.drawable.ic_music) {
@@ -202,9 +213,7 @@ class DataStorageActivity : AppCompatActivity() {
         itemBinding.musicItem.songName.text = getString(R.string.blinding_lights)
 
         val songDetailsText = getString(
-            R.string.song_details_format,
-            getString(R.string.the_weeknd),
-            "After Hours"
+            R.string.song_details_format, getString(R.string.the_weeknd), "After Hours"
         )
         itemBinding.musicItem.songDetails.text = songDetailsText
 

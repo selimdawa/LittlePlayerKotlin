@@ -37,6 +37,7 @@ import com.flatcode.littleplayer.fragment.PlayerOptionsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.applySimpleGradient
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPaletteColors
@@ -48,7 +49,6 @@ import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadBitmap
 import com.flatcode.littleplayer.utils.onProgressChanged
 import com.flatcode.littleplayer.utils.setHaloBackground
-import com.flatcode.littleplayer.utils.setHaloSolidBackground
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -105,8 +105,9 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         setContentView(binding.root)
 
         amplituda = Amplituda(this)
-        val defaultColor = getLibraryColor("mc_track")
-        currentDominantColor = Pair(defaultColor, defaultColor)
+        val track = getLibraryColor("mc_track")
+        val tick = getLibraryColor("mc_tick")
+        currentDominantColor = Pair(track, tick)
 
         getIntentMethod()
         setupListeners()
@@ -116,7 +117,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private fun updatePlayerUIColors(startColor: Int, endColor: Int) {
         val brightStart = startColor.ensureBrightColor()
         val brightEnd = endColor.ensureBrightColor()
-        
+
         val colorStateList = ColorStateList.valueOf(brightStart)
         val backgroundColorStateList = ColorStateList.valueOf(
             ContextCompat.getColor(this, R.color.white_66)
@@ -138,8 +139,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         binding.waveformSeekBar.waveProgressColor = brightStart
-        binding.waveformSeekBar.waveBackgroundColor =
-            ContextCompat.getColor(this, R.color.white_30)
+        binding.waveformSeekBar.waveBackgroundColor = ContextCompat.getColor(this, R.color.white_30)
 
         binding.basicColor.strokeWidth =
             if (currentMode == DATA.MODE_BASIC) resources.getDimensionPixelSize(R.dimen.stroke_width_active)
@@ -262,13 +262,20 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { colorPair ->
             colorPair?.let {
                 currentDominantColor = it
-                binding.paletteColor.setCardBackgroundColor(it.first.ensureBrightColor())
+                binding.paletteColorBg.applySimpleGradient(
+                    it.first.ensureBrightColor(),
+                    it.second.ensureBrightColor()
+                )
                 if (currentMode == DATA.MODE_PALETTE) {
                     applyCurrentModeColors()
                 }
             } ?: run {
-                val defaultColor = getLibraryColor("mc_track")
-                binding.paletteColor.setCardBackgroundColor(defaultColor.ensureBrightColor())
+                val track = getLibraryColor("mc_track")
+                val tick = getLibraryColor("mc_tick")
+                binding.paletteColorBg.applySimpleGradient(
+                    track.ensureBrightColor(),
+                    tick.ensureBrightColor()
+                )
             }
         }
 
@@ -305,8 +312,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         val colors = getCurrentThemeColors(currentMode, currentDominantColor)
         updatePlayerUIColors(colors.first, colors.second)
 
-        // Always ensure the palette button shows the primary extracted color
-        binding.paletteColor.setCardBackgroundColor(currentDominantColor.first.ensureBrightColor())
+        // Always ensure the palette button shows the extracted colors
+        binding.paletteColorBg.applySimpleGradient(
+            currentDominantColor.first.ensureBrightColor(),
+            currentDominantColor.second.ensureBrightColor()
+        )
     }
 
     private fun updateSongUI(song: MusicFiles) {
@@ -369,7 +379,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 val colors = palette.extractPaletteColors(track, tick)
                 currentDominantColor = colors
 
-                binding.paletteColor.setCardBackgroundColor(colors.first.ensureBrightColor())
+                binding.paletteColorBg.applySimpleGradient(
+                    colors.first.ensureBrightColor(),
+                    colors.second.ensureBrightColor()
+                )
                 nowPlayerViewModel.updateThemeColor(colors.first, colors.second)
 
                 if (currentMode == DATA.MODE_PALETTE) {
@@ -380,7 +393,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             val track = getLibraryColor("mc_track")
             val tick = getLibraryColor("mc_tick")
             currentDominantColor = Pair(track, tick)
-            binding.paletteColor.setCardBackgroundColor(track.ensureBrightColor())
+            binding.paletteColorBg.applySimpleGradient(
+                track.ensureBrightColor(),
+                tick.ensureBrightColor()
+            )
             nowPlayerViewModel.updateThemeColor(track, tick)
             if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
         }

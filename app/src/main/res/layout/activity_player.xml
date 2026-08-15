@@ -54,11 +54,19 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/spacing_24"
-                app:cardBackgroundColor="?attr/mc_track"
+                app:cardBackgroundColor="@android:color/transparent"
                 app:cardCornerRadius="@dimen/spacing_12"
                 app:cardElevation="@dimen/spacing_0"
                 app:strokeColor="@color/white"
-                app:strokeWidth="@dimen/spacing_1" />
+                app:strokeWidth="@dimen/spacing_1">
+
+                <View
+                    android:id="@+id/basicColorBg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="?attr/mc_bg" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/paletteColor"
@@ -67,11 +75,18 @@
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/spacing_8"
                 android:layout_toStartOf="@+id/basicColor"
-                app:cardBackgroundColor="@color/gray"
+                app:cardBackgroundColor="@android:color/transparent"
                 app:cardCornerRadius="@dimen/spacing_12"
                 app:cardElevation="@dimen/spacing_0"
                 app:strokeColor="@color/white"
-                app:strokeWidth="@dimen/spacing_1" />
+                app:strokeWidth="@dimen/spacing_1">
+
+                <View
+                    android:id="@+id/paletteColorBg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/whiteColor"
