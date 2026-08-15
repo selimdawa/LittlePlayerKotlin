@@ -343,12 +343,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 val bitmap = withContext(Dispatchers.Default) {
                     getSongArtwork(song.albumId, song.path, song.cachedImagePath, song.album, 600)
                 }
-                applyArtworkAndPalette(bitmap)
+                applyArtworkAndPalette(bitmap, song)
             }
         }
     }
 
-    private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?) {
+    private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?, song: MusicFiles) {
         var imageLoaded = false
         var blurLoaded = false
 
@@ -373,20 +373,39 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         // Extract Palette
         if (bitmap != null) {
-            Palette.from(bitmap).generate { palette ->
-                val track = getLibraryColor("mc_track")
-                val tick = getLibraryColor("mc_tick")
-                val colors = palette.extractPaletteColors(track, tick)
-                currentDominantColor = colors
+            val track = getLibraryColor("mc_track")
+            val tick = getLibraryColor("mc_tick")
 
+            if (song.dominantColor != null && song.vibrantColor != null) {
+                // Use cached colors from Room
+                val colors = Pair(song.vibrantColor, song.dominantColor)
+                currentDominantColor = colors
                 binding.paletteColorBg.applySimpleGradient(
                     colors.first.ensureBrightColor(),
                     colors.second.ensureBrightColor()
                 )
                 nowPlayerViewModel.updateThemeColor(colors.first, colors.second)
+                if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
+            } else {
+                // Extract and save
+                Palette.from(bitmap).generate { palette ->
+                    val colors = palette.extractPaletteColors(track, tick)
+                    currentDominantColor = colors
 
-                if (currentMode == DATA.MODE_PALETTE) {
-                    applyCurrentModeColors()
+                    binding.paletteColorBg.applySimpleGradient(
+                        colors.first.ensureBrightColor(),
+                        colors.second.ensureBrightColor()
+                    )
+                    nowPlayerViewModel.updateThemeColor(colors.first, colors.second)
+                    
+                    // Save to Room
+                    song.id?.let { id ->
+                        nowPlayerViewModel.updateSongColors(id, colors.second, colors.first)
+                    }
+
+                    if (currentMode == DATA.MODE_PALETTE) {
+                        applyCurrentModeColors()
+                    }
                 }
             }
         } else {

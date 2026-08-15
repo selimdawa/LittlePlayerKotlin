@@ -156,6 +156,8 @@ class MusicRepository @Inject constructor(
                     waveform = dbSong.waveform,
                     playCount = dbSong.playCount,
                     cachedImagePath = dbSong.cachedImagePath,
+                    dominantColor = dbSong.dominantColor,
+                    vibrantColor = dbSong.vibrantColor,
                     dateAdded = dbSong.dateAdded,
                     size = dbSong.size,
                     year = dbSong.year
@@ -198,6 +200,8 @@ class MusicRepository @Inject constructor(
                                 waveform = dbSong.waveform,
                                 playCount = dbSong.playCount,
                                 cachedImagePath = dbSong.cachedImagePath,
+                                dominantColor = dbSong.dominantColor,
+                                vibrantColor = dbSong.vibrantColor,
                                 dateAdded = dbSong.dateAdded,
                                 size = dbSong.size,
                                 year = dbSong.year
@@ -360,7 +364,9 @@ class MusicRepository @Inject constructor(
                         dateAdded = dateAdded,
                         size = size,
                         year = year,
-                        cachedImagePath = dbSongs.find { it.id == id }?.cachedImagePath
+                        cachedImagePath = dbSongs.find { it.id == id }?.cachedImagePath,
+                        dominantColor = dbSongs.find { it.id == id }?.dominantColor,
+                        vibrantColor = dbSongs.find { it.id == id }?.vibrantColor
                     )
                 )
             }

@@ -38,6 +38,9 @@ interface SongDao {
     @Query("UPDATE songs_table SET cachedImagePath = :path WHERE id = :songId")
     suspend fun updateCachedImagePath(songId: String, path: String?)
 
+    @Query("UPDATE songs_table SET dominantColor = :dominantColor, vibrantColor = :vibrantColor WHERE id = :songId")
+    suspend fun updateSongColors(songId: String, dominantColor: Int?, vibrantColor: Int?)
+
     @Query("SELECT * FROM songs_table WHERE id = :songId")
     suspend fun getSongById(songId: String): SongEntity?
 

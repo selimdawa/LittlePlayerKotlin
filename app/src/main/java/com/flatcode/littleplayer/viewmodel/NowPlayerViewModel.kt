@@ -103,7 +103,9 @@ class NowPlayerViewModel @Inject constructor(
                             duration = preferences[stringPreferencesKey(DATA.DURATION)],
                             id = preferences[songIdKey],
                             albumId = preferences[albumIdKey],
-                            cachedImagePath = preferences[cachedImagePathKey]
+                            cachedImagePath = preferences[cachedImagePathKey],
+                            dominantColor = preferences[themeExtractedColorKey],
+                            vibrantColor = preferences[themeExtractedColorSecondKey]
                         )
                     }
                 }
@@ -122,6 +124,12 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[themeExtractedColorKey] = start
                 preferences[themeExtractedColorSecondKey] = end
             }
+        }
+    }
+
+    fun updateSongColors(songId: String, dominant: Int, vibrant: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            roomRepository.updateSongColors(songId, dominant, vibrant)
         }
     }
 
@@ -178,6 +186,9 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[songIdKey] = song.id ?: ""
                 preferences[albumIdKey] = song.albumId ?: ""
                 preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
+                
+                song.dominantColor?.let { preferences[themeExtractedColorKey] = it }
+                song.vibrantColor?.let { preferences[themeExtractedColorSecondKey] = it }
             }
         }
     }

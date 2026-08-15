@@ -160,13 +160,25 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
                 if (lastLoadedPath != it.path) {
                     lastLoadedPath = it.path
-                    // Extract Palette Color
-                    val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath, it.album)
-                    requireContext().extractPalette(model) { palette ->
-                        val track = requireContext().getLibraryColor("mc_track")
-                        val tick = requireContext().getLibraryColor("mc_tick")
-                        val colors = palette.extractPaletteColors(track, tick)
-                        viewModel.updateThemeColor(colors.first, colors.second)
+                    
+                    val track = requireContext().getLibraryColor("mc_track")
+                    val tick = requireContext().getLibraryColor("mc_tick")
+
+                    if (it.dominantColor != null && it.vibrantColor != null) {
+                        // Use cached colors from Room
+                        viewModel.updateThemeColor(it.vibrantColor, it.dominantColor)
+                    } else {
+                        // Extract and save
+                        val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath, it.album)
+                        requireContext().extractPalette(model) { palette ->
+                            val colors = palette.extractPaletteColors(track, tick)
+                            viewModel.updateThemeColor(colors.first, colors.second)
+                            
+                            // Save to Room
+                            it.id?.let { id ->
+                                viewModel.updateSongColors(id, colors.second, colors.first)
+                            }
+                        }
                     }
                 }
             }
