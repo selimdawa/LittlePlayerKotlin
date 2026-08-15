@@ -1,7 +1,6 @@
 package com.flatcode.littleplayer.fragment
 
 import android.content.ComponentName
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
@@ -26,9 +25,9 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractPaletteColors
+import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -195,8 +194,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     )
 
     private fun updateThemeColors(enabled: Boolean, mode: Int, colorPair: Pair<Int, Int>?) {
-        val track = requireContext().getLibraryColor("mc_track")
-        val tick = requireContext().getLibraryColor("mc_tick")
+        val colors = requireContext().getCurrentThemeColors(
+            if (enabled) mode else DATA.MODE_BASIC, colorPair
+        )
 
         fun applyTo(view: View) {
             val background = view.background?.mutate() ?: return
@@ -207,24 +207,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             }
 
             gradient?.let {
-                if (enabled) {
-                    val colors = when (mode) {
-                        DATA.MODE_PALETTE -> {
-                            val start = colorPair?.first?.ensureBrightColor() ?: track
-                            val end = colorPair?.second?.ensureBrightColor() ?: tick
-                            intArrayOf(start, end)
-                        }
-                        DATA.MODE_WHITE -> intArrayOf(Color.WHITE, Color.WHITE)
-                        else -> null
-                    }
-                    if (colors != null) {
-                        it.colors = colors
-                    } else {
-                        it.colors = intArrayOf(track, tick)
-                    }
-                } else {
-                    it.colors = intArrayOf(track, tick)
-                }
+                it.colors = intArrayOf(colors.first, colors.second)
                 view.background = background
             }
         }

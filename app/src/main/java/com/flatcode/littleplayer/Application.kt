@@ -52,23 +52,14 @@ class Application : Application(), ImageLoaderFactory {
     }
 
     override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
-            .components {
+        return ImageLoader.Builder(this).components {
                 add(AudioArtFetcher.Factory(this@Application))
-            }
-            .memoryCache {
-                MemoryCache.Builder(this)
-                    .maxSizePercent(0.25)
-                    .build()
-            }
-            .diskCache {
-                DiskCache.Builder()
-                    .directory(cacheDir.resolve("image_cache"))
-                    .maxSizeBytes(50L * 1024 * 1024)
-                    .build()
-            }
-            .crossfade(true)
-            .allowRgb565(true) // Optimize memory by using RGB_565 for images
+            }.memoryCache {
+                MemoryCache.Builder(this).maxSizePercent(0.25).build()
+            }.diskCache {
+                DiskCache.Builder().directory(cacheDir.resolve("image_cache"))
+                    .maxSizeBytes(50L * 1024 * 1024).build()
+            }.crossfade(true).allowRgb565(true) // Optimize memory by using RGB_565 for images
             .build()
     }
 

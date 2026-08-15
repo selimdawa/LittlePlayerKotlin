@@ -18,6 +18,7 @@ import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractPaletteColors
 import com.flatcode.littleplayer.utils.formatAsSize
+import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.launchActivity
@@ -176,32 +177,11 @@ class DataStorageActivity : AppCompatActivity() {
         itemBinding.playerContent.artist.text = getString(R.string.the_weeknd)
         itemBinding.playerContent.miniProgressBar.progress = progress
 
-        val track = getLibraryColor("mc_track")
-        val tick = getLibraryColor("mc_tick")
+        val colors = getCurrentThemeColors(mode, colorPair as? Pair<Int, Int>)
 
-        val colors = when (mode) {
-            DATA.MODE_PALETTE -> {
-                val pair = colorPair as? Pair<*, *>
-                val start = (pair?.first as? Int)?.ensureBrightColor() ?: track
-                val end = (pair?.second as? Int)?.ensureBrightColor() ?: tick
-                intArrayOf(start, end)
-            }
-            DATA.MODE_WHITE -> {
-                val white = ContextCompat.getColor(this, R.color.white)
-                intArrayOf(white, white)
-            }
-            else -> null
-        }
-
-        if (colors != null) {
-            itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(colors[0], colors[1])
-            itemBinding.playerContent.albumArtContainer.setGradientBackground(colors[0], colors[1])
-            itemBinding.playerContent.playPauseBtn.setGradientBackground(colors[0], colors[1])
-        } else {
-            itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(track, tick)
-            itemBinding.playerContent.albumArtContainer.setGradientBackground(track, tick)
-            itemBinding.playerContent.playPauseBtn.setGradientBackground(track, tick)
-        }
+        itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(colors.first, colors.second)
+        itemBinding.playerContent.albumArtContainer.setGradientBackground(colors.first, colors.second)
+        itemBinding.playerContent.playPauseBtn.setGradientBackground(colors.first, colors.second)
 
         itemBinding.playerContent.albumArt.load(imageSource ?: R.drawable.ic_music) {
             crossfade(enable = true)
@@ -228,29 +208,11 @@ class DataStorageActivity : AppCompatActivity() {
         )
         itemBinding.musicItem.songDetails.text = songDetailsText
 
-        val track = getLibraryColor("mc_track")
-        val tick = getLibraryColor("mc_tick")
+        val colors = getCurrentThemeColors(mode, colorPair as? Pair<Int, Int>)
 
-        val colors = when (mode) {
-            DATA.MODE_PALETTE -> {
-                val pair = colorPair as? Pair<*, *>
-                val start = (pair?.first as? Int)?.ensureBrightColor() ?: track
-                val end = (pair?.second as? Int)?.ensureBrightColor() ?: tick
-                intArrayOf(start, end)
-            }
-            DATA.MODE_WHITE -> {
-                val white = ContextCompat.getColor(this, R.color.white)
-                intArrayOf(white, white)
-            }
-            else -> null
-        }
-
-        val listColor = colors?.get(0) ?: track
-        val listTick = colors?.get(1) ?: tick
-
-        itemBinding.musicItem.songName.setTextColor(listColor)
-        itemBinding.musicItem.wave.startColor = listColor
-        itemBinding.musicItem.wave.closeColor = listTick
+        itemBinding.musicItem.songName.setTextColor(colors.first)
+        itemBinding.musicItem.wave.startColor = colors.first
+        itemBinding.musicItem.wave.closeColor = colors.second
         itemBinding.musicItem.wave.visibility = android.view.View.VISIBLE
 
         itemBinding.musicItem.image.load(imageSource ?: R.drawable.ic_music) {

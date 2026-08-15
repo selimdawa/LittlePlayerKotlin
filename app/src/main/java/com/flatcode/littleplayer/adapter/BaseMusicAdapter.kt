@@ -2,16 +2,14 @@ package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.graphics.Color
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
-import com.flatcode.littleplayer.R
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.databinding.ItemMusicBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
-import com.flatcode.littleplayer.utils.ensureBrightColor
+import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.loadSongImageBlur
@@ -86,7 +84,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
     protected fun ItemMusicBinding.applyTheme(context: Context, song: MusicFiles) {
         initColors(context)
         val isCurrentlyPlaying = song.path == playingPath
-        
+
         // Ensure blur is always visible and loaded for all items
         imageBlur.visibility = android.view.View.VISIBLE
         imageBlur.loadSongImageBlur(song.albumId, 25, song.path, song.cachedImagePath, song.album)
@@ -97,29 +95,13 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
                 wave.start()
             }
 
-            val trackColor = if (listItemThemeEnabled) {
-                when (currentThemeMode) {
-                    DATA.MODE_PALETTE -> currentThemeColor.ensureBrightColor()
-                    DATA.MODE_WHITE -> ContextCompat.getColor(context, R.color.white)
-                    else -> mcTrack
-                }
-            } else {
-                mcTrack
-            }
+            val mode = if (listItemThemeEnabled) currentThemeMode else DATA.MODE_BASIC
+            val palette = Pair(currentThemeColor, currentThemeColorSecond)
+            val colors = context.getCurrentThemeColors(mode, palette)
 
-            val closeColor = if (listItemThemeEnabled) {
-                when (currentThemeMode) {
-                    DATA.MODE_PALETTE -> currentThemeColorSecond.ensureBrightColor()
-                    DATA.MODE_WHITE -> ContextCompat.getColor(context, R.color.white)
-                    else -> mcTick
-                }
-            } else {
-                mcTick
-            }
-
-            wave.startColor = trackColor
-            wave.closeColor = closeColor
-            songName.setTextColor(trackColor)
+            wave.startColor = colors.first
+            wave.closeColor = colors.second
+            songName.setTextColor(colors.first)
         } else {
             if (wave.visibility != android.view.View.GONE) {
                 wave.gone()

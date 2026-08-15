@@ -691,6 +691,22 @@ fun Palette?.extractPaletteColors(defaultStart: Int, defaultEnd: Int): Pair<Int,
     return Pair(startColor, endColor)
 }
 
+fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pair<Int, Int> {
+    val track = getLibraryColor("mc_track")
+    val tick = getLibraryColor("mc_tick")
+
+    return when (mode) {
+        DATA.MODE_PALETTE -> {
+            val start = paletteColors?.first?.ensureBrightColor() ?: track
+            val end = paletteColors?.second?.ensureBrightColor() ?: tick
+            Pair(start, end)
+        }
+
+        DATA.MODE_WHITE -> Pair(Color.WHITE, Color.WHITE)
+        else -> Pair(track, tick)
+    }
+}
+
 fun Context.getAppCompatActivity(): AppCompatActivity? {
     var currentContext = this
     while (currentContext is ContextWrapper) {

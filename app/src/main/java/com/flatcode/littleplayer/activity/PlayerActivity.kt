@@ -41,6 +41,7 @@ import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.ensureBrightColor
 import com.flatcode.littleplayer.utils.extractPaletteColors
 import com.flatcode.littleplayer.utils.formatAsTime
+import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongArtwork
 import com.flatcode.littleplayer.utils.getSongImageModel
@@ -301,12 +302,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
 
     private fun applyCurrentModeColors() {
-        val colors = when (currentMode) {
-            DATA.MODE_BASIC -> Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
-            DATA.MODE_PALETTE -> currentDominantColor
-            DATA.MODE_WHITE -> Pair(Color.WHITE, Color.WHITE)
-            else -> Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
-        }
+        val colors = getCurrentThemeColors(currentMode, currentDominantColor)
         updatePlayerUIColors(colors.first, colors.second)
 
         // Always ensure the palette button shows the primary extracted color
