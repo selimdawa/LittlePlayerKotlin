@@ -30,6 +30,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
@@ -63,6 +64,8 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import io.selimdawa.multicolors.MultiColorManager
+import io.selimdawa.multicolors.MultiColorTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import okio.buffer
@@ -81,6 +84,7 @@ inline fun <reified T : Activity> Context.launchActivity(
     startActivity(intent, options)
 }
 
+/* OK */
 fun Context.getColorFromAttr(@AttrRes attr: Int, fallback: Int = Color.WHITE): Int {
     val typedValue = TypedValue()
     if (theme.resolveAttribute(attr, typedValue, true)) {
@@ -159,8 +163,7 @@ fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
 
 fun View.applySimpleGradient(@ColorInt startColor: Int, @ColorInt endColor: Int) {
     background = GradientDrawable(
-        GradientDrawable.Orientation.TL_BR,
-        intArrayOf(startColor, endColor)
+        GradientDrawable.Orientation.TL_BR, intArrayOf(startColor, endColor)
     ).apply {
         shape = GradientDrawable.RECTANGLE
         cornerRadius = 1000f // Circular
@@ -183,6 +186,7 @@ suspend fun Context.getSongArtwork(
     return (result.drawable as? BitmapDrawable)?.bitmap
 }
 
+/* OK */
 fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
     val request = ImageRequest.Builder(this).data(data).allowHardware(enable = false)
         .size(200, 200) // Optimization: Downsample for palette extraction
@@ -227,6 +231,7 @@ fun Context.showDialog(
     dialog.show()
 }
 
+/* OK */
 @SuppressLint("DiscouragedApi")
 fun Context.getLibraryColor(attrName: String): Int {
     var id = resources.getIdentifier(attrName, "attr", packageName)
@@ -242,8 +247,8 @@ fun Context.getLibraryColor(attrName: String): Int {
     if (color != Color.TRANSPARENT) return color
 
     return try {
-        when (val theme = io.selimdawa.multicolors.MultiColorManager.getCurrentTheme(this)) {
-            is io.selimdawa.multicolors.MultiColorTheme.Gradient -> {
+        when (val theme = MultiColorManager.getCurrentTheme(this)) {
+            is MultiColorTheme.Gradient -> {
                 when (attrName) {
                     "mc_track" -> theme.colors.first()
                     "mc_tick" -> theme.colors.last()
@@ -251,7 +256,7 @@ fun Context.getLibraryColor(attrName: String): Int {
                 }
             }
 
-            is io.selimdawa.multicolors.MultiColorTheme.Xml -> {
+            is MultiColorTheme.Xml -> {
                 val typedValue = TypedValue()
                 val tempTheme = resources.newTheme()
                 tempTheme.applyStyle(theme.styleRes, true)
@@ -505,11 +510,8 @@ fun getSongImageModel(
     album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
 ): Any {
-    // 1. Try Cached Path (Fastest)
     if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
 
-    // 2. Try Album ID (MediaStore - System Album Art)
-    // Avoid using MediaStore album art for "Unknown" albums as it's often incorrect
     val isUnknownAlbum = album == null || album == DATA.UNKNOWN
     if (!isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
@@ -518,8 +520,6 @@ fun getSongImageModel(
         )
     }
 
-    // 3. Try folder art (cover.jpg, folder.jpg, etc.)
-    // Also risky for unknown albums if they are all in one generic folder
     if (!isUnknownAlbum && !path.isNullOrEmpty()) {
         try {
             val file = File(path)
@@ -535,8 +535,6 @@ fun getSongImageModel(
         }
     }
 
-
-    // 4. Try Song Path (Embedded Art - Slower) - only if requested or as fallback
     if (!path.isNullOrEmpty()) {
         val file = File(path)
         if (file.exists()) return file
@@ -544,7 +542,6 @@ fun getSongImageModel(
 
     return fallback
 }
-
 
 class AudioArtFetcher(private val file: File, private val context: Context) : Fetcher {
     override suspend fun fetch(): FetchResult? {
@@ -622,6 +619,7 @@ fun View.showKeyboard() {
     }
 }
 
+/* OK */
 fun getAlbumArtBytes(path: String?): ByteArray? {
     if (path.isNullOrEmpty()) return null
     val retriever = MediaMetadataRetriever()
@@ -636,6 +634,7 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
     }
 }
 
+/* OK */
 fun getDefaultArtBytes(context: Context): ByteArray? {
     return try {
         val size = 512
@@ -646,7 +645,7 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
         val backgroundColor = context.getLibraryColor("mc_track")
         canvas.drawColor(backgroundColor)
 
-        val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+        val drawable = AppCompatResources.getDrawable(
             context,
             R.drawable.ic_default_album_art,
         )
@@ -667,6 +666,7 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
     }
 }
 
+/* OK */
 fun Int.ensureBrightColor(): Int {
     val hsv = FloatArray(3)
     Color.colorToHSV(this, hsv)
@@ -676,6 +676,7 @@ fun Int.ensureBrightColor(): Int {
     return Color.HSVToColor(hsv)
 }
 
+/* OK */
 fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
     val dominantColor = this?.getDominantColor(defaultColor) ?: defaultColor
     return this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
