@@ -547,12 +547,11 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             // 0. Wait 500ms as requested before starting the transition
             delay(500.milliseconds)
 
-            val targetIndex =
+            var targetIndex =
                 if (toNext) controller.nextMediaItemIndex else controller.previousMediaItemIndex
 
             if (targetIndex == -1) {
-                isAnimating = false
-                return@launch
+                targetIndex = if (toNext) 0 else itemCount - 1
             }
 
             val nextSong =
