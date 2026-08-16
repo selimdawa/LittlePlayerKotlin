@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.data.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -14,5 +15,6 @@ data class CurrentQueueEntity(
     val duration: String?,
     val path: String?,
     val cachedImagePath: String?,
-    val orderIndex: Int
+    val orderIndex: Int,
+    @ColumnInfo(defaultValue = "0") val originalOrderIndex: Int = 0
 )

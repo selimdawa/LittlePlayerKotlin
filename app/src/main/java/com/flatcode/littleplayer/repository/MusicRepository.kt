@@ -81,6 +81,8 @@ class MusicRepository @Inject constructor(
     private val _currentPlaylist = MutableStateFlow<List<MusicFiles>>(emptyList())
     val currentPlaylist: StateFlow<List<MusicFiles>> = _currentPlaylist.asStateFlow()
 
+    private var queueUpdateJob: Job? = null
+
     fun getSortOrder(category: String): Flow<String> = dataStore.data.map { preferences ->
         preferences[stringPreferencesKey(category)]
             ?: if (category == DATA.SONGS) DATA.SORT_BY_DATE else DATA.SORT_BY_NAME
@@ -93,12 +95,55 @@ class MusicRepository @Inject constructor(
     }
 
     val shuffleMode: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] ?: false
+        preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)]
+            ?: false
     }.distinctUntilChanged()
 
     suspend fun saveShuffleMode(enabled: Boolean) {
         dataStore.edit { preferences ->
-            preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] = enabled
+            preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] =
+                enabled
+        }
+
+        // Reorder current queue in DB when shuffle toggled
+        val queueEntities = musicDao.getQueue()
+        if (queueEntities.isNotEmpty()) {
+            val playbackState = musicDao.getPlaybackStateSync()
+            val currentSongId = playbackState?.currentSongId
+
+            val songs = queueEntities.map { entity ->
+                MusicFiles(
+                    id = entity.songId,
+                    title = entity.title,
+                    artist = entity.artist,
+                    album = entity.album,
+                    albumId = entity.albumId,
+                    duration = entity.duration,
+                    path = entity.path,
+                    cachedImagePath = entity.cachedImagePath
+                )
+            }
+
+            if (enabled) {
+                // Shuffle: Start from current song
+                val currentIndex = if (currentSongId != null) songs.indexOfFirst { it.id == currentSongId } else -1
+                updateCurrentPlaylist(songs, startIndex = currentIndex, saveToRoom = true, forceShuffleMode = true)
+            } else {
+                // Unshuffle: Restore original order
+                val originalOrderedSongs = queueEntities.sortedBy { it.originalOrderIndex }.map { entity ->
+                    MusicFiles(
+                        id = entity.songId,
+                        title = entity.title,
+                        artist = entity.artist,
+                        album = entity.album,
+                        albumId = entity.albumId,
+                        duration = entity.duration,
+                        path = entity.path,
+                        cachedImagePath = entity.cachedImagePath
+                    )
+                }
+                updateCurrentPlaylist(originalOrderedSongs, saveToRoom = true, forceShuffleMode = false)
+            }
         }
     }
 
@@ -129,7 +174,10 @@ class MusicRepository @Inject constructor(
             }
 
             val sortedDbSongs = when (sortOrder) {
-                DATA.SORT_BY_NAME -> filteredDbSongs.sortedWith(compareBy({ it.title.lowercase() }, { it.id }))
+                DATA.SORT_BY_NAME -> filteredDbSongs.sortedWith(
+                    compareBy({ it.title.lowercase() }, { it.id })
+                )
+
                 DATA.SORT_BY_DATE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.dateAdded }.thenBy { it.title })
                 DATA.SORT_BY_PLAY_COUNT -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.playCount }.thenBy { it.title })
                 DATA.SORT_BY_SIZE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.size }.thenBy { it.title })
@@ -140,7 +188,10 @@ class MusicRepository @Inject constructor(
             sortedDbSongs.map { dbSong ->
                 val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                     val folderName = File(dbSong.path).parentFile?.name
-                    if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
+                    if (dbSong.album.equals(
+                            folderName, ignoreCase = true
+                        )
+                    ) DATA.UNKNOWN else dbSong.album
                 } else {
                     dbSong.album ?: DATA.UNKNOWN
                 }
@@ -183,7 +234,10 @@ class MusicRepository @Inject constructor(
 
                         val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                             val folderName = File(dbSong.path).parentFile?.name
-                            if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
+                            if (dbSong.album.equals(
+                                    folderName, ignoreCase = true
+                                )
+                            ) DATA.UNKNOWN else dbSong.album
                         } else {
                             dbSong.album ?: DATA.UNKNOWN
                         }
@@ -210,7 +264,10 @@ class MusicRepository @Inject constructor(
                     }
 
                     when (sortOrder) {
-                        DATA.SORT_BY_NAME -> tempAudioList.sortWith(compareBy({ it.title?.lowercase() }, { it.id }))
+                        DATA.SORT_BY_NAME -> tempAudioList.sortWith(
+                            compareBy({ it.title?.lowercase() }, { it.id })
+                        )
+
                         DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.playCount }.thenBy { it.title })
                         DATA.SORT_BY_DATE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.dateAdded }.thenBy { it.title })
                         DATA.SORT_BY_SIZE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.size }.thenBy { it.title })
@@ -268,12 +325,18 @@ class MusicRepository @Inject constructor(
 
                         while (cursor.moveToNext()) {
                             val path = cursor.getString(pathColumn) ?: ""
-                            if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+                            if (path.contains(
+                                    "/Android/data", true
+                                ) || path.contains("/Android/media", true)
+                            ) continue
                             if (excluded.any { path.startsWith(it) }) continue
 
                             val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
                             val folderName = File(path).parentFile?.name
-                            val cleanedAlbum = if (rawAlbum.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else rawAlbum
+                            val cleanedAlbum = if (rawAlbum.equals(
+                                    folderName, ignoreCase = true
+                                )
+                            ) DATA.UNKNOWN else rawAlbum
 
                             tempAudioList.add(
                                 MusicFiles(
@@ -339,7 +402,10 @@ class MusicRepository @Inject constructor(
 
             while (c.moveToNext()) {
                 val path = c.getString(pathColumn) ?: ""
-                if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+                if (path.contains("/Android/data", true) || path.contains(
+                        "/Android/media", true
+                    )
+                ) continue
                 if (excluded.any { path.startsWith(it) }) continue
 
                 val album = c.getString(albumColumn) ?: DATA.UNKNOWN
@@ -385,7 +451,7 @@ class MusicRepository @Inject constructor(
     suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {
         val songId = song.id ?: return@withContext
         val path = song.path ?: ""
-        
+
         val folder = File(context.filesDir, "song_art")
         if (!folder.exists()) folder.mkdirs()
 
@@ -428,15 +494,38 @@ class MusicRepository @Inject constructor(
     }
 
     fun getSongUri(songId: String): Uri {
-        return ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong())
+        return ContentUris.withAppendedId(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId.toLong()
+        )
     }
 
-    fun updateCurrentPlaylist(songs: List<MusicFiles>, saveToRoom: Boolean = true) {
-        _currentPlaylist.value = songs
-        if (saveToRoom) {
-            CoroutineScope(Dispatchers.IO).launch {
+    fun updateCurrentPlaylist(
+        songs: List<MusicFiles>,
+        startIndex: Int = -1,
+        saveToRoom: Boolean = true,
+        forceShuffleMode: Boolean? = null
+    ) {
+        queueUpdateJob?.cancel()
+        queueUpdateJob = repositoryScope.launch {
+            val isShuffle = forceShuffleMode ?: shuffleMode.first()
+            val finalSongs =
+                if (isShuffle && songs.isNotEmpty() && startIndex != -1 && startIndex in songs.indices) {
+                    val currentSong = songs[startIndex]
+                    val remaining =
+                        songs.filterIndexed { index, _ -> index != startIndex }.shuffled()
+                    listOf(currentSong) + remaining
+                } else {
+                    songs
+                }
+
+            _currentPlaylist.value = finalSongs
+
+            if (saveToRoom) {
                 musicDao.clearQueue()
-                val entities = songs.mapIndexed { index, song ->
+                val entities = finalSongs.mapIndexed { index, song ->
+                    // Find its index in the original 'songs' list to store as originalOrderIndex
+                    val originalIdx =
+                        songs.indexOfFirst { it.id == song.id }.let { if (it == -1) index else it }
                     CurrentQueueEntity(
                         songId = song.id ?: "",
                         title = song.title,
@@ -446,7 +535,8 @@ class MusicRepository @Inject constructor(
                         duration = song.duration,
                         path = song.path,
                         cachedImagePath = song.cachedImagePath,
-                        orderIndex = index
+                        orderIndex = index,
+                        originalOrderIndex = originalIdx
                     )
                 }
                 musicDao.insertQueue(entities)
@@ -460,7 +550,7 @@ class MusicRepository @Inject constructor(
         } catch (_: Exception) {
             emptySet()
         }
-        musicDao.getQueue().filter { entity ->
+        val queue = musicDao.getQueue().filter { entity ->
             excluded.none { excludedPath -> entity.path?.startsWith(excludedPath) == true }
         }.map {
             MusicFiles(
@@ -474,6 +564,8 @@ class MusicRepository @Inject constructor(
                 cachedImagePath = it.cachedImagePath
             )
         }
+        _currentPlaylist.value = queue
+        queue
     }
 
     suspend fun clearArtCache() = withContext(Dispatchers.IO) {

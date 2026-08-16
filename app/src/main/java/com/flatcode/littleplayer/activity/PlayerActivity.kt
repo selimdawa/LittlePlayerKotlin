@@ -89,6 +89,7 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     private var isTransitionStarted = false
     private var isAnimating = false
     private var lastSongId: String? = null
+    private var isProcessingShuffle = false
     private var preloadedBitmap: android.graphics.Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -181,26 +182,42 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
 
         binding.repeat.setOnClickListener {
+            if (isProcessingShuffle) return@setOnClickListener
+            isProcessingShuffle = true
+
             val animation = AnimationUtils.loadAnimation(this, R.anim.pulse)
             binding.repeat.startAnimation(animation)
+
             mediaController?.let { controller ->
+                val currentIsShuffle = musicViewModel.shuffleMode.value
+                val currentRepeat = controller.repeatMode
+
+                val nextRepeat: Int
+                val nextShuffle: Boolean
+
                 when {
-                    (!controller.shuffleModeEnabled) && (controller.repeatMode != Player.REPEAT_MODE_ONE) -> {
-                        controller.repeatMode = Player.REPEAT_MODE_ONE
-                        musicViewModel.saveShuffleMode(enabled = false)
+                    (!currentIsShuffle) && (currentRepeat != Player.REPEAT_MODE_ONE) -> {
+                        nextRepeat = Player.REPEAT_MODE_ONE
+                        nextShuffle = false
                     }
 
-                    (!controller.shuffleModeEnabled) && (controller.repeatMode == Player.REPEAT_MODE_ONE) -> {
-                        controller.repeatMode = Player.REPEAT_MODE_ALL
-                        musicViewModel.saveShuffleMode(enabled = true)
+                    (!currentIsShuffle) && (currentRepeat == Player.REPEAT_MODE_ONE) -> {
+                        nextRepeat = Player.REPEAT_MODE_ALL
+                        nextShuffle = true
                     }
 
                     else -> {
-                        controller.repeatMode = Player.REPEAT_MODE_ALL
-                        musicViewModel.saveShuffleMode(enabled = false)
+                        nextRepeat = Player.REPEAT_MODE_ALL
+                        nextShuffle = false
                     }
                 }
+
+                controller.repeatMode = nextRepeat
+                musicViewModel.saveShuffleMode(nextShuffle)
+                updateRepeatShuffleIcons(nextRepeat, nextShuffle)
             }
+            
+            binding.root.postDelayed({ isProcessingShuffle = false }, 500)
         }
 
         binding.prev.setOnClickListener {
@@ -281,6 +298,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         nowPlayerViewModel.marqueeEnabled.collectWithLifecycle(this) { enabled ->
             binding.songName.isSelected = enabled
+        }
+
+        musicViewModel.shuffleMode.collectWithLifecycle(this) { _ ->
+            mediaController?.let { updateRepeatShuffleIcons(it) }
         }
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
@@ -929,12 +950,16 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         }
     }
 
-    private fun updateRepeatShuffleIcons(player: Player) {
+    private fun updateRepeatShuffleIcons(repeatMode: Int, isShuffle: Boolean) {
         val cycleIcon = when {
-            player.shuffleModeEnabled -> R.drawable.ic_shuffle_on
-            player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
+            isShuffle -> R.drawable.ic_shuffle_on
+            repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
             else -> R.drawable.ic_repeat
         }
         binding.repeat.setImageResource(cycleIcon)
+    }
+
+    private fun updateRepeatShuffleIcons(player: Player) {
+        updateRepeatShuffleIcons(player.repeatMode, musicViewModel.shuffleMode.value)
     }
 }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -256,14 +257,16 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }
 
-    fun updateCurrentPlaylist(songs: List<MusicFiles>) {
-        repository.updateCurrentPlaylist(songs)
+    fun updateCurrentPlaylist(songs: List<MusicFiles>, startIndex: Int = -1) {
+        repository.updateCurrentPlaylist(songs, startIndex)
     }
 
     fun updatePlaylistAndPlay(songs: List<MusicFiles>, position: Int) {
         viewModelScope.launch {
-            updateCurrentPlaylist(songs)
-            _event.emit(MusicEvent.PlaySong(position))
+            val isShuffle = repository.shuffleMode.first()
+            updateCurrentPlaylist(songs, position)
+            val playIndex = if (isShuffle) 0 else position
+            _event.emit(MusicEvent.PlaySong(playIndex))
         }
     }
 
@@ -298,6 +301,9 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     val excludedFolders: StateFlow<Set<String>> = repository.excludedFolders
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    val shuffleMode: StateFlow<Boolean> = repository.shuffleMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 }
 
 sealed class MusicEvent {

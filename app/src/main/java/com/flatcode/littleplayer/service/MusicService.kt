@@ -58,6 +58,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
@@ -206,21 +207,64 @@ class MusicService : MediaLibraryService(), Player.Listener {
             initAudioEffects(basePlayer?.audioSessionId ?: -1)
             loadPlaybackStateAndQueue()
             loadPlaybackParameters()
-            observeShuffleMode()
+            observePlaylistChanges()
         }
     }
 
-    private fun observeShuffleMode() {
+    private fun observePlaylistChanges() {
         serviceScope.launch {
-            musicRepository.shuffleMode.collect { enabled ->
-                exoPlayer?.let { player ->
-                    if (player.shuffleModeEnabled != enabled) {
-                        player.shuffleModeEnabled = enabled
-                        if (enabled) {
-                            basePlayer?.setShuffleOrder(androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder(player.mediaItemCount))
-                        }
+            musicRepository.currentPlaylist.collect { songs ->
+                if (songs.isEmpty()) return@collect
+                
+                val newMediaItems = withContext(Dispatchers.Default) {
+                    songs.map { song ->
+                        val uri = song.path?.toUri() ?: "".toUri()
+                        MediaItem.Builder()
+                            .setMediaId(song.id ?: "")
+                            .setUri(uri)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(song.title)
+                                    .setArtist(song.artist)
+                                    .setAlbumTitle(song.album)
+                                    .setExtras(Bundle().apply {
+                                        putString("ALBUM_ID", song.albumId)
+                                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                                    })
+                                    .build()
+                            )
+                            .build()
                     }
                 }
+
+                exoPlayer?.let { player ->
+                    val currentMediaItem = player.currentMediaItem
+                    val currentPosition = player.currentPosition
+                    val isPlaying = player.isPlaying
+
+                    val oldIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
+                    val newIds = newMediaItems.map { it.mediaId }
+
+                    if (oldIds != newIds) {
+                        val newIndex = if (currentMediaItem != null) {
+                            val index = newIds.indexOf(currentMediaItem.mediaId)
+                            if (index != -1) index else 0
+                        } else 0
+
+                        player.setMediaItems(newMediaItems, newIndex, currentPosition)
+                        if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
+                            player.prepare()
+                        }
+                        if (isPlaying) player.play()
+                    }
+                }
+            }
+        }
+
+        serviceScope.launch {
+            musicRepository.shuffleMode.collect {
+                sendWidgetUpdate()
+                updateNotificationLayout()
             }
         }
     }
@@ -383,11 +427,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
             ACTION_NEXT -> exoPlayer?.seekToNext()
             ACTION_PREV -> exoPlayer?.seekToPrevious()
             ACTION_SHUFFLE -> {
-                exoPlayer?.let {
-                    val nextShuffle = !it.shuffleModeEnabled
-                    serviceScope.launch {
-                        musicRepository.saveShuffleMode(nextShuffle)
-                    }
+                serviceScope.launch {
+                    val currentShuffle = musicRepository.shuffleMode.first()
+                    musicRepository.saveShuffleMode(!currentShuffle)
                 }
             }
 
@@ -437,7 +479,6 @@ class MusicService : MediaLibraryService(), Player.Listener {
         val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
         val path = currentMediaItem.localConfiguration?.uri?.path ?: ""
         val currentIndex = player.currentMediaItemIndex
-        val shuffleMode = player.shuffleModeEnabled
         val repeatMode = player.repeatMode
         val currentProgress = player.currentPosition
 
@@ -446,6 +487,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
             if (!immediate) {
                 delay(1.seconds)
             }
+            val isShuffle = musicRepository.shuffleMode.first()
             repository.insertRecent(
                 RecentEntity(
                     songId = songId,
@@ -462,7 +504,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 PlaybackStateEntity(
                     currentSongId = songId,
                     lastPosition = currentIndex,
-                    shuffleModeEnabled = shuffleMode,
+                    shuffleModeEnabled = isShuffle,
                     repeatMode = repeatMode,
                     lastProgress = currentProgress
                 )
@@ -477,7 +519,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 preferences[albumIdKey] = albumId ?: ""
                 preferences[cachedImagePathKey] = cachedPath ?: ""
                 preferences[intPreferencesKey(DATA.LAST_POSITION)] = currentIndex
-                preferences[shuffleModeKey] = shuffleMode
+                preferences[shuffleModeKey] = isShuffle
             }
         }
     }
@@ -491,8 +533,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
             val isFav = repository.isFavorite(songId)
             val favIcon = if (isFav) R.drawable.ic_favorite else R.drawable.ic_favorite_border
 
+            val isShuffle = musicRepository.shuffleMode.first()
             val cycleIcon = when {
-                player.shuffleModeEnabled -> R.drawable.ic_shuffle_on_24
+                isShuffle -> R.drawable.ic_shuffle_on_24
                 player.repeatMode == Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one_24
                 else -> R.drawable.ic_repeat_24
             }
@@ -540,10 +583,11 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 "artist", metadata.artist?.toString() ?: getString(R.string.artist_name)
             )
             intent.putExtra("isPlaying", player.isPlaying)
-            intent.putExtra("isShuffle", player.shuffleModeEnabled)
 
             serviceScope.launch {
-                val isFav = if (songId.isNotEmpty()) repository.isFavorite(songId) else false
+                val isShuffle = musicRepository.shuffleMode.first()
+                intent.putExtra("isShuffle", isShuffle)
+                val isFav = if (songId.isEmpty()) false else repository.isFavorite(songId)
                 intent.putExtra("isFavorite", isFav)
 
                 val cachedPath = metadata.extras?.getString("CACHED_IMAGE_PATH")
@@ -923,29 +967,26 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
                 COMMAND_PLAYBACK_CYCLE -> {
                     val player = session.player
-                    when {
-                        !player.shuffleModeEnabled && player.repeatMode != Player.REPEAT_MODE_ONE -> {
-                            player.repeatMode = Player.REPEAT_MODE_ONE
-                            serviceScope.launch {
+                    serviceScope.launch {
+                        val isShuffle = musicRepository.shuffleMode.first()
+                        when {
+                            !isShuffle && player.repeatMode != Player.REPEAT_MODE_ONE -> {
+                                player.repeatMode = Player.REPEAT_MODE_ONE
                                 musicRepository.saveShuffleMode(false)
                             }
-                        }
 
-                        !player.shuffleModeEnabled && player.repeatMode == Player.REPEAT_MODE_ONE -> {
-                            player.repeatMode = Player.REPEAT_MODE_ALL
-                            serviceScope.launch {
+                            !isShuffle && player.repeatMode == Player.REPEAT_MODE_ONE -> {
+                                player.repeatMode = Player.REPEAT_MODE_ALL
                                 musicRepository.saveShuffleMode(true)
                             }
-                        }
 
-                        else -> {
-                            player.repeatMode = Player.REPEAT_MODE_ALL
-                            serviceScope.launch {
+                            else -> {
+                                player.repeatMode = Player.REPEAT_MODE_ALL
                                 musicRepository.saveShuffleMode(false)
                             }
                         }
+                        updateNotificationLayout()
                     }
-                    updateNotificationLayout()
                 }
 
                 COMMAND_SET_SLEEP_TIMER -> {
