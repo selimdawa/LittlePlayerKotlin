@@ -215,37 +215,42 @@ class MusicService : MediaLibraryService(), Player.Listener {
         serviceScope.launch {
             musicRepository.currentPlaylist.collect { songs ->
                 if (songs.isEmpty()) return@collect
-                
-                val newMediaItems = withContext(Dispatchers.Default) {
-                    songs.map { song ->
-                        val uri = song.path?.toUri() ?: "".toUri()
-                        MediaItem.Builder()
-                            .setMediaId(song.id ?: "")
-                            .setUri(uri)
-                            .setMediaMetadata(
-                                MediaMetadata.Builder()
-                                    .setTitle(song.title)
-                                    .setArtist(song.artist)
-                                    .setAlbumTitle(song.album)
-                                    .setExtras(Bundle().apply {
-                                        putString("ALBUM_ID", song.albumId)
-                                        putString("CACHED_IMAGE_PATH", song.cachedImagePath)
-                                    })
-                                    .build()
-                            )
-                            .build()
-                    }
-                }
 
                 exoPlayer?.let { player ->
-                    val currentMediaItem = player.currentMediaItem
                     val currentPosition = player.currentPosition
                     val isPlaying = player.isPlaying
-
+                    val currentMediaItem = player.currentMediaItem
+                    
+                    // Get current IDs on Main thread safely
                     val oldIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
-                    val newIds = newMediaItems.map { it.mediaId }
 
-                    if (oldIds != newIds) {
+                    val updateResult = withContext(Dispatchers.Default) {
+                        val newMediaItems = songs.map { song ->
+                            val uri = song.path?.toUri() ?: "".toUri()
+                            MediaItem.Builder()
+                                .setMediaId(song.id ?: "")
+                                .setUri(uri)
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setTitle(song.title)
+                                        .setArtist(song.artist)
+                                        .setAlbumTitle(song.album)
+                                        .setExtras(Bundle().apply {
+                                            putString("ALBUM_ID", song.albumId)
+                                            putString("CACHED_IMAGE_PATH", song.cachedImagePath)
+                                        })
+                                        .build()
+                                )
+                                .build()
+                        }
+                        val newIds = newMediaItems.map { it.mediaId }
+                        if (oldIds != newIds) newMediaItems to newIds else null
+                    }
+
+                    if (updateResult != null) {
+                        val newMediaItems = updateResult.first
+                        val newIds = updateResult.second
+                        
                         val newIndex = if (currentMediaItem != null) {
                             val index = newIds.indexOf(currentMediaItem.mediaId)
                             if (index != -1) index else 0

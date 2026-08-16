@@ -100,6 +100,12 @@ class MusicRepository @Inject constructor(
     }.distinctUntilChanged()
 
     suspend fun saveShuffleMode(enabled: Boolean) {
+        val currentShuffle = dataStore.data.map { 
+            it[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] ?: false 
+        }.first()
+        
+        if (currentShuffle == enabled) return
+
         dataStore.edit { preferences ->
             preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] =
                 enabled
@@ -522,10 +528,12 @@ class MusicRepository @Inject constructor(
 
             if (saveToRoom) {
                 musicDao.clearQueue()
+                
+                // OPTIMIZATION: Use a map for original indices instead of repeated indexOfFirst (O(N) instead of O(N^2))
+                val originalIndexMap = songs.mapIndexed { index, song -> song.id to index }.toMap()
+                
                 val entities = finalSongs.mapIndexed { index, song ->
-                    // Find its index in the original 'songs' list to store as originalOrderIndex
-                    val originalIdx =
-                        songs.indexOfFirst { it.id == song.id }.let { if (it == -1) index else it }
+                    val originalIdx = originalIndexMap[song.id] ?: index
                     CurrentQueueEntity(
                         songId = song.id ?: "",
                         title = song.title,
