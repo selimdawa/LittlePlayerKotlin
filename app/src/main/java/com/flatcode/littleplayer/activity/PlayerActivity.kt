@@ -39,8 +39,7 @@ import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.applySimpleGradient
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.ensureBrightColor
-import com.flatcode.littleplayer.utils.extractPaletteColors
+import com.flatcode.littleplayer.utils.extractDynamicColors
 import com.flatcode.littleplayer.utils.formatAsTime
 import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
@@ -49,6 +48,7 @@ import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadBitmap
 import com.flatcode.littleplayer.utils.onProgressChanged
 import com.flatcode.littleplayer.utils.setHaloBackground
+import com.flatcode.littleplayer.utils.toMiddleColor
 import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -115,8 +115,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
     }
 
     private fun updatePlayerUIColors(startColor: Int, endColor: Int) {
-        val brightStart = startColor.ensureBrightColor()
-        val brightEnd = endColor.ensureBrightColor()
+        val brightStart = startColor.toMiddleColor()
+        val brightEnd = endColor.toMiddleColor()
 
         val colorStateList = ColorStateList.valueOf(brightStart)
         val backgroundColorStateList = ColorStateList.valueOf(
@@ -263,8 +263,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             colorPair?.let {
                 currentDominantColor = it
                 binding.paletteColorBg.applySimpleGradient(
-                    it.first.ensureBrightColor(),
-                    it.second.ensureBrightColor()
+                    it.first.toMiddleColor(),
+                    it.second.toMiddleColor()
                 )
                 if (currentMode == DATA.MODE_PALETTE) {
                     applyCurrentModeColors()
@@ -273,8 +273,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 val track = getLibraryColor("mc_track")
                 val tick = getLibraryColor("mc_tick")
                 binding.paletteColorBg.applySimpleGradient(
-                    track.ensureBrightColor(),
-                    tick.ensureBrightColor()
+                    track.toMiddleColor(),
+                    tick.toMiddleColor()
                 )
             }
         }
@@ -314,8 +314,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
 
         // Always ensure the palette button shows the extracted colors
         binding.paletteColorBg.applySimpleGradient(
-            currentDominantColor.first.ensureBrightColor(),
-            currentDominantColor.second.ensureBrightColor()
+            currentDominantColor.first.toMiddleColor(),
+            currentDominantColor.second.toMiddleColor()
         )
     }
 
@@ -381,22 +381,22 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 val colors = Pair(song.vibrantColor, song.dominantColor)
                 currentDominantColor = colors
                 binding.paletteColorBg.applySimpleGradient(
-                    colors.first.ensureBrightColor(),
-                    colors.second.ensureBrightColor()
+                    colors.first.toMiddleColor(),
+                    colors.second.toMiddleColor()
                 )
-                nowPlayerViewModel.updateThemeColor(colors.first, colors.second)
+                nowPlayerViewModel.updateThemeColor(song.id, colors.first, colors.second)
                 if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
-            } else {
+            } else if (nowPlayerViewModel.colorSongId.value != song.id) {
                 // Extract and save
                 Palette.from(bitmap).generate { palette ->
-                    val colors = palette.extractPaletteColors(track, tick)
+                    val colors = palette.extractDynamicColors(track, tick)
                     currentDominantColor = colors
 
                     binding.paletteColorBg.applySimpleGradient(
-                        colors.first.ensureBrightColor(),
-                        colors.second.ensureBrightColor()
+                        colors.first.toMiddleColor(),
+                        colors.second.toMiddleColor()
                     )
-                    nowPlayerViewModel.updateThemeColor(colors.first, colors.second)
+                    nowPlayerViewModel.updateThemeColor(song.id, colors.first, colors.second)
                     
                     // Save to Room
                     song.id?.let { id ->
@@ -413,10 +413,10 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
             val tick = getLibraryColor("mc_tick")
             currentDominantColor = Pair(track, tick)
             binding.paletteColorBg.applySimpleGradient(
-                track.ensureBrightColor(),
-                tick.ensureBrightColor()
+                track.toMiddleColor(),
+                tick.toMiddleColor()
             )
-            nowPlayerViewModel.updateThemeColor(track, tick)
+            nowPlayerViewModel.updateThemeColor(null, track, tick)
             if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
         }
     }
@@ -610,7 +610,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                             Palette.from(bitmap).generate { palette ->
                                 val track = getLibraryColor("mc_track")
                                 val tick = getLibraryColor("mc_tick")
-                                currentDominantColor = palette.extractPaletteColors(track, tick)
+                                currentDominantColor = palette.extractDynamicColors(track, tick)
+                                nowPlayerViewModel.updateThemeColor(nextSong.id, currentDominantColor.first, currentDominantColor.second)
                                 dataReady = true
                                 onReady()
                             }

@@ -25,8 +25,8 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.extractDynamicColors
 import com.flatcode.littleplayer.utils.extractPalette
-import com.flatcode.littleplayer.utils.extractPaletteColors
 import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.getSongImageModel
@@ -166,13 +166,13 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
                     if (it.dominantColor != null && it.vibrantColor != null) {
                         // Use cached colors from Room
-                        viewModel.updateThemeColor(it.vibrantColor, it.dominantColor)
-                    } else {
-                        // Extract and save
+                        viewModel.updateThemeColor(it.id, it.vibrantColor, it.dominantColor)
+                    } else if (viewModel.colorSongId.value != it.id) {
+                        // Extract and save only if not already extracted in VM
                         val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath, it.album)
                         requireContext().extractPalette(model) { palette ->
-                            val colors = palette.extractPaletteColors(track, tick)
-                            viewModel.updateThemeColor(colors.first, colors.second)
+                            val colors = palette.extractDynamicColors(track, tick)
+                            viewModel.updateThemeColor(it.id, colors.first, colors.second)
                             
                             // Save to Room
                             it.id?.let { id ->

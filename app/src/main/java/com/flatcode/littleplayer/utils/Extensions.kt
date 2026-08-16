@@ -667,34 +667,27 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
 }
 
 /* OK */
-fun Int.ensureBrightColor(): Int {
+/* OK */
+internal fun Int.toMiddleColor(): Int {
     val hsv = FloatArray(3)
     Color.colorToHSV(this, hsv)
-    if (hsv[2] < 0.6f) { // If brightness is too low
-        hsv[2] = 0.6f // Set minimum brightness
-    }
+    hsv[1] = hsv[1].coerceIn(0.5f, 0.9f) // Saturation
+    hsv[2] = hsv[2].coerceIn(0.6f, 0.85f) // Value/Brightness
     return Color.HSVToColor(hsv)
 }
 
-/* OK */
-fun Palette?.extractVibrantColor(defaultColor: Int = Color.GRAY): Int {
-    val dominantColor = this?.getDominantColor(defaultColor) ?: defaultColor
-    return this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getVibrantColor(
-            Color.TRANSPARENT,
-        ).takeIf { it != Color.TRANSPARENT } ?: this?.getLightMutedColor(Color.TRANSPARENT)
-            .takeIf { it != Color.TRANSPARENT } ?: dominantColor
-}
+fun Palette?.extractDynamicColors(defaultStart: Int, defaultEnd: Int): Pair<Int, Int> {
+    val start = this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: defaultStart
 
-fun Palette?.extractPaletteColors(defaultStart: Int, defaultEnd: Int): Pair<Int, Int> {
-    val startColor =
-        this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-            ?: this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-            ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-            ?: defaultStart
+    val end = this?.getMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getDarkVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: defaultEnd
 
-    val endColor = this?.getDominantColor(defaultEnd) ?: defaultEnd
-    return Pair(startColor, endColor)
+    return Pair(start.toMiddleColor(), end.toMiddleColor())
 }
 
 fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pair<Int, Int> {
@@ -703,8 +696,8 @@ fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pa
 
     return when (mode) {
         DATA.MODE_PALETTE -> {
-            val start = paletteColors?.first?.ensureBrightColor() ?: track
-            val end = paletteColors?.second?.ensureBrightColor() ?: tick
+            val start = paletteColors?.first ?: track
+            val end = paletteColors?.second ?: tick
             Pair(start, end)
         }
 

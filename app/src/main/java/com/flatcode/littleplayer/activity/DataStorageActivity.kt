@@ -15,7 +15,7 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.SimpleBlurTransformation
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.extractPalette
-import com.flatcode.littleplayer.utils.extractPaletteColors
+import com.flatcode.littleplayer.utils.extractDynamicColors
 import com.flatcode.littleplayer.utils.formatAsSize
 import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
@@ -46,7 +46,7 @@ class DataStorageActivity : AppCompatActivity() {
         val tick = getLibraryColor("mc_tick")
         currentDominantColor = Pair(track, tick)
         extractPalette(R.drawable.ic_image_preview) { palette ->
-            currentDominantColor = palette.extractPaletteColors(track, tick)
+            currentDominantColor = palette.extractDynamicColors(track, tick)
             updatePreview()
         }
         setupListeners()

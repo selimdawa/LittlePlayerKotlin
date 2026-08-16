@@ -61,6 +61,7 @@ class NowPlayerViewModel @Inject constructor(
     private val listItemThemeKey = booleanPreferencesKey(DATA.LIST_ITEM_THEME)
     private val themeColorModeKey = intPreferencesKey(DATA.THEME_COLOR_MODE)
     private val marqueeEnabledKey = booleanPreferencesKey(DATA.MARQUEE_ENABLED)
+    private val colorSongIdKey = stringPreferencesKey(DATA.COLOR_SONG_ID)
 
     init {
         restoreSession()
@@ -83,6 +84,7 @@ class NowPlayerViewModel @Inject constructor(
                 _bottomPlayerThemeEnabled.value = preferences[bottomPlayerThemeKey] ?: true
                 _listItemThemeEnabled.value = preferences[listItemThemeKey] ?: true
                 _marqueeEnabled.value = preferences[marqueeEnabledKey] ?: true
+                _colorSongId.value = preferences[colorSongIdKey]
 
                 val colorStart = preferences[themeExtractedColorKey]
                 val colorEnd = preferences[themeExtractedColorSecondKey]
@@ -117,12 +119,20 @@ class NowPlayerViewModel @Inject constructor(
         _isPlaying.value = playing
     }
 
-    fun updateThemeColor(start: Int, end: Int) {
+    private val _colorSongId = MutableStateFlow<String?>(null)
+    val colorSongId: StateFlow<String?> = _colorSongId.asStateFlow()
+
+    fun updateThemeColor(songId: String?, start: Int, end: Int) {
+        if (songId != null && _colorSongId.value == songId && _currentThemeColor.value != null) {
+            return // Already have colors for this song
+        }
+        _colorSongId.value = songId
         _currentThemeColor.value = Pair(start, end)
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[themeExtractedColorKey] = start
                 preferences[themeExtractedColorSecondKey] = end
+                songId?.let { preferences[colorSongIdKey] = it }
             }
         }
     }
@@ -189,6 +199,7 @@ class NowPlayerViewModel @Inject constructor(
                 
                 song.dominantColor?.let { preferences[themeExtractedColorKey] = it }
                 song.vibrantColor?.let { preferences[themeExtractedColorSecondKey] = it }
+                song.id?.let { preferences[colorSongIdKey] = it }
             }
         }
     }
