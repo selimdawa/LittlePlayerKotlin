@@ -31,9 +31,10 @@ class Application : Application(), ImageLoaderFactory {
 
         runBlocking {
             val darkModeKey = intPreferencesKey("dark_mode_preference")
-            val mode =
-                dataStore.data.map { it[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM }
-                    .first()
+            val mode = dataStore.data.map { 
+                it[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM 
+            }.first()
+
             AppCompatDelegate.setDefaultNightMode(mode)
         }
 

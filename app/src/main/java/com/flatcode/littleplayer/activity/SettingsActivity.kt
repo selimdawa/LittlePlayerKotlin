@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.ComponentName
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
@@ -250,7 +251,13 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun observeViewModel() {
         viewModel.darkModeFlow.collectWithLifecycle(this) { mode ->
-            binding.switchNightMode.isChecked = mode == AppCompatDelegate.MODE_NIGHT_YES
+            val isDark = if (mode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
+                val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                currentNightMode == Configuration.UI_MODE_NIGHT_YES
+            } else {
+                mode == AppCompatDelegate.MODE_NIGHT_YES
+            }
+            binding.switchNightMode.isChecked = isDark
         }
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
