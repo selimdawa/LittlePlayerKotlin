@@ -8,8 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ItemPlaylistBinding
 import com.flatcode.littleplayer.model.Playlist
+import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.loadSongImageBlur
-import com.flatcode.littleplayer.utils.loadSongImageByPath
 
 class PlaylistAdapter(
     private val onItemClick: (String) -> Unit,
@@ -36,7 +36,7 @@ class PlaylistAdapter(
         holder.binding.playlistDetails.text =
             context.getString(R.string.playlist_details_format, songsText)
 
-        holder.binding.playlistImage.loadSongImageByPath(playlist.firstSongPath)
+        holder.binding.playlistImage.loadSongImage(null, playlist.firstSongPath)
         holder.binding.playlistImageBlur.loadSongImageBlur(null, 100, playlist.firstSongPath)
 
         holder.binding.foregroundCard.setOnClickListener {

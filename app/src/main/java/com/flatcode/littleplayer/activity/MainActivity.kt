@@ -1,8 +1,7 @@
 package com.flatcode.littleplayer.activity
 
-import android.os.Bundle
-import android.util.TypedValue
 import android.text.TextUtils.TruncateAt
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
@@ -23,11 +22,11 @@ import com.flatcode.littleplayer.fragment.AlbumsFragment
 import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
+import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.checkAudioPermissions
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
-import com.flatcode.littleplayer.utils.loadSongImageByPath
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicEvent
@@ -77,7 +76,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 )
                 gravity = Gravity.START or Gravity.CENTER_VERTICAL
                 textAlignment = android.view.View.TEXT_ALIGNMENT_VIEW_START
-                setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.text_size_search_hint))
+                setTextSize(
+                    TypedValue.COMPLEX_UNIT_PX,
+                    resources.getDimension(R.dimen.text_size_search_hint)
+                )
                 maxLines = 1
                 ellipsize = TruncateAt.END
                 setTextColor(ContextCompat.getColor(this@MainActivity, R.color.gray))
@@ -95,7 +97,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 if (songs.isNotEmpty()) {
                     var index = 0
                     while (true) {
-                        binding.toolbar.searchTextSwitcher.setText(songs[index].title ?: getString(R.string.search))
+                        binding.toolbar.searchTextSwitcher.setText(
+                            songs[index].title ?: getString(R.string.search)
+                        )
                         index = (index + 1) % songs.size
                         delay(5.seconds)
                     }
@@ -127,14 +131,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
-            song?.let {
-                binding.toolbar2.ivRecent.loadSongImage(it.albumId, it.path, it.cachedImagePath, it.album)
+            if (song != null) {
+                binding.toolbar2.ivRecent.loadSongImage(
+                    song.albumId, song.path, song.cachedImagePath, song.album
+                )
+            } else {
+                binding.toolbar2.ivRecent.loadSongImage(null)
             }
         }
 
         favoritesViewModel.favoriteSongs.collectWithLifecycle(this) { songs ->
-            songs.lastOrNull()?.let { lastSong ->
-                binding.toolbar2.ivFavourites.loadSongImageByPath(lastSong.path, lastSong.cachedImagePath)
+            val lastSong = songs.firstOrNull()
+            if (lastSong != null) {
+                binding.toolbar2.ivFavourites.loadSongImage(
+                    lastSong.albumId, lastSong.path, lastSong.cachedImagePath, lastSong.album
+                )
+            } else {
+                binding.toolbar2.ivFavourites.loadSongImage(null)
             }
         }
 
@@ -142,17 +155,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             MultiColorManager.currentThemeId.collect {
                 MultiColorManager.applyTheme(this@MainActivity)
 
-                // Refresh images to pick up themed fallbacks
-                nowPlayerViewModel.currentPlayingSong.value?.let { song ->
-                    binding.toolbar2.ivRecent.loadSongImage(
-                        song.albumId, song.path, song.cachedImagePath, song.album
-                    )
+                // Refresh themed fallbacks without flickering real images
+                fun refreshIfThemed(iv: android.widget.ImageView, song: MusicFiles?) {
+                    // If tag is an Int, it means it's a resource (fallback), so reset to force re-theming
+                    if (iv.getTag(R.id.image_model_tag) is Int) {
+                        iv.setTag(R.id.image_model_tag, null)
+                    }
+                    if (song != null) {
+                        iv.loadSongImage(song.albumId, song.path, song.cachedImagePath, song.album)
+                    } else {
+                        iv.loadSongImage(null)
+                    }
                 }
-                favoritesViewModel.favoriteSongs.value.lastOrNull()?.let { lastSong ->
-                    binding.toolbar2.ivFavourites.loadSongImageByPath(
-                        lastSong.path, lastSong.cachedImagePath
-                    )
-                }
+
+                refreshIfThemed(
+                    binding.toolbar2.ivRecent, nowPlayerViewModel.currentPlayingSong.value
+                )
+                refreshIfThemed(
+                    binding.toolbar2.ivFavourites,
+                    favoritesViewModel.favoriteSongs.value.firstOrNull()
+                )
             }
         }
     }
@@ -173,12 +195,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
             val tabBinding = ItemTabBinding.inflate(layoutInflater, binding.tabLayout, false)
             tabBinding.tabTitle.text = adapter.getPageTitle(pos)
-            (tabBinding.tabContainer.layoutParams as MarginLayoutParams).setMargins(marginSmall, 0, marginSmall, 0)
+            (tabBinding.tabContainer.layoutParams as MarginLayoutParams).setMargins(
+                marginSmall, 0, marginSmall, 0
+            )
             tab.customView = tabBinding.root
         }.attach()
     }
 
-    class ViewPagerAdapter(act: androidx.appcompat.app.AppCompatActivity) : FragmentStateAdapter(act) {
+    class ViewPagerAdapter(act: androidx.appcompat.app.AppCompatActivity) :
+        FragmentStateAdapter(act) {
         private val titles = ArrayList<String>()
         private val fragments = ArrayList<() -> Fragment>()
 

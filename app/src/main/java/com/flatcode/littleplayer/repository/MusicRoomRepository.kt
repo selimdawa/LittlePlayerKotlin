@@ -42,17 +42,17 @@ class MusicRoomRepository @Inject constructor(
 
     suspend fun insertFavorite(song: FavoriteEntity) = withContext(ioDispatcher) {
         musicDao.insertFavorite(song)
-        songDao.updateFavoriteStatus(song.songId, true)
+        songDao.updateFavoriteStatus(song.songId, true, song.timestamp)
     }
 
     suspend fun deleteFavorite(song: FavoriteEntity) = withContext(ioDispatcher) {
         musicDao.deleteFavorite(song)
-        songDao.updateFavoriteStatus(song.songId, false)
+        songDao.updateFavoriteStatus(song.songId, false, 0)
     }
 
     suspend fun deleteFavoriteById(id: String) = withContext(ioDispatcher) {
         musicDao.deleteFavoriteById(id)
-        songDao.updateFavoriteStatus(id, false)
+        songDao.updateFavoriteStatus(id, false, 0)
     }
 
     fun getAllFavorites(): Flow<List<FavoriteEntity>> = musicDao.getAllFavorites()
@@ -99,6 +99,8 @@ class MusicRoomRepository @Inject constructor(
     }
 
     fun getAllRecent(): Flow<List<RecentEntity>> = musicDao.getAllRecent()
+
+    fun getRecentSongs(): Flow<List<SongEntity>> = songDao.getRecentSongs()
 
     fun getAllSongs(): Flow<List<SongEntity>> = songDao.getAllSongs()
 

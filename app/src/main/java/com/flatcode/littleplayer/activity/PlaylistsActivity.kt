@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.PlaylistAdapter
@@ -23,6 +24,8 @@ import com.flatcode.littleplayer.viewmodel.PlaylistsEvent
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import io.selimdawa.multicolors.MultiColorManager
+import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
@@ -233,6 +236,30 @@ class PlaylistsActivity : AppCompatActivity() {
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
+        }
+
+        lifecycleScope.launch {
+            MultiColorManager.currentThemeId.collect {
+                MultiColorManager.applyTheme(this@PlaylistsActivity)
+
+                // Force refresh themed icons in the list
+                adapter?.let {
+                    for (i in 0 until binding.recyclerView.childCount) {
+                        val view = binding.recyclerView.getChildAt(i)
+                        val holder =
+                            binding.recyclerView.getChildViewHolder(view) as? PlaylistAdapter.PlaylistViewHolder
+                        holder?.let { h ->
+                            if (h.binding.playlistImage.getTag(R.id.image_model_tag) is Int) {
+                                h.binding.playlistImage.setTag(R.id.image_model_tag, null)
+                            }
+                            if (h.binding.playlistImageBlur.getTag(R.id.image_model_tag) is Int) {
+                                h.binding.playlistImageBlur.setTag(R.id.image_model_tag, null)
+                            }
+                        }
+                    }
+                    it.notifyDataSetChanged()
+                }
+            }
         }
     }
 }

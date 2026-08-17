@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.data.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -11,5 +12,6 @@ data class FavoriteEntity(
     val album: String?,
     val albumId: String? = null,
     val duration: String?,
-    val path: String
+    val path: String,
+    @ColumnInfo(defaultValue = "0") val timestamp: Long = System.currentTimeMillis()
 )

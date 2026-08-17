@@ -50,7 +50,7 @@ interface SongDao {
     @Query("SELECT * FROM songs_table WHERE dominantColor IS NULL OR vibrantColor IS NULL")
     suspend fun getSongsMissingColors(): List<SongEntity>
 
-    @Query("SELECT * FROM songs_table WHERE isFavorite = 1")
+    @Query("SELECT * FROM songs_table WHERE isFavorite = 1 ORDER BY favoriteDate DESC")
     fun getFavoriteSongs(): Flow<List<SongEntity>>
 
     @Query("UPDATE songs_table SET dominantColor = NULL, vibrantColor = NULL")
@@ -59,8 +59,11 @@ interface SongDao {
     @Query("SELECT * FROM songs_table WHERE id IN (:ids)")
     fun getSongsByIds(ids: List<String>): Flow<List<SongEntity>>
 
-    @Query("UPDATE songs_table SET isFavorite = :isFavorite WHERE id = :songId")
-    suspend fun updateFavoriteStatus(songId: String, isFavorite: Boolean)
+    @Query("SELECT s.* FROM songs_table s INNER JOIN recent_table r ON s.id = r.songId ORDER BY r.timestamp DESC")
+    fun getRecentSongs(): Flow<List<SongEntity>>
+
+    @Query("UPDATE songs_table SET isFavorite = :isFavorite, favoriteDate = :favoriteDate WHERE id = :songId")
+    suspend fun updateFavoriteStatus(songId: String, isFavorite: Boolean, favoriteDate: Long)
 
     @Query("DELETE FROM songs_table WHERE id = :songId")
     suspend fun deleteSongById(songId: String)

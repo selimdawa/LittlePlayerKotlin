@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,12 +60,14 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         if (query.isEmpty()) songs else {
             songs.filter { it.title?.lowercase()?.contains(query.lowercase()) == true }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }
+    .flowOn(Dispatchers.Default)
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val albumFiles: StateFlow<List<MusicFiles>> = combine(
         allSongs, _albumsSortOrder, _searchQuery
     ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
-        val albumMap = mutableMapOf<String, Pair<Int, MusicFiles>>()
+        val albumMap = LinkedHashMap<String, Pair<Int, MusicFiles>>()
 
         for (song in songs) {
             val albumName = song.album ?: DATA.UNKNOWN
@@ -72,7 +75,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             if (current == null) {
                 albumMap[albumName] = Pair(1, song)
             } else {
-                albumMap[albumName] = Pair(current.first + 1, current.second)
+                albumMap[albumName] = current.copy(first = current.first + 1)
             }
         }
 
@@ -90,27 +93,28 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             DATA.SORT_BY_SONG_COUNT -> filtered.sortedByDescending { it.songsCount }
             else -> filtered
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }
+    .flowOn(Dispatchers.Default)
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val folderFiles: StateFlow<List<Folder>> = combine(
         allSongs, _foldersSortOrder, _searchQuery
     ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
-        val foldersMap = HashMap<String, Triple<String, Int, MusicFiles?>>()
+        val foldersMap = LinkedHashMap<String, Triple<String, Int, MusicFiles?>>()
 
         for (song in songs) {
             val pathString = song.path ?: continue
-            val file = File(pathString)
-            val parentFile = file.parentFile
-            if (parentFile != null) {
-                val folderPath = parentFile.absolutePath + "/"
-                val folderName = parentFile.name
+            val lastSlash = pathString.lastIndexOf(File.separatorChar)
+            if (lastSlash > 0) {
+                val folderPath = pathString.substring(0, lastSlash + 1)
                 val currentData = foldersMap[folderPath]
 
                 if (currentData == null) {
+                    val folderName = File(folderPath).name
                     foldersMap[folderPath] = Triple(folderName, 1, song)
                 } else {
                     foldersMap[folderPath] =
-                        Triple(currentData.first, currentData.second + 1, currentData.third)
+                        currentData.copy(second = currentData.second + 1)
                 }
             }
         }
@@ -135,12 +139,14 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         if (query.isEmpty()) sorted else {
             sorted.filter { it.name.lowercase().contains(query.lowercase()) }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }
+    .flowOn(Dispatchers.Default)
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val artistFiles: StateFlow<List<Artist>> = combine(
         allSongs, _artistsSortOrder, _searchQuery
     ) { songs: List<MusicFiles>, sortOrder: String, query: String ->
-        val artistsMap = HashMap<String, Pair<Int, MusicFiles?>>()
+        val artistsMap = LinkedHashMap<String, Pair<Int, MusicFiles?>>()
 
         for (song in songs) {
             val artistName = song.artist ?: DATA.UNKNOWN
@@ -148,7 +154,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             if (currentData == null) {
                 artistsMap[artistName] = Pair(1, song)
             } else {
-                artistsMap[artistName] = Pair(currentData.first + 1, currentData.second)
+                artistsMap[artistName] = currentData.copy(first = currentData.first + 1)
             }
         }
 
@@ -170,7 +176,9 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         if (query.isEmpty()) sorted else {
             sorted.filter { it.name.lowercase().contains(query.lowercase()) }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }
+    .flowOn(Dispatchers.Default)
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         viewModelScope.launch {

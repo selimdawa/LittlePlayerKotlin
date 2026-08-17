@@ -44,6 +44,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -168,11 +170,14 @@ class MusicRepository @Inject constructor(
 
             sortedDbSongs.map { dbSong ->
                 val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
-                    val folderName = File(dbSong.path).parentFile?.name
-                    if (dbSong.album.equals(
-                            folderName, ignoreCase = true
-                        )
-                    ) DATA.UNKNOWN else dbSong.album
+                    val path = dbSong.path
+                    val lastSlash = path.lastIndexOf(File.separatorChar)
+                    val secondLastSlash = if (lastSlash > 0) path.lastIndexOf(File.separatorChar, lastSlash - 1) else -1
+                    val folderName = if (lastSlash > 0) {
+                        path.substring(secondLastSlash + 1, lastSlash)
+                    } else null
+
+                    if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
                 } else {
                     dbSong.album ?: DATA.UNKNOWN
                 }
@@ -195,7 +200,7 @@ class MusicRepository @Inject constructor(
                     year = dbSong.year
                 )
             }
-        }
+        }.flowOn(ioDispatcher)
     }
 
     suspend fun getAllAudio(sortOrder: String): ArrayList<MusicFiles> =
@@ -404,7 +409,7 @@ class MusicRepository @Inject constructor(
             MediaStore.Audio.Media.YEAR
         )
 
-        val allFavIds = musicDao.getAllFavoritesSync().map { it.songId }.toSet()
+        val allFavs = musicDao.getAllFavoritesSync().associateBy({ it.songId }, { it.timestamp })
         val songEntities = mutableListOf<SongEntity>()
 
         context.contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { c ->
@@ -439,7 +444,8 @@ class MusicRepository @Inject constructor(
                         dateAdded = c.getLong(dateAddedColumn),
                         size = c.getLong(sizeColumn),
                         year = c.getInt(yearColumn),
-                        isFavorite = id in allFavIds,
+                        isFavorite = id in allFavs,
+                        favoriteDate = allFavs[id] ?: 0L,
                         cachedImagePath = existing?.cachedImagePath,
                         dominantColor = existing?.dominantColor,
                         vibrantColor = existing?.vibrantColor,

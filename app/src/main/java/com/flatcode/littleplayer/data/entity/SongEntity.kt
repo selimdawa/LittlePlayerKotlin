@@ -1,5 +1,6 @@
 package com.flatcode.littleplayer.data.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -13,6 +14,7 @@ data class SongEntity(
     val path: String,
     val albumId: String? = null,
     val isFavorite: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val favoriteDate: Long = 0,
     val waveform: String? = null,
     val playCount: Int = 0,
     val dateAdded: Long = 0,

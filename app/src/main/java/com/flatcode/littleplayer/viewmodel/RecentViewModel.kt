@@ -29,45 +29,34 @@ class RecentViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repository.getAllRecent()
-                .distinctUntilChanged()
-                .flatMapLatest { recents ->
-                    val recentIds = recents.map { it.songId }
-                    combine(
-                        repository.getSongsByIds(recentIds).distinctUntilChanged(),
-                        repository.getAllAlbumImages().distinctUntilChanged(),
-                        repository.excludedFolders.distinctUntilChanged()
-                    ) { allSongs, images, excluded ->
-                        val filteredSongMap = allSongs.associateBy { it.id }
-                        val imageMap = images.associateBy { it.albumName }
-
-                        recents.asSequence()
-                            .filter { recent ->
-                                excluded.none { excludedPath -> recent.path.startsWith(excludedPath) }
-                            }
-                            .take(20)
-                            .map { recent ->
-                                val song = filteredSongMap[recent.songId]
-                                MusicFiles(
-                                    id = recent.songId,
-                                    title = recent.title,
-                                    artist = recent.artist,
-                                    album = recent.album,
-                                    albumId = recent.albumId,
-                                    duration = recent.duration,
-                                    path = recent.path,
-                                    cachedImagePath = imageMap[recent.album ?: DATA.UNKNOWN]?.imagePath,
-                                    dominantColor = song?.dominantColor,
-                                    vibrantColor = song?.vibrantColor
-                                )
-                            }
-                            .toList()
+            combine(
+                repository.getRecentSongs().distinctUntilChanged(),
+                repository.excludedFolders.distinctUntilChanged()
+            ) { recents, excluded ->
+                recents.asSequence()
+                    .filter { song ->
+                        excluded.none { excludedPath -> song.path.startsWith(excludedPath) }
                     }
-                }
-                .flowOn(Dispatchers.Default)
-                .collect {
-                    _recentSongs.value = it
-                }
+                    .map { song ->
+                        MusicFiles(
+                            id = song.id,
+                            title = song.title,
+                            artist = song.artist,
+                            album = song.album ?: DATA.UNKNOWN,
+                            duration = song.duration.toString(),
+                            path = song.path,
+                            albumId = song.albumId,
+                            cachedImagePath = song.cachedImagePath,
+                            dominantColor = song.dominantColor,
+                            vibrantColor = song.vibrantColor
+                        )
+                    }
+                    .toList()
+            }
+            .flowOn(Dispatchers.Default)
+            .collect {
+                _recentSongs.value = it
+            }
         }
     }
 
