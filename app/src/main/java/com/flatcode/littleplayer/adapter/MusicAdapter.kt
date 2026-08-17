@@ -14,6 +14,7 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.FastScrollableAdapter
 import com.flatcode.littleplayer.utils.getAppCompatActivity
 import com.flatcode.littleplayer.utils.loadSongImage
+import com.flatcode.littleplayer.utils.loadSongImageBlur
 
 class MusicAdapter(
     private val context: Context,
@@ -43,6 +44,9 @@ class MusicAdapter(
         holder.binding.image.loadSongImage(
             currentFile.albumId, currentFile.path, currentFile.cachedImagePath, currentFile.album
         )
+        holder.binding.imageBlur.loadSongImageBlur(
+            currentFile.albumId, 25, currentFile.path, currentFile.cachedImagePath, currentFile.album
+        )
 
         // Apply theme and indicator
         holder.binding.applyTheme(context, currentFile)
@@ -65,6 +69,15 @@ class MusicAdapter(
         }
     }
 
+    override fun onBindViewHolder(holder: MusicViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+        } else {
+            val currentFile = getItem(position)
+            holder.binding.applyTheme(context, currentFile)
+        }
+    }
+
     override fun getItemCount(): Int = currentList.size
 
     override fun getPopupText(position: Int): String {
@@ -81,7 +94,14 @@ class MusicAdapter(
 
         override fun areContentsTheSame(oldItem: MusicFiles, newItem: MusicFiles): Boolean {
             // Only compare fields that affect the list UI to improve performance
-            return oldItem.title == newItem.title && oldItem.artist == newItem.artist && oldItem.album == newItem.album && oldItem.path == newItem.path && oldItem.cachedImagePath == newItem.cachedImagePath
+            return oldItem.title == newItem.title &&
+                    oldItem.artist == newItem.artist &&
+                    oldItem.album == newItem.album &&
+                    oldItem.path == newItem.path &&
+                    oldItem.cachedImagePath == newItem.cachedImagePath &&
+                    oldItem.dominantColor == newItem.dominantColor &&
+                    oldItem.vibrantColor == newItem.vibrantColor &&
+                    oldItem.isPlaying == newItem.isPlaying
         }
     }
 }

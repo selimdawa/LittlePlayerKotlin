@@ -7,6 +7,7 @@
     android:layout_marginHorizontal="@dimen/spacing_10"
     android:layout_marginBottom="@dimen/spacing_10"
     android:gravity="center_vertical"
+    android:minHeight="@dimen/spacing_50"
     android:orientation="horizontal">
 
     <FrameLayout
@@ -44,21 +45,23 @@
 
         <TextView
             android:id="@+id/songName"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
+            android:textAlignment="viewStart"
             android:textColor="?attr/colorError"
             android:textSize="@dimen/text_size_16"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/songDetails"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_2"
             android:ellipsize="end"
             android:maxLines="1"
+            android:textAlignment="viewStart"
             android:textColor="@color/gray"
             android:textSize="@dimen/text_size_14" />
 

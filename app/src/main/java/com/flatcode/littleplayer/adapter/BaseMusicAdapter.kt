@@ -12,7 +12,6 @@ import com.flatcode.littleplayer.utils.PlaybackAnimatable
 import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.gone
-import com.flatcode.littleplayer.utils.loadSongImageBlur
 import com.flatcode.littleplayer.utils.visible
 
 abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
@@ -47,8 +46,8 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
 
         if ((oldPath != path) || (oldPlaying != isPlaying)) {
             currentList.forEachIndexed { index, musicFiles ->
-                if ((musicFiles.path == oldPath) || (musicFiles.path == path)) {
-                    notifyItemChanged(index)
+                if (musicFiles.path == oldPath || musicFiles.path == path) {
+                    notifyItemChanged(index, PAYLOAD_PLAYBACK_STATE)
                 }
             }
         }
@@ -63,14 +62,12 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
         this.currentThemeColor = color
         this.currentThemeColorSecond = colorSecond
 
-        if ((oldMode != mode) || (oldColor != color) || (oldColorSecond != colorSecond)) {
-            // Reset colors so they are re-fetched from the new theme
-            colorOnSurface = Color.GRAY
-            mcTrack = Color.GRAY
-            mcTick = Color.GRAY
-            
-            // Refresh all items to update placeholders (ic_cover_song uses theme attributes)
-            notifyItemRangeChanged(0, itemCount)
+        if (listItemThemeEnabled && ((oldMode != mode) || (oldColor != color) || (oldColorSecond != colorSecond))) {
+            currentList.forEachIndexed { index, musicFiles ->
+                if (musicFiles.path == playingPath) {
+                    notifyItemChanged(index, PAYLOAD_THEME_STATE)
+                }
+            }
         }
     }
 
@@ -85,10 +82,6 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
     protected fun ItemMusicBinding.applyTheme(context: Context, song: MusicFiles) {
         initColors(context)
         val isCurrentlyPlaying = song.path == playingPath
-
-        // Ensure blur is always visible and loaded for all items
-        imageBlur.visibility = android.view.View.VISIBLE
-        imageBlur.loadSongImageBlur(song.albumId, 25, song.path, song.cachedImagePath, song.album)
 
         if (isCurrentlyPlaying) {
             if (wave.visibility != android.view.View.VISIBLE) {
@@ -110,5 +103,10 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
             }
             songName.setTextColor(colorOnSurface)
         }
+    }
+
+    companion object {
+        const val PAYLOAD_PLAYBACK_STATE = "payload_playback_state"
+        const val PAYLOAD_THEME_STATE = "payload_theme_state"
     }
 }

@@ -141,12 +141,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         lifecycleScope.launch {
             MultiColorManager.currentThemeId.collect {
                 MultiColorManager.applyTheme(this@MainActivity)
-                // Refresh toolbar images that might be using theme-dependent fallbacks
+
+                // Refresh images to pick up themed fallbacks
                 nowPlayerViewModel.currentPlayingSong.value?.let { song ->
-                    binding.toolbar2.ivRecent.loadSongImage(song.albumId, song.path, song.cachedImagePath, song.album)
+                    binding.toolbar2.ivRecent.loadSongImage(
+                        song.albumId, song.path, song.cachedImagePath, song.album
+                    )
                 }
                 favoritesViewModel.favoriteSongs.value.lastOrNull()?.let { lastSong ->
-                    binding.toolbar2.ivFavourites.loadSongImageByPath(lastSong.path, lastSong.cachedImagePath)
+                    binding.toolbar2.ivFavourites.loadSongImageByPath(
+                        lastSong.path, lastSong.cachedImagePath
+                    )
                 }
             }
         }

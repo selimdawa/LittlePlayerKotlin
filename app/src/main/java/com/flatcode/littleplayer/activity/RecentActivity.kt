@@ -111,6 +111,7 @@ class RecentActivity : AppCompatActivity() {
                     bindToPlaybackSync(this@RecentActivity, nowPlayerViewModel, binding.root)
                 }
                 binding.recyclerView.adapter = adapter
+                binding.recyclerView.itemAnimator = null
             }
             adapter?.submitList(songs)
         }

@@ -87,6 +87,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
                         bindToPlaybackSync(this@AlbumDetailsActivity, nowPlayerViewModel, binding.root)
                     }
                     binding.recyclerView.adapter = adapter
+                    binding.recyclerView.itemAnimator = null
                 }
                 adapter?.submitList(state.songs)
             }

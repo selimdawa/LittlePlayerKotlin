@@ -64,7 +64,7 @@
 
                 <TextView
                     android:id="@+id/name"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="marquee"
                     android:focusable="true"
@@ -73,17 +73,19 @@
                     android:maxLines="1"
                     android:scrollHorizontally="true"
                     android:singleLine="true"
+                    android:textAlignment="viewStart"
                     android:textColor="?attr/colorError"
                     android:textSize="@dimen/text_size_16"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/artist"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_2"
                     android:ellipsize="end"
                     android:maxLines="1"
+                    android:textAlignment="viewStart"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="@dimen/text_size_14" />
 

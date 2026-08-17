@@ -2,5 +2,4 @@
 <resources>
     <item name="image_model_tag" type="id" />
     <item name="image_blur_tag" type="id" />
-    <item name="image_theme_tag" type="id" />
 </resources>

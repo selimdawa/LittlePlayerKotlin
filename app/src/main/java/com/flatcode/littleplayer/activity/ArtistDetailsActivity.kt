@@ -60,6 +60,7 @@ class ArtistDetailsActivity : AppCompatActivity() {
                         )
                     }
                     binding.recyclerView.adapter = adapter
+                    binding.recyclerView.itemAnimator = null
                 }
                 adapter?.submitList(songList)
             }

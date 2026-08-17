@@ -107,6 +107,7 @@ class SongsFragment : Fragment() {
             adapter = musicAdapter
             setHasFixedSize(true)
             setItemViewCacheSize(20)
+            itemAnimator = null
         }
     }
 

@@ -10,9 +10,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val repository: MusicRoomRepository
@@ -24,31 +30,31 @@ class FavoritesViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                repository.getAllFavorites(),
-                repository.getAllSongs(),
-                repository.getAllAlbumImages(),
-                repository.excludedFolders
-            ) { favorites, allSongs, images, excluded ->
-                val songMap = allSongs.associateBy { it.id }
-                val imageMap = images.associateBy { it.albumName }
-                favorites.filter { fav ->
-                    excluded.none { excludedPath -> fav.path.startsWith(excludedPath) }
-                }.map { fav ->
-                    val song = songMap[fav.songId]
-                    MusicFiles(
-                        id = fav.songId,
-                        title = fav.title,
-                        artist = fav.artist,
-                        album = fav.album,
-                        albumId = fav.albumId,
-                        duration = fav.duration,
-                        path = fav.path,
-                        cachedImagePath = imageMap[fav.album ?: DATA.UNKNOWN]?.imagePath,
-                        dominantColor = song?.dominantColor,
-                        vibrantColor = song?.vibrantColor
-                    )
-                }
-            }.collect {
+                repository.getFavoriteSongs().distinctUntilChanged(),
+                repository.excludedFolders.distinctUntilChanged()
+            ) { favorites, excluded ->
+                favorites.asSequence()
+                    .filter { song ->
+                        excluded.none { excludedPath -> song.path.startsWith(excludedPath) }
+                    }
+                    .map { song ->
+                        MusicFiles(
+                            id = song.id,
+                            title = song.title,
+                            artist = song.artist,
+                            album = song.album ?: DATA.UNKNOWN,
+                            duration = song.duration.toString(),
+                            path = song.path,
+                            albumId = song.albumId,
+                            cachedImagePath = song.cachedImagePath,
+                            dominantColor = song.dominantColor,
+                            vibrantColor = song.vibrantColor
+                        )
+                    }
+                    .toList()
+            }
+            .flowOn(Dispatchers.Default)
+            .collect {
                 _favoriteSongs.value = it
             }
         }

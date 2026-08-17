@@ -56,6 +56,9 @@ interface SongDao {
     @Query("UPDATE songs_table SET dominantColor = NULL, vibrantColor = NULL")
     suspend fun resetAllColors()
 
+    @Query("SELECT * FROM songs_table WHERE id IN (:ids)")
+    fun getSongsByIds(ids: List<String>): Flow<List<SongEntity>>
+
     @Query("UPDATE songs_table SET isFavorite = :isFavorite WHERE id = :songId")
     suspend fun updateFavoriteStatus(songId: String, isFavorite: Boolean)
 

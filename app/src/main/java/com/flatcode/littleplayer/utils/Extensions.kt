@@ -485,15 +485,11 @@ fun ImageView.loadSongImage(
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, album, fallback, isAlbum)
     val currentModel = getTag(R.id.image_model_tag)
-    val currentThemeId = MultiColorManager.currentThemeId.value
-    val lastThemeId = getTag(R.id.image_theme_tag)
-
-    if (currentModel == model && drawable != null && (model !is Int || lastThemeId == currentThemeId)) {
+    if (currentModel == model && drawable != null) {
         onComplete?.invoke()
         return
     }
     setTag(R.id.image_model_tag, model)
-    setTag(R.id.image_theme_tag, currentThemeId)
 
     load(model) {
         crossfade(enable = true)
@@ -517,12 +513,8 @@ fun ImageView.loadSongImageByPath(
         fallback
     }
 
-    val currentThemeId = MultiColorManager.currentThemeId.value
-    val lastThemeId = getTag(R.id.image_theme_tag)
-
-    if (getTag(R.id.image_model_tag) == model && drawable != null && (model !is Int || lastThemeId == currentThemeId)) return
+    if (getTag(R.id.image_model_tag) == model && drawable != null) return
     setTag(R.id.image_model_tag, model)
-    setTag(R.id.image_theme_tag, currentThemeId)
 
     load(model) {
         crossfade(true)
@@ -544,13 +536,10 @@ fun ImageView.loadSongImageBlur(
     val blurTag = "blur_$level"
     val currentModel = getTag(R.id.image_model_tag)
     val currentBlur = getTag(R.id.image_blur_tag)
-    val currentThemeId = MultiColorManager.currentThemeId.value
-    val lastThemeId = getTag(R.id.image_theme_tag)
 
-    if (currentModel == model && currentBlur == blurTag && drawable != null && (model !is Int || lastThemeId == currentThemeId)) return
+    if (currentModel == model && currentBlur == blurTag && drawable != null) return
     setTag(R.id.image_model_tag, model)
     setTag(R.id.image_blur_tag, blurTag)
-    setTag(R.id.image_theme_tag, currentThemeId)
 
     val actualFallback =
         if (fallback == R.drawable.ic_cover_song) R.drawable.ic_cover_song_blur else fallback

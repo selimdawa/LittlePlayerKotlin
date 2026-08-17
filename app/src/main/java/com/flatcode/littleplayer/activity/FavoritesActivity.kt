@@ -50,6 +50,7 @@ class FavoritesActivity : AppCompatActivity() {
                         bindToPlaybackSync(this@FavoritesActivity, nowPlayerViewModel, binding.root)
                     }
                     binding.recyclerView.adapter = adapter
+                    binding.recyclerView.itemAnimator = null
                 }
                 adapter?.submitList(songs)
             }
