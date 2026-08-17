@@ -110,8 +110,11 @@
     <string name="system_notification_settings">System Notification Settings</string>
     <string name="system_notification_settings_desc">Manage app notifications in Android settings.</string>
     <string name="remove_from_playlist">Remove from Playlist</string>
+    <string name="remove_from_recent">Remove from Recent</string>
     <string name="remove_song_from_playlist_message">Are you sure you want to remove \"%1$s\" from this playlist?</string>
+    <string name="clear_recent_message">Are you sure you want to clear your listening history?</string>
     <string name="remove">Remove</string>
+    <string name="clear">Clear</string>
     <string name="playlist_details_format">Playlist / %1$s</string>
     <plurals name="songs_count">
         <item quantity="one">%1$d Song</item>
@@ -181,4 +184,5 @@
     <string name="reset_palette_colors">Reset Palette Colors</string>
     <string name="reset_palette_colors_desc">Re-extract colors for all songs in your library.</string>
     <string name="palette_colors_reset">Palette colors are being re-extracted in the background</string>
+    <string name="loading_data">تحميل البيانات...</string>
 </resources>

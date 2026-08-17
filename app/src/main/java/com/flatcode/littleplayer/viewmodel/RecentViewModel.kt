@@ -46,4 +46,18 @@ class RecentViewModel @Inject constructor(
             }
         }
     }
+
+    fun removeFromRecent(song: MusicFiles) {
+        viewModelScope.launch {
+            song.id?.let {
+                repository.deleteRecentById(it)
+            }
+        }
+    }
+
+    fun clearRecent() {
+        viewModelScope.launch {
+            repository.clearRecent()
+        }
+    }
 }

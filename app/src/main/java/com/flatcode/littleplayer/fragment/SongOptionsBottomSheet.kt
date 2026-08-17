@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import com.flatcode.littleplayer.databinding.DialogSongOptionsBinding
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.requestDeletion
 import com.flatcode.littleplayer.utils.visible
@@ -28,7 +29,8 @@ import com.google.android.material.R as MaterialR
 class SongOptionsBottomSheet(
     private val song: MusicFiles,
     private val onDeleteClick: (MusicFiles) -> Unit,
-    private val onRemoveFromPlaylistClick: ((MusicFiles) -> Unit)? = null
+    private val onRemoveFromPlaylistClick: ((MusicFiles) -> Unit)? = null,
+    private val removeLabel: String? = null
 ) : BottomSheetDialogFragment() {
 
     private var _binding: DialogSongOptionsBinding? = null
@@ -83,6 +85,7 @@ class SongOptionsBottomSheet(
 
         if (onRemoveFromPlaylistClick != null) {
             binding.optionRemove.visible()
+            removeLabel?.let { binding.optionRemoveText.text = it }
             binding.optionRemove.setOnClickListener {
                 showRemoveFromPlaylistConfirmation()
             }
@@ -99,11 +102,29 @@ class SongOptionsBottomSheet(
 
         alertDialog.setCanceledOnTouchOutside(false)
 
+        val tvTitle = view.findViewById<TextView>(R.id.dialogTitle)
         val tvMessage = view.findViewById<TextView>(R.id.dialogMessage)
         val btnRemove = view.findViewById<MaterialButton>(R.id.btnRemove)
         val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
 
+        if (removeLabel != null) {
+            tvTitle.text = removeLabel
+        }
+
         tvMessage.text = getString(R.string.remove_song_from_playlist_message, song.title)
+
+        // Force colors to ?attr/colorError
+        val errorColor = requireContext().getLibraryColor("colorError")
+        tvTitle.setTextColor(errorColor)
+        tvMessage.setTextColor(errorColor)
+        btnCancel.setTextColor(errorColor)
+        btnRemove.setTextColor(errorColor)
+
+        // Text style for button
+        btnRemove.backgroundTintList =
+            android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+        btnRemove.rippleColor =
+            android.content.res.ColorStateList.valueOf(errorColor).withAlpha(30)
 
         btnRemove.setOnClickListener {
             onRemoveFromPlaylistClick?.invoke(song)

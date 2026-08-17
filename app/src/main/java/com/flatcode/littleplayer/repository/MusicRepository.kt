@@ -4,12 +4,13 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -20,12 +21,17 @@ import com.flatcode.littleplayer.data.dao.AlbumImageDao
 import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.dao.SongDao
 import com.flatcode.littleplayer.data.entity.CurrentQueueEntity
+import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
+import com.flatcode.littleplayer.data.entity.SongEntity
+import com.flatcode.littleplayer.di.IoDispatcher
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.Resource
 import com.flatcode.littleplayer.utils.extractDynamicColors
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getLibraryColor
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,9 +61,10 @@ class MusicRepository @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val songDao: SongDao,
     private val albumImageDao: AlbumImageDao,
-    private val musicDao: MusicDao
+    private val musicDao: MusicDao,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    private val repositoryScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val repositoryScope = CoroutineScope(ioDispatcher + SupervisorJob())
     private var syncJob: Job? = null
 
     private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
@@ -72,9 +79,11 @@ class MusicRepository @Inject constructor(
         syncJob = repositoryScope.launch {
             delay(3.seconds)
             try {
+                _syncStatus.value = Resource.Loading()
                 syncWithMediaStore()
+                _syncStatus.value = Resource.Success(Unit)
             } catch (e: Exception) {
-                e.printStackTrace()
+                _syncStatus.value = Resource.Error(e.message ?: "Unknown sync error")
             }
         }
     }
@@ -87,6 +96,12 @@ class MusicRepository @Inject constructor(
 
     private val _currentPlaylist = MutableStateFlow<List<MusicFiles>>(emptyList())
     val currentPlaylist: StateFlow<List<MusicFiles>> = _currentPlaylist.asStateFlow()
+
+    private val _isInitialLoading = MutableStateFlow(true)
+    val isInitialLoading: StateFlow<Boolean> = _isInitialLoading.asStateFlow()
+
+    private val _syncStatus = MutableStateFlow<Resource<Unit>>(Resource.Success(Unit))
+    val syncStatus: StateFlow<Resource<Unit>> = _syncStatus.asStateFlow()
 
     private var queueUpdateJob: Job? = null
 
@@ -107,72 +122,9 @@ class MusicRepository @Inject constructor(
     }.distinctUntilChanged()
 
     suspend fun saveShuffleMode(enabled: Boolean) {
-        val currentShuffle = dataStore.data.map {
-            it[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)]
-                ?: false
-        }.first()
-
-        if (currentShuffle == enabled) return
-
         dataStore.edit { preferences ->
             preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] =
                 enabled
-        }
-
-        // Reorder current queue in DB when shuffle toggled
-        val queueEntities = musicDao.getQueue()
-        if (queueEntities.isNotEmpty()) {
-            val playbackState = musicDao.getPlaybackStateSync()
-            val currentSongId = playbackState?.currentSongId
-
-            val songs = queueEntities.map { entity ->
-                MusicFiles(
-                    id = entity.songId,
-                    title = entity.title,
-                    artist = entity.artist,
-                    album = entity.album,
-                    albumId = entity.albumId,
-                    duration = entity.duration,
-                    path = entity.path,
-                    cachedImagePath = entity.cachedImagePath,
-                    dominantColor = entity.dominantColor,
-                    vibrantColor = entity.vibrantColor
-                )
-            }
-
-            if (enabled) {
-                // Shuffle: Start from current song
-                val currentIndex =
-                    if (currentSongId != null) songs.indexOfFirst { it.id == currentSongId } else -1
-                updateCurrentPlaylist(
-                    songs,
-                    startIndex = currentIndex,
-                    saveToRoom = true,
-                    forceShuffleMode = true
-                )
-            } else {
-                // Unshuffle: Restore original order
-                val originalOrderedSongs =
-                    queueEntities.sortedBy { it.originalOrderIndex }.map { entity ->
-                        MusicFiles(
-                            id = entity.songId,
-                            title = entity.title,
-                            artist = entity.artist,
-                            album = entity.album,
-                            albumId = entity.albumId,
-                            duration = entity.duration,
-                            path = entity.path,
-                            cachedImagePath = entity.cachedImagePath,
-                            dominantColor = entity.dominantColor,
-                            vibrantColor = entity.vibrantColor
-                        )
-                    }
-                updateCurrentPlaylist(
-                    originalOrderedSongs,
-                    saveToRoom = true,
-                    forceShuffleMode = false
-                )
-            }
         }
     }
 
@@ -207,10 +159,10 @@ class MusicRepository @Inject constructor(
                     compareBy({ it.title.lowercase() }, { it.id })
                 )
 
-                DATA.SORT_BY_DATE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.dateAdded }.thenBy { it.title })
-                DATA.SORT_BY_PLAY_COUNT -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.playCount }.thenBy { it.title })
-                DATA.SORT_BY_SIZE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.size }.thenBy { it.title })
-                DATA.SORT_BY_RELEASE_DATE -> filteredDbSongs.sortedWith(compareByDescending<com.flatcode.littleplayer.data.entity.SongEntity> { it.year }.thenBy { it.title })
+                DATA.SORT_BY_DATE -> filteredDbSongs.sortedWith(compareByDescending<SongEntity> { it.dateAdded }.thenBy { it.title })
+                DATA.SORT_BY_PLAY_COUNT -> filteredDbSongs.sortedWith(compareByDescending<SongEntity> { it.playCount }.thenBy { it.title })
+                DATA.SORT_BY_SIZE -> filteredDbSongs.sortedWith(compareByDescending<SongEntity> { it.size }.thenBy { it.title })
+                DATA.SORT_BY_RELEASE_DATE -> filteredDbSongs.sortedWith(compareByDescending<SongEntity> { it.year }.thenBy { it.title })
                 else -> filteredDbSongs
             }
 
@@ -247,7 +199,7 @@ class MusicRepository @Inject constructor(
     }
 
     suspend fun getAllAudio(sortOrder: String): ArrayList<MusicFiles> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             val tempAudioList = ArrayList<MusicFiles>()
             val excluded = try {
                 excludedFolders.first()
@@ -305,7 +257,13 @@ class MusicRepository @Inject constructor(
 
                     if (tempAudioList.isNotEmpty()) {
                         scheduleSync()
-                        startBackgroundColorExtraction()
+                        if (_isInitialLoading.value) {
+                            startBackgroundColorExtraction()
+                            startBackgroundArtCaching(tempAudioList)
+                            _isInitialLoading.value = false
+                        } else {
+                            startBackgroundColorExtraction()
+                        }
                         return@withContext tempAudioList
                     }
                 }
@@ -386,10 +344,16 @@ class MusicRepository @Inject constructor(
                     }
 
                 if (tempAudioList.isNotEmpty()) {
-                    scheduleSync()
+                    syncWithMediaStore() // Perform sync immediately if it was the first time and empty DB
+                    if (_isInitialLoading.value) {
+                        startBackgroundColorExtraction()
+                        startBackgroundArtCaching(tempAudioList)
+                        _isInitialLoading.value = false
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                _isInitialLoading.value = false // Ensure we don't get stuck
             }
 
             tempAudioList
@@ -401,7 +365,32 @@ class MusicRepository @Inject constructor(
         } catch (_: Exception) {
             emptySet()
         }
+
+        val lastSyncTime = dataStore.data.map { it[androidx.datastore.preferences.core.longPreferencesKey(DATA.LAST_SYNC_TIME)] ?: 0L }.first()
+        val currentTime = System.currentTimeMillis() / 1000
+
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        
+        // 1. Handle Deletions: Get all IDs from MediaStore
+        val mediaStoreIds = mutableSetOf<String>()
+        context.contentResolver.query(uri, arrayOf(MediaStore.Audio.Media._ID), null, null, null)?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            while (cursor.moveToNext()) {
+                mediaStoreIds.add(cursor.getString(idColumn))
+            }
+        }
+
+        val dbSongs = songDao.getAllSongsSync()
+        dbSongs.filter { it.id !in mediaStoreIds }.forEach {
+            songDao.deleteSongById(it.id)
+            musicDao.deleteRecentById(it.id)
+            musicDao.deleteFavoriteById(it.id)
+        }
+
+        // 2. Handle Additions/Updates: Query items modified since last sync
+        val selection = "${MediaStore.Audio.Media.DATE_MODIFIED} > ?"
+        val selectionArgs = arrayOf(lastSyncTime.toString())
+        
         val projection = arrayOf(
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.TITLE,
@@ -415,10 +404,10 @@ class MusicRepository @Inject constructor(
             MediaStore.Audio.Media.YEAR
         )
 
-        val dbSongs = songDao.getAllSongsSync()
-        val cursor: Cursor? = context.contentResolver.query(uri, projection, null, null, null)
-        val songEntities = mutableListOf<com.flatcode.littleplayer.data.entity.SongEntity>()
-        cursor?.use { c ->
+        val allFavIds = musicDao.getAllFavoritesSync().map { it.songId }.toSet()
+        val songEntities = mutableListOf<SongEntity>()
+
+        context.contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { c ->
             val albumColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val titleColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val durationColumn = c.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
@@ -432,51 +421,41 @@ class MusicRepository @Inject constructor(
 
             while (c.moveToNext()) {
                 val path = c.getString(pathColumn) ?: ""
-                if (path.contains("/Android/data", true) || path.contains(
-                        "/Android/media", true
-                    )
-                ) continue
+                if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
                 if (excluded.any { path.startsWith(it) }) continue
 
-                val album = c.getString(albumColumn) ?: DATA.UNKNOWN
-                val title = c.getString(titleColumn) ?: DATA.UNKNOWN
-                val duration = c.getLong(durationColumn)
-                val artist = c.getString(artistColumn) ?: DATA.UNKNOWN
                 val id = c.getString(idColumn) ?: ""
-                val albumId = c.getString(albumIdColumn) ?: ""
-                val dateAdded = c.getLong(dateAddedColumn)
-                val size = c.getLong(sizeColumn)
-                val year = c.getInt(yearColumn)
+                val existing = dbSongs.find { it.id == id }
 
                 songEntities.add(
-                    com.flatcode.littleplayer.data.entity.SongEntity(
+                    SongEntity(
                         id = id,
-                        title = title,
-                        artist = artist,
-                        album = album,
-                        duration = duration,
+                        title = c.getString(titleColumn) ?: DATA.UNKNOWN,
+                        artist = c.getString(artistColumn) ?: DATA.UNKNOWN,
+                        album = c.getString(albumColumn) ?: DATA.UNKNOWN,
+                        duration = c.getLong(durationColumn),
                         path = path,
-                        albumId = albumId,
-                        dateAdded = dateAdded,
-                        size = size,
-                        year = year,
-                        cachedImagePath = dbSongs.find { it.id == id }?.cachedImagePath,
-                        dominantColor = dbSongs.find { it.id == id }?.dominantColor,
-                        vibrantColor = dbSongs.find { it.id == id }?.vibrantColor
+                        albumId = c.getString(albumIdColumn),
+                        dateAdded = c.getLong(dateAddedColumn),
+                        size = c.getLong(sizeColumn),
+                        year = c.getInt(yearColumn),
+                        isFavorite = id in allFavIds,
+                        cachedImagePath = existing?.cachedImagePath,
+                        dominantColor = existing?.dominantColor,
+                        vibrantColor = existing?.vibrantColor,
+                        playCount = existing?.playCount ?: 0,
+                        waveform = existing?.waveform
                     )
                 )
             }
-        }
-
-        val mediaStoreIds = songEntities.map { it.id }.toSet()
-        dbSongs.filter { it.id !in mediaStoreIds }.forEach {
-            songDao.deleteSongById(it.id)
         }
 
         if (songEntities.isNotEmpty()) {
             songDao.insertSongs(songEntities)
             scheduleBackgroundColorExtraction()
         }
+
+        dataStore.edit { it[androidx.datastore.preferences.core.longPreferencesKey(DATA.LAST_SYNC_TIME)] = currentTime }
     }
 
     private var colorExtractionJob: Job? = null
@@ -488,74 +467,58 @@ class MusicRepository @Inject constructor(
         }
     }
 
-    suspend fun startBackgroundColorExtraction() = withContext(Dispatchers.IO) {
+    suspend fun startBackgroundColorExtraction() = withContext(ioDispatcher) {
         val missing = songDao.getSongsMissingColors()
         if (missing.isEmpty()) return@withContext
 
         val track = context.getLibraryColor("mc_track")
         val tick = context.getLibraryColor("mc_tick")
 
-        missing.forEach { song ->
-            extractColorsForSong(song.id, song.path, song.albumId, song.album, track, tick)
+        // Process in chunks to avoid overwhelming the system
+        missing.chunked(20).forEach { chunk ->
+            chunk.map { song ->
+                launch { extractColorsForSong(song.id, song.path, song.albumId, track, tick) }
+            }.joinAll()
+            delay(50.milliseconds)
         }
     }
 
     suspend fun extractColorsForSong(
-        songId: String,
-        path: String,
-        albumId: String?,
-        album: String?,
-        defaultStart: Int,
-        defaultEnd: Int
-    ) = withContext(Dispatchers.IO) {
+        songId: String, path: String, albumId: String?, defaultStart: Int, defaultEnd: Int
+    ) = withContext(ioDispatcher) {
         try {
-            // Check if already has colors to honor "Never Overwrite"
+            // Check if already has colors
             val existing = songDao.getSongById(songId)
-            if (existing?.dominantColor != null && existing.vibrantColor != null) return@withContext
+            if (existing?.dominantColor != null && existing.vibrantColor != null && existing.dominantColor != 0) return@withContext
 
-            val bitmap = getArtBitmap(albumId, path, album)
+            val bitmap = getSmallArtBitmap(albumId, path)
             if (bitmap != null) {
                 val palette = Palette.from(bitmap).generate()
                 val colors = palette.extractDynamicColors(defaultStart, defaultEnd)
                 songDao.updateSongColors(songId, colors.second, colors.first)
                 bitmap.recycle()
             } else {
-                // Generate a stable color based on title/artist if no art found
-                // to make sure songs without art still look distinct but stable
-                val stableStart = generateStableColor(songId, true)
-                val stableEnd = generateStableColor(songId, false)
-                songDao.updateSongColors(songId, stableEnd, stableStart)
+                songDao.updateSongColors(songId, 0, 0)
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    private fun getArtBitmap(
-        albumId: String?,
-        path: String,
-        album: String?
-    ): android.graphics.Bitmap? {
-        // 1. Try embedded
+    private fun getSmallArtBitmap(
+        albumId: String?, path: String
+    ): Bitmap? {
         val artBytes = getAlbumArtBytes(path)
         if (artBytes != null) {
-            return BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size)
-        }
-
-        // 2. Try MediaStore Album Art
-        if (!albumId.isNullOrEmpty() && albumId != "-1" && albumId != "0") {
-            try {
-                val uri = ContentUris.withAppendedId(
-                    Uri.parse("content://media/external/audio/albumart"), albumId.toLong()
-                )
-                context.contentResolver.openInputStream(uri)?.use {
-                    return BitmapFactory.decodeStream(it)
-                }
-            } catch (_: Exception) {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
             }
+            BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size, options)
+            options.inSampleSize = calculateInSampleSize(options, 100, 100)
+            options.inJustDecodeBounds = false
+            return BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size, options)
         }
 
-        // 3. Try Folder Art
         try {
             val file = File(path)
             val parent = file.parentFile
@@ -565,7 +528,13 @@ class MusicRepository @Inject constructor(
                     n == "cover.jpg" || n == "cover.png" || n == "folder.jpg" || n == "album.jpg" || n == "albumart.jpg"
                 }?.firstOrNull()
                 if (imageFile != null) {
-                    return BitmapFactory.decodeFile(imageFile.absolutePath)
+                    val options = BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                    }
+                    BitmapFactory.decodeFile(imageFile.absolutePath, options)
+                    options.inSampleSize = calculateInSampleSize(options, 100, 100)
+                    options.inJustDecodeBounds = false
+                    return BitmapFactory.decodeFile(imageFile.absolutePath, options)
                 }
             }
         } catch (_: Exception) {
@@ -574,20 +543,21 @@ class MusicRepository @Inject constructor(
         return null
     }
 
-    private fun generateStableColor(seed: String, isStart: Int = 0): Int {
-        // Simple hash-based color generation for songs without art
-        val hash = seed.hashCode()
-        val h = (hash.toLong() and 0xFFFF) % 360f
-        val s = if (isStart == 1) 0.65f else 0.45f
-        val v = if (isStart == 1) 0.8f else 0.65f
-        return Color.HSVToColor(floatArrayOf(h.toFloat(), s, v))
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.outHeight to options.outWidth
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 
-    // Helper for boolean to int conversion since I used isStart: Int above
-    private fun generateStableColor(seed: String, isStart: Boolean): Int =
-        generateStableColor(seed, if (isStart) 1 else 0)
-
-    suspend fun cacheAlbumArt(song: MusicFiles) = withContext(Dispatchers.IO) {
+    suspend fun cacheAlbumArt(song: MusicFiles) = withContext(ioDispatcher) {
         val songId = song.id ?: return@withContext
         val path = song.path ?: ""
 
@@ -612,7 +582,7 @@ class MusicRepository @Inject constructor(
         }
     }
 
-    suspend fun startBackgroundArtCaching(songs: List<MusicFiles>) = withContext(Dispatchers.IO) {
+    suspend fun startBackgroundArtCaching(songs: List<MusicFiles>) = withContext(ioDispatcher) {
         val uncachedSongs = songs.filter { it.cachedImagePath == null }
         if (uncachedSongs.isEmpty()) return@withContext
 
@@ -626,6 +596,8 @@ class MusicRepository @Inject constructor(
 
     suspend fun deleteFromDatabase(songId: String) {
         songDao.deleteSongById(songId)
+        musicDao.deleteRecentById(songId)
+        musicDao.deleteFavoriteById(songId)
     }
 
     suspend fun updateMetadata(songId: String, title: String, artist: String, album: String?) {
@@ -644,25 +616,28 @@ class MusicRepository @Inject constructor(
         saveToRoom: Boolean = true,
         forceShuffleMode: Boolean? = null
     ) {
+        val finalSongs = songs
+        _currentPlaylist.value = finalSongs
+
         queueUpdateJob?.cancel()
         queueUpdateJob = repositoryScope.launch {
-            val isShuffle = forceShuffleMode ?: shuffleMode.first()
-            val finalSongs =
-                if (isShuffle && songs.isNotEmpty() && startIndex != -1 && startIndex in songs.indices) {
-                    val currentSong = songs[startIndex]
-                    val remaining =
-                        songs.filterIndexed { index, _ -> index != startIndex }.shuffled()
-                    listOf(currentSong) + remaining
-                } else {
-                    songs
-                }
-
-            _currentPlaylist.value = finalSongs
-
             if (saveToRoom) {
                 musicDao.clearQueue()
 
-                // OPTIMIZATION: Use a map for original indices instead of repeated indexOfFirst (O(N) instead of O(N^2))
+                // Save playback state if startIndex is provided
+                if (startIndex != -1 && songs.isNotEmpty() && startIndex in songs.indices) {
+                    val song = songs[startIndex]
+                    val currentState = musicDao.getPlaybackStateSync() ?: PlaybackStateEntity()
+                    musicDao.savePlaybackState(
+                        currentState.copy(
+                            currentSongId = song.id,
+                            lastPosition = startIndex,
+                            shuffleModeEnabled = forceShuffleMode ?: currentState.shuffleModeEnabled
+                        )
+                    )
+                }
+
+                // OPTIMIZATION: Use a map for original indices
                 val originalIndexMap = songs.mapIndexed { index, song -> song.id to index }.toMap()
 
                 val entities = finalSongs.mapIndexed { index, song ->
@@ -687,7 +662,7 @@ class MusicRepository @Inject constructor(
         }
     }
 
-    suspend fun loadCurrentQueue(): List<MusicFiles> = withContext(Dispatchers.IO) {
+    suspend fun loadCurrentQueue(): List<MusicFiles> = withContext(ioDispatcher) {
         val excluded = try {
             excludedFolders.first()
         } catch (_: Exception) {
@@ -713,7 +688,7 @@ class MusicRepository @Inject constructor(
         queue
     }
 
-    suspend fun clearArtCache() = withContext(Dispatchers.IO) {
+    suspend fun clearArtCache() = withContext(ioDispatcher) {
         albumImageDao.clearAllAlbumImages()
         songDao.clearAllCachedImagePaths()
         musicDao.clearQueueCachedImagePaths()
@@ -721,17 +696,17 @@ class MusicRepository @Inject constructor(
         if (folder.exists()) {
             folder.listFiles()?.forEach { it.delete() }
         }
-        
+
         // Optionally re-trigger background caching for the current list
         val currentSongs = getAllAudio(DATA.SORT_BY_DATE)
         startBackgroundArtCaching(currentSongs)
     }
 
-    suspend fun clearHistory() = withContext(Dispatchers.IO) {
+    suspend fun clearHistory() = withContext(ioDispatcher) {
         musicDao.clearRecent()
     }
 
-    suspend fun resetPaletteColors() = withContext(Dispatchers.IO) {
+    suspend fun resetPaletteColors() = withContext(ioDispatcher) {
         songDao.resetAllColors()
         startBackgroundColorExtraction()
     }

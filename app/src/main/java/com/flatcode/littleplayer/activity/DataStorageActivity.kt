@@ -5,6 +5,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import coil.load
 import com.flatcode.littleplayer.R
@@ -26,6 +27,8 @@ import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.viewmodel.DataStorageViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import io.selimdawa.multicolors.MultiColorManager
+import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
@@ -37,6 +40,7 @@ class DataStorageActivity : AppCompatActivity() {
     private var currentDominantColor: Pair<Int, Int>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        MultiColorManager.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityDataStorageBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -122,6 +126,12 @@ class DataStorageActivity : AppCompatActivity() {
 
         dataViewModel.cacheSize.collectWithLifecycle(this) { size ->
             binding.tvCacheSize.text = size.formatAsSize()
+        }
+
+        lifecycleScope.launch {
+            MultiColorManager.currentThemeId.collect { _ ->
+                MultiColorManager.applyTheme(this@DataStorageActivity)
+            }
         }
     }
 

@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
@@ -24,6 +25,8 @@ import com.flatcode.littleplayer.viewmodel.EqualizerViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import io.selimdawa.multicolors.MultiColorManager
+import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
@@ -49,6 +52,7 @@ class EqualizerActivity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        MultiColorManager.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityEqualizerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -74,6 +78,12 @@ class EqualizerActivity : AppCompatActivity() {
                     it.bandLevels.split(",").map { level -> level.toShort() }.toShortArray()
                 setupBands(levels)
                 updatePresetSelectionUI(selectedPresetName, getLibraryColor("mc_track"))
+            }
+        }
+
+        lifecycleScope.launch {
+            MultiColorManager.currentThemeId.collect { _ ->
+                MultiColorManager.applyTheme(this@EqualizerActivity)
             }
         }
     }

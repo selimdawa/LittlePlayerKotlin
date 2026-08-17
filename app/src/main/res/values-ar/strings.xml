@@ -110,8 +110,11 @@
     <string name="system_notification_settings">إعدادات إشعارات النظام</string>
     <string name="system_notification_settings_desc">إدارة إشعارات التطبيق في إعدادات أندرويد.</string>
     <string name="remove_from_playlist">إزالة من قائمة التشغيل</string>
+    <string name="remove_from_recent">إزالة من القائمة مؤخراً</string>
     <string name="remove_song_from_playlist_message">هل أنت متأكد أنك تريد إزالة \"%1$s\" من قائمة التشغيل هذه؟</string>
+    <string name="clear_recent_message">هل أنت متأكد من مسح سجل الاستماع؟</string>
     <string name="remove">إزالة</string>
+    <string name="clear">مسح</string>
     <string name="playlist_details_format">قائمة التشغيل / %1$s</string>
     <plurals name="songs_count">
         <item quantity="zero">%1$d أغنية</item>
@@ -185,4 +188,5 @@
     <string name="reset_palette_colors">إعادة ضبط ألوان لوحة الألوان</string>
     <string name="reset_palette_colors_desc">إعادة استخراج الألوان لجميع الأغاني في مكتبتك.</string>
     <string name="palette_colors_reset">يتم إعادة استخراج ألوان لوحة الألوان في الخلفية</string>
+    <string name="loading_data">تحميل البيانات...</string>
 </resources>

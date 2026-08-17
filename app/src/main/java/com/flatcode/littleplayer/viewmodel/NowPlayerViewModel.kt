@@ -186,7 +186,12 @@ class NowPlayerViewModel @Inject constructor(
 
         // If song has colors, update theme immediately
         if (song.vibrantColor != null && song.dominantColor != null) {
-            updateThemeColor(song.id, song.vibrantColor, song.dominantColor)
+            // Even if we have colors, if they are (0,0), it's a dynamic song
+            if (song.vibrantColor == 0 && song.dominantColor == 0) {
+                updateThemeColor(song.id, 0, 0)
+            } else {
+                updateThemeColor(song.id, song.vibrantColor, song.dominantColor)
+            }
         } else {
             // Trigger background extraction if missing
             viewModelScope.launch(Dispatchers.IO) {
@@ -194,7 +199,7 @@ class NowPlayerViewModel @Inject constructor(
                 val tick = repository.context.getLibraryColor("mc_tick")
                 song.id?.let { id ->
                     song.path?.let { path ->
-                        repository.extractColorsForSong(id, path, song.albumId, song.album, track, tick)
+                        repository.extractColorsForSong(id, path, song.albumId, track, tick)
                         // After extraction, the repository updates Room. 
                         // We should probably fetch the updated song or just rely on the next update.
                         // For immediate feedback:

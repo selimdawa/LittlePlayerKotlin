@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
@@ -19,6 +20,8 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import io.selimdawa.multicolors.MultiColorManager
+import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
@@ -33,6 +36,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
     private var albumName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        MultiColorManager.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityAlbumDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -55,7 +59,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
                     binding.image.loadCachedAlbumImage(state.imagePath)
                 } else {
                     binding.image.loadSongImage(
-                        state.firstSongAlbumId, state.firstSongPath, album = albumName
+                        state.firstSongAlbumId, state.firstSongPath, album = albumName, isAlbum = true
                     )
                 }
 
@@ -65,7 +69,8 @@ class AlbumDetailsActivity : AppCompatActivity() {
                         50,
                         state.firstSongPath,
                         state.imagePath,
-                        albumName
+                        albumName,
+                        isAlbum = true
                     )
                 }
 
@@ -90,6 +95,12 @@ class AlbumDetailsActivity : AppCompatActivity() {
         musicViewModel.event.collectWithLifecycle(this) { event ->
             if (event is MusicEvent.PlaySong) {
                 openPlayer(event.position)
+            }
+        }
+
+        lifecycleScope.launch {
+            MultiColorManager.currentThemeId.collect { _ ->
+                MultiColorManager.applyTheme(this@AlbumDetailsActivity)
             }
         }
     }

@@ -49,6 +49,7 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private var mediaController: MediaController? = null
     private var progressJob: Job? = null
     private var lastLoadedPath: String? = null
+    private var lastArtworkSongId: String? = null
 
     private val viewModel: NowPlayerViewModel by activityViewModels()
 
@@ -74,10 +75,8 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
         binding.playerContent.nextBtn.setOnClickListener {
             mediaController?.let { controller ->
-                val count = controller.mediaItemCount
-                if (count > 0) {
-                    val nextIndex = (controller.currentMediaItemIndex + 1) % count
-                    controller.seekToDefaultPosition(nextIndex)
+                if (controller.hasNextMediaItem()) {
+                    controller.seekToNext()
                     if (!controller.playWhenReady) {
                         controller.play()
                     }
@@ -148,9 +147,12 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
             song?.let {
-                binding.playerContent.albumArt.loadSongImage(
-                    it.albumId, it.path, it.cachedImagePath, it.album
-                )
+                if (lastArtworkSongId != it.id) {
+                    lastArtworkSongId = it.id
+                    binding.playerContent.albumArt.loadSongImage(
+                        it.albumId, it.path, it.cachedImagePath, it.album
+                    )
+                }
                 binding.playerContent.name.text = it.safeTitle
                 binding.playerContent.artist.text = it.safeArtist
 

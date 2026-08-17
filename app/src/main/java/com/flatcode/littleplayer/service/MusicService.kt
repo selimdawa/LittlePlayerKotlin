@@ -1,8 +1,10 @@
 package com.flatcode.littleplayer.service
 
+import android.content.ContentUris
 import android.content.Intent
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.widget.Toast
@@ -33,16 +35,20 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.data.dao.MusicDao
 import com.flatcode.littleplayer.data.entity.EqualizerEntity
 import com.flatcode.littleplayer.data.entity.FavoriteEntity
 import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
+import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
+import com.flatcode.littleplayer.data.entity.SongEntity
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getDefaultArtBytes
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -76,6 +82,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
     @Inject
     lateinit var musicRepository: MusicRepository
 
+    @Inject
+    lateinit var musicDao: MusicDao
+
     private var basePlayer: ExoPlayer? = null
     private var castPlayer: CastPlayer? = null
     var exoPlayer: Player? = null
@@ -83,6 +92,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
     var position = -1
 
+    private var isRestoring = false
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var sleepTimer: CountDownTimer? = null
 
@@ -205,9 +215,12 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
             loadEqualizerSettings()
             initAudioEffects(basePlayer?.audioSessionId ?: -1)
-            loadPlaybackStateAndQueue()
-            loadPlaybackParameters()
-            observePlaylistChanges()
+            
+            serviceScope.launch {
+                loadPlaybackStateAndQueue()
+                loadPlaybackParameters()
+                observePlaylistChanges()
+            }
         }
     }
 
@@ -267,7 +280,8 @@ class MusicService : MediaLibraryService(), Player.Listener {
         }
 
         serviceScope.launch {
-            musicRepository.shuffleMode.collect {
+            musicRepository.shuffleMode.collect { isShuffle ->
+                exoPlayer?.shuffleModeEnabled = isShuffle
                 sendWidgetUpdate()
                 updateNotificationLayout()
             }
@@ -275,17 +289,22 @@ class MusicService : MediaLibraryService(), Player.Listener {
     }
 
     private fun loadPlaybackParameters() {
-        serviceScope.launch {
-            dataStore.data.first().let { prefs ->
-                val speed = prefs[playbackSpeedKey] ?: 1.0f
-                val pitch = prefs[playbackPitchKey] ?: 1.0f
-                exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
+        dataStore.data.map { prefs ->
+            val speed = prefs[playbackSpeedKey] ?: 1.0f
+            val pitch = prefs[playbackPitchKey] ?: 1.0f
+            speed to pitch
+        }.let { flow ->
+            serviceScope.launch {
+                flow.collect { (speed, pitch) ->
+                    exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
+                }
             }
         }
     }
 
-    private fun loadPlaybackStateAndQueue() {
-        serviceScope.launch {
+    private suspend fun loadPlaybackStateAndQueue() {
+        isRestoring = true
+        try {
             val queue = repository.getQueue()
             val state = repository.getPlaybackStateSync()
 
@@ -301,6 +320,23 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     MediaItem.Builder().setUri(uri).setMediaId(item.songId)
                         .setMediaMetadata(metadata).build()
                 }
+
+                // Synchronize MusicRepository with the loaded queue
+                val musicFiles = queue.map { item ->
+                    MusicFiles(
+                        id = item.songId,
+                        title = item.title,
+                        artist = item.artist,
+                        album = item.album,
+                        albumId = item.albumId,
+                        duration = item.duration,
+                        path = item.path,
+                        cachedImagePath = item.cachedImagePath,
+                        dominantColor = item.dominantColor,
+                        vibrantColor = item.vibrantColor
+                    )
+                }
+                musicRepository.updateCurrentPlaylist(musicFiles, saveToRoom = false)
 
                 val startItemIndex = if (state != null && !state.currentSongId.isNullOrEmpty()) {
                     val index = queue.indexOfFirst { it.songId == state.currentSongId }
@@ -324,6 +360,10 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     player.repeatMode = state.repeatMode
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            isRestoring = false
         }
     }
 
@@ -432,9 +472,12 @@ class MusicService : MediaLibraryService(), Player.Listener {
             ACTION_NEXT -> exoPlayer?.seekToNext()
             ACTION_PREV -> exoPlayer?.seekToPrevious()
             ACTION_SHUFFLE -> {
-                serviceScope.launch {
-                    val currentShuffle = musicRepository.shuffleMode.first()
-                    musicRepository.saveShuffleMode(!currentShuffle)
+                exoPlayer?.let { player ->
+                    val nextShuffle = !player.shuffleModeEnabled
+                    player.shuffleModeEnabled = nextShuffle
+                    serviceScope.launch {
+                        musicRepository.saveShuffleMode(nextShuffle)
+                    }
                 }
             }
 
@@ -471,6 +514,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     }
 
     private fun updateLastPlayedInfo(immediate: Boolean = false) {
+        if (isRestoring) return
         val player = exoPlayer ?: return
         val currentMediaItem = player.currentMediaItem ?: return
         val metadata = currentMediaItem.mediaMetadata
@@ -486,13 +530,13 @@ class MusicService : MediaLibraryService(), Player.Listener {
         val currentIndex = player.currentMediaItemIndex
         val repeatMode = player.repeatMode
         val currentProgress = player.currentPosition
+        val isShuffle = player.shuffleModeEnabled
 
         updateLastPlayedJob?.cancel()
         updateLastPlayedJob = serviceScope.launch(Dispatchers.IO) {
             if (!immediate) {
                 delay(1.seconds)
             }
-            val isShuffle = musicRepository.shuffleMode.first()
             repository.insertRecent(
                 RecentEntity(
                     songId = songId,
@@ -588,10 +632,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 "artist", metadata.artist?.toString() ?: getString(R.string.artist_name)
             )
             intent.putExtra("isPlaying", player.isPlaying)
+            intent.putExtra("isShuffle", player.shuffleModeEnabled)
 
             serviceScope.launch {
-                val isShuffle = musicRepository.shuffleMode.first()
-                intent.putExtra("isShuffle", isShuffle)
                 val isFav = if (songId.isEmpty()) false else repository.isFavorite(songId)
                 intent.putExtra("isFavorite", isFav)
 
@@ -736,6 +779,65 @@ class MusicService : MediaLibraryService(), Player.Listener {
             return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params))
         }
 
+        override fun onGetItem(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            mediaId: String
+        ): ListenableFuture<LibraryResult<MediaItem>> {
+            val executor = MoreExecutors.listeningDecorator(java.util.concurrent.Executors.newSingleThreadExecutor())
+            return executor.submit<LibraryResult<MediaItem>> {
+                try {
+                    val song = runBlocking { repository.getSongById(mediaId) }
+                    if (song != null) {
+                        LibraryResult.ofItem(song.toMediaItem(), null)
+                    } else {
+                        LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
+                    }
+                } catch (e: Exception) {
+                    LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
+                } finally {
+                    executor.shutdown()
+                }
+            }
+        }
+
+        override fun onSearch(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<Void>> {
+            session.notifySearchResultChanged(browser, query, 0, params)
+            return Futures.immediateFuture(LibraryResult.ofVoid())
+        }
+
+        override fun onGetSearchResult(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+            val executor = MoreExecutors.listeningDecorator(java.util.concurrent.Executors.newSingleThreadExecutor())
+            return executor.submit<LibraryResult<ImmutableList<MediaItem>>> {
+                try {
+                    val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
+                    val filtered = songs.filter { 
+                        it.title?.contains(query, ignoreCase = true) == true || 
+                        it.artist?.contains(query, ignoreCase = true) == true ||
+                        it.album?.contains(query, ignoreCase = true) == true
+                    }.map { it.toMediaItem() }
+                    
+                    LibraryResult.ofItemList(ImmutableList.copyOf(filtered), params)
+                } catch (e: Exception) {
+                    LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
+                } finally {
+                    executor.shutdown()
+                }
+            }
+        }
+
         override fun onGetChildren(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
@@ -743,9 +845,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
             page: Int,
             pageSize: Int,
             params: LibraryParams?
-        ): ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>> {
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
             val executor = MoreExecutors.listeningDecorator(java.util.concurrent.Executors.newSingleThreadExecutor())
-            return executor.submit<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>> {
+            return executor.submit<LibraryResult<ImmutableList<MediaItem>>> {
                 try {
                     when (parentId) {
                         ROOT_ID -> {
@@ -776,13 +878,23 @@ class MusicService : MediaLibraryService(), Player.Listener {
                                     MediaMetadata.MEDIA_TYPE_PLAYLIST
                                 )
                             )
-                            LibraryResult.ofItemList(children, params)
+                            LibraryResult.ofItemList(ImmutableList.copyOf(children), params)
                         }
 
                         CATEGORY_SONGS -> {
                             val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
                             val mediaItems = songs.map { it.toMediaItem() }
-                            LibraryResult.ofItemList(mediaItems, params)
+                            LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
+                        }
+
+                        CATEGORY_PLAYLISTS -> {
+                            val playlistNames = runBlocking { musicDao.getAllPlaylistNamesSync() }
+                            val playlistItems = playlistNames.map { name ->
+                                createBrowsableItem(
+                                    "playlist|$name", name, MediaMetadata.MEDIA_TYPE_PLAYLIST
+                                )
+                            }
+                            LibraryResult.ofItemList(ImmutableList.copyOf(playlistItems), params)
                         }
 
                         CATEGORY_ALBUMS -> {
@@ -793,7 +905,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                                     "album|$albumName", albumName, MediaMetadata.MEDIA_TYPE_ALBUM
                                 )
                             }
-                            LibraryResult.ofItemList(albumItems, params)
+                            LibraryResult.ofItemList(ImmutableList.copyOf(albumItems), params)
                         }
 
                         CATEGORY_ARTISTS -> {
@@ -804,19 +916,19 @@ class MusicService : MediaLibraryService(), Player.Listener {
                                     "artist|$artistName", artistName, MediaMetadata.MEDIA_TYPE_ARTIST
                                 )
                             }
-                            LibraryResult.ofItemList(artistItems, params)
+                            LibraryResult.ofItemList(ImmutableList.copyOf(artistItems), params)
                         }
 
                         CATEGORY_FAVORITES -> {
                             val favorites = runBlocking { repository.getAllFavorites().first() }
                             val mediaItems = favorites.map { it.toMediaItem() }
-                            LibraryResult.ofItemList(mediaItems, params)
+                            LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                         }
 
                         CATEGORY_RECENT -> {
                             val recent = runBlocking { repository.getAllRecent().first() }
                             val mediaItems = recent.map { it.toMediaItem() }
-                            LibraryResult.ofItemList(mediaItems, params)
+                            LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                         }
 
                         else -> {
@@ -825,19 +937,24 @@ class MusicService : MediaLibraryService(), Player.Listener {
                                 val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
                                 val mediaItems =
                                     songs.filter { it.album == albumName }.map { it.toMediaItem() }
-                                LibraryResult.ofItemList(mediaItems, params)
+                                LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                             } else if (parentId.startsWith("artist|")) {
                                 val artistName = parentId.removePrefix("artist|")
                                 val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
                                 val mediaItems =
                                     songs.filter { it.artist == artistName }.map { it.toMediaItem() }
-                                LibraryResult.ofItemList(mediaItems, params)
+                                LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
+                            } else if (parentId.startsWith("playlist|")) {
+                                val playlistName = parentId.removePrefix("playlist|")
+                                val playlistSongs = runBlocking { musicDao.getSongsFromPlaylistSync(playlistName) }
+                                val mediaItems = playlistSongs.map { it.toMediaItem() }
+                                LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                             } else {
-                                LibraryResult.ofItemList(listOf(), params)
+                                LibraryResult.ofItemList(ImmutableList.of(), params)
                             }
                         }
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
                 } finally {
                     executor.shutdown()
@@ -846,10 +963,18 @@ class MusicService : MediaLibraryService(), Player.Listener {
         }
 
         private fun RecentEntity.toMediaItem(): MediaItem {
-            return MediaItem.Builder().setMediaId(this.songId).setUri(this.path.toUri())
+            val uri = this.path.toUri()
+            val artworkUri = try {
+                val id = this.songId.toLong()
+                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+            } catch (_: Exception) {
+                null
+            }
+            return MediaItem.Builder().setMediaId(this.songId).setUri(uri)
                 .setMediaMetadata(
                     MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
                         .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                        .setArtworkUri(artworkUri)
                         .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
                 ).build()
         }
@@ -863,9 +988,16 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
         private fun MusicFiles.toMediaItem(): MediaItem {
             val uri = this.path?.toUri() ?: "".toUri()
+            val artworkUri = try {
+                val id = this.id?.toLong() ?: 0L
+                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+            } catch (_: Exception) {
+                null
+            }
             return MediaItem.Builder().setMediaId(this.id ?: "").setUri(uri).setMediaMetadata(
                 MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
                     .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                    .setArtworkUri(artworkUri)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).setExtras(Bundle().apply {
                         putString("ALBUM_ID", this@toMediaItem.albumId)
                         putString("CACHED_IMAGE_PATH", this@toMediaItem.cachedImagePath)
@@ -873,11 +1005,54 @@ class MusicService : MediaLibraryService(), Player.Listener {
             ).build()
         }
 
+        private fun SongEntity.toMediaItem(): MediaItem {
+            val uri = this.path.toUri()
+            val artworkUri = try {
+                val id = this.id.toLong()
+                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+            } catch (_: Exception) {
+                null
+            }
+            return MediaItem.Builder().setMediaId(this.id).setUri(uri).setMediaMetadata(
+                MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
+                    .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                    .setArtworkUri(artworkUri)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).setExtras(Bundle().apply {
+                        putString("ALBUM_ID", this@toMediaItem.albumId)
+                        putString("CACHED_IMAGE_PATH", this@toMediaItem.cachedImagePath)
+                    }).build()
+            ).build()
+        }
+
+        private fun PlaylistEntity.toMediaItem(): MediaItem {
+            val uri = this.path.toUri()
+            val artworkUri = try {
+                val id = this.songId.toLong()
+                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+            } catch (_: Exception) {
+                null
+            }
+            return MediaItem.Builder().setMediaId(this.songId).setUri(uri).setMediaMetadata(
+                MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
+                    .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                    .setArtworkUri(artworkUri)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
+            ).build()
+        }
+
         private fun FavoriteEntity.toMediaItem(): MediaItem {
-            return MediaItem.Builder().setMediaId(this.songId).setUri(this.path.toUri())
+            val uri = this.path.toUri()
+            val artworkUri = try {
+                val id = this.songId.toLong()
+                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+            } catch (_: Exception) {
+                null
+            }
+            return MediaItem.Builder().setMediaId(this.songId).setUri(uri)
                 .setMediaMetadata(
                     MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
                         .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                        .setArtworkUri(artworkUri)
                         .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
                 ).build()
         }

@@ -31,6 +31,7 @@ import com.flatcode.littleplayer.viewmodel.SettingsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
+import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -47,6 +48,7 @@ class SettingsActivity : AppCompatActivity() {
     private var mediaController: MediaController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        MultiColorManager.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -262,6 +264,12 @@ class SettingsActivity : AppCompatActivity() {
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
+        }
+
+        lifecycleScope.launch {
+            MultiColorManager.currentThemeId.collect { _ ->
+                MultiColorManager.applyTheme(this@SettingsActivity)
+            }
         }
     }
 }

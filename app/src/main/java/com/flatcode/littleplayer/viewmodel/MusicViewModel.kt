@@ -222,36 +222,39 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
     fun smartShuffle(category: String, currentSong: MusicFiles? = null) {
         viewModelScope.launch {
             val fullList = repository.getAllAudio(DATA.SORT_BY_DATE)
-            val shuffledSongs = when (category) {
-                DATA.SONGS -> fullList.shuffled()
+            val songsToPlay = when (category) {
+                DATA.SONGS -> fullList
                 DATA.ALBUMS -> {
                     val album = albumFiles.value.randomOrNull()?.album
-                    fullList.filter { it.album == album }.shuffled()
+                    fullList.filter { it.album == album }
                 }
+
                 DATA.ARTISTS -> {
                     val artist = artistFiles.value.randomOrNull()?.name
-                    fullList.filter { it.artist == artist }.shuffled()
+                    fullList.filter { it.artist == artist }
                 }
+
                 DATA.FOLDERS -> {
                     val folder = folderFiles.value.randomOrNull()?.path
-                    fullList.filter { it.path?.startsWith(folder ?: "") == true }.shuffled()
+                    fullList.filter { it.path?.startsWith(folder ?: "") == true }
                 }
+
                 "Current" -> {
-                    repository.currentPlaylist.value.shuffled()
+                    repository.currentPlaylist.value
                 }
+
                 else -> emptyList()
             }
 
-            if (shuffledSongs.isNotEmpty()) {
-                val finalSongs = if (currentSong != null) {
-                    val remaining = shuffledSongs.filter { it.id != currentSong.id }
-                    listOf(currentSong) + remaining
+            if (songsToPlay.isNotEmpty()) {
+                val startIndex = if (currentSong != null) {
+                    songsToPlay.indexOfFirst { it.id == currentSong.id }
                 } else {
-                    shuffledSongs
+                    songsToPlay.indices.random()
                 }
-                
-                saveShuffleMode(true)
-                updateCurrentPlaylist(finalSongs)
+
+                repository.updateCurrentPlaylist(songsToPlay, startIndex, forceShuffleMode = true)
+                repository.saveShuffleMode(true)
                 _event.emit(MusicEvent.PlaySong(0, keepProgress = currentSong != null))
             }
         }
@@ -263,10 +266,8 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     fun updatePlaylistAndPlay(songs: List<MusicFiles>, position: Int) {
         viewModelScope.launch {
-            val isShuffle = repository.shuffleMode.first()
             updateCurrentPlaylist(songs, position)
-            val playIndex = if (isShuffle) 0 else position
-            _event.emit(MusicEvent.PlaySong(playIndex))
+            _event.emit(MusicEvent.PlaySong(position))
         }
     }
 
@@ -304,6 +305,9 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     val shuffleMode: StateFlow<Boolean> = repository.shuffleMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val isInitialLoading: StateFlow<Boolean> = repository.isInitialLoading
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 }
 
 sealed class MusicEvent {

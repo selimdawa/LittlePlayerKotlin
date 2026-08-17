@@ -85,7 +85,9 @@ class PlaylistsViewModel @Inject constructor(
                         )
                     }
                     if (songs.isNotEmpty()) {
-                        musicRepository.updateCurrentPlaylist(songs.shuffled())
+                        val randomIndex = songs.indices.random()
+                        musicRepository.updateCurrentPlaylist(songs, randomIndex, forceShuffleMode = true)
+                        musicRepository.saveShuffleMode(true)
                         _event.emit(PlaylistsEvent.PlaySong(0))
                     }
                 }

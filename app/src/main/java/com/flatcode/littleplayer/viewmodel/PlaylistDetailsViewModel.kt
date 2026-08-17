@@ -88,10 +88,10 @@ class PlaylistDetailsViewModel @Inject constructor(
     fun shuffleSongs() {
         val currentSongs = _songs.value
         if (currentSongs.isNotEmpty()) {
-            val shuffled = currentSongs.shuffled()
             viewModelScope.launch {
+                val randomIndex = currentSongs.indices.random()
+                musicRepository.updateCurrentPlaylist(currentSongs, randomIndex, forceShuffleMode = true)
                 musicRepository.saveShuffleMode(true)
-                musicRepository.updateCurrentPlaylist(shuffled)
                 _event.emit(PlaylistDetailsEvent.PlaySong(0))
             }
         }

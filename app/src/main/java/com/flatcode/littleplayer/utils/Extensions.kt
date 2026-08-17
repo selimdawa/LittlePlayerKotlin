@@ -2,6 +2,7 @@
 
 package com.flatcode.littleplayer.utils
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.RecoverableSecurityException
@@ -10,6 +11,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
@@ -22,9 +24,11 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.TypedValue
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.SeekBar
+import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.annotation.AttrRes
@@ -45,6 +49,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
 import coil.ImageLoader
 import coil.decode.DataSource
@@ -94,6 +99,44 @@ fun Context.getColorFromAttr(@AttrRes attr: Int, fallback: Int = Color.WHITE): I
         return typedValue.data
     }
     return fallback
+}
+
+fun View.onClickPulse(action: () -> Unit) {
+    setOnClickListener {
+        val animation = AnimationUtils.loadAnimation(context, R.anim.pulse)
+        startAnimation(animation)
+        action()
+    }
+}
+
+fun TextView.fadeText(newText: String, duration: Long = 200L) {
+    if (text == newText) return
+    animate().alpha(0f).setDuration(duration).withEndAction {
+        text = newText
+        isSelected = true
+        animate().alpha(1f).setDuration(duration).start()
+    }.start()
+}
+
+fun AppCompatActivity.checkAudioPermissions(
+    permissionLauncher: ActivityResultLauncher<Array<String>>,
+    onGranted: () -> Unit
+) {
+    val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.POST_NOTIFICATIONS)
+    } else {
+        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
+
+    val missing = perms.filter {
+        ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+    }
+
+    if (missing.isEmpty()) {
+        onGranted()
+    } else {
+        permissionLauncher.launch(missing.toTypedArray())
+    }
 }
 
 fun Long.formatAsSize(): String {
@@ -175,9 +218,10 @@ suspend fun Context.getSongArtwork(
     path: String? = null,
     cachedPath: String? = null,
     album: String? = null,
-    size: Int = 600
+    size: Int = 600,
+    isAlbum: Boolean = false,
 ): Bitmap? {
-    val model = getSongImageModel(albumId, path, cachedPath, album)
+    val model = getSongImageModel(albumId, path, cachedPath, album, isAlbum = isAlbum)
     val request =
         ImageRequest.Builder(this).data(model).size(size).precision(coil.size.Precision.INEXACT)
             .allowHardware(false).bitmapConfig(Bitmap.Config.ARGB_8888).build()
@@ -400,7 +444,8 @@ fun ImageView.loadBitmap(
     onComplete: (() -> Unit)? = null
 ) {
     if (bitmap == null) {
-        load(fallback) {
+        val drawable = ContextCompat.getDrawable(context, fallback)
+        load(drawable) {
             crossfade(crossfade)
             listener(
                 onSuccess = { _, _ -> onComplete?.invoke() },
@@ -435,9 +480,16 @@ fun ImageView.loadSongImage(
     cachedPath: String? = null,
     album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
+    isAlbum: Boolean = false,
     onComplete: (() -> Unit)? = null,
 ) {
-    val model = getSongImageModel(albumId, path, cachedPath, album, fallback)
+    val model = getSongImageModel(albumId, path, cachedPath, album, fallback, isAlbum)
+    val currentModel = getTag(R.id.image_model_tag)
+    if (currentModel == model && drawable != null) {
+        onComplete?.invoke()
+        return
+    }
+    setTag(R.id.image_model_tag, model)
 
     load(model) {
         crossfade(enable = true)
@@ -460,6 +512,10 @@ fun ImageView.loadSongImageByPath(
     } else {
         fallback
     }
+
+    if (getTag(R.id.image_model_tag) == model && drawable != null) return
+    setTag(R.id.image_model_tag, model)
+
     load(model) {
         crossfade(true)
         placeholder(R.color.image_profile)
@@ -474,20 +530,29 @@ fun ImageView.loadSongImageBlur(
     cachedPath: String? = null,
     album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
+    isAlbum: Boolean = false,
 ) {
-    val model = getSongImageModel(albumId, path, cachedPath, album, fallback)
+    val model = getSongImageModel(albumId, path, cachedPath, album, fallback, isAlbum)
+    val blurTag = "blur_$level"
+    val currentModel = getTag(R.id.image_model_tag)
+    val currentBlur = getTag(R.id.image_blur_tag)
+
+    if (currentModel == model && currentBlur == blurTag && drawable != null) return
+    setTag(R.id.image_model_tag, model)
+    setTag(R.id.image_blur_tag, blurTag)
+
     val actualFallback =
         if (fallback == R.drawable.ic_cover_song) R.drawable.ic_cover_song_blur else fallback
 
     load(model) {
         crossfade(enable = true)
         placeholder(R.color.image_profile)
-        error(actualFallback)
+        error(ContextCompat.getDrawable(context, actualFallback))
         allowHardware(enable = false)
         size(80, 80) // High optimization: Tiny size for blur
         if ((model is Int) && (model == R.drawable.ic_cover_song)) {
             target { _ ->
-                this@loadSongImageBlur.load(R.drawable.ic_cover_song_blur)
+                this@loadSongImageBlur.load(ContextCompat.getDrawable(context, actualFallback))
             }
         }
         transformations(SimpleBlurTransformation(level.toFloat()))
@@ -509,6 +574,7 @@ fun getSongImageModel(
     cachedPath: String? = null,
     album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
+    isAlbum: Boolean = false,
 ): Any {
     if (!cachedPath.isNullOrEmpty()) {
         val file = File(cachedPath)
@@ -516,14 +582,17 @@ fun getSongImageModel(
     }
 
     val isUnknownAlbum = album == null || album == DATA.UNKNOWN
-    if (!isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
+
+    // PRIORITY 1: MediaStore Album Art (ONLY for Album list)
+    if (isAlbum && !isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(),
             albumId.toLong(),
         )
     }
 
-    if (!isUnknownAlbum && !path.isNullOrEmpty()) {
+    // PRIORITY 2: Folder Art (Cover.jpg, etc.)
+    if (!path.isNullOrEmpty()) {
         try {
             val file = File(path)
             val parent = file.parentFile
@@ -538,6 +607,7 @@ fun getSongImageModel(
         }
     }
 
+    // PRIORITY 3: Embedded Song Art (Handled by AudioArtFetcher or Coil automatically for File)
     if (!path.isNullOrEmpty()) {
         val file = File(path)
         if (file.exists()) return file
@@ -545,6 +615,7 @@ fun getSongImageModel(
 
     return fallback
 }
+
 
 class AudioArtFetcher(private val file: File, private val context: Context) : Fetcher {
     override suspend fun fetch(): FetchResult? {
@@ -567,10 +638,10 @@ class AudioArtFetcher(private val file: File, private val context: Context) : Fe
     }
 }
 
-fun Player.togglePlayPause(
+fun MediaController.togglePlayPause(
     button: ImageView,
-    onPause: () -> Unit,
-    onStart: () -> Unit,
+    onPause: () -> Unit = {},
+    onStart: () -> Unit = {},
 ) {
     if (isPlaying) {
         button.setImageResource(R.drawable.ic_play)
@@ -581,6 +652,24 @@ fun Player.togglePlayPause(
         play()
         onStart()
     }
+}
+
+fun MediaController.skipToNextSafe() {
+    if (hasNextMediaItem()) {
+        seekToNextMediaItem()
+    } else {
+        seekToDefaultPosition(0)
+    }
+    if (!playWhenReady) play()
+}
+
+fun MediaController.skipToPreviousSafe() {
+    if (hasPreviousMediaItem()) {
+        seekToPreviousMediaItem()
+    } else {
+        seekToDefaultPosition(mediaItemCount - 1)
+    }
+    if (!playWhenReady) play()
 }
 
 fun Fragment.requestDeletion(
@@ -670,31 +759,48 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
 }
 
 /* OK */
-/* OK */
 internal fun Int.toMiddleColor(): Int {
     val hsv = FloatArray(3)
     Color.colorToHSV(this, hsv)
-    hsv[1] = hsv[1].coerceIn(0.5f, 0.9f) // Saturation
-    hsv[2] = hsv[2].coerceIn(0.6f, 0.85f) // Value/Brightness
+    
+    // Check if the color is too close to red/pink and has low saturation
+    // Red is around 0-20 and 340-360 degrees
+    val isReddish = hsv[0] < 20f || hsv[0] > 330f
+    if (isReddish && hsv[1] < 0.3f) {
+        // If it's a weak red/pink, shift it to a nice neutral blue/slate
+        hsv[0] = 210f // Blue/Azure hue
+        hsv[1] = 0.4f // Good saturation
+    } else {
+        hsv[1] = hsv[1].coerceIn(0.4f, 0.9f)
+    }
+    
+    hsv[2] = hsv[2].coerceIn(0.7f, 0.95f)
     return Color.HSVToColor(hsv)
 }
 
 fun Palette?.extractDynamicColors(defaultStart: Int, defaultEnd: Int): Pair<Int, Int> {
-    val start = this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+    // Priority 1: Light Vibrant (Greens, Yellows, Cyans)
+    var start = this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+    
+    // Priority 2: Vibrant
+    if (start == null) {
+        start = this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+    }
+    
+    // Priority 3: If still null or too reddish/weak, try Muted colors which are often better for B&W images
+    if (start == null) {
+        start = this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+    }
+    
+    val finalStart = start ?: defaultStart
+
+    // End color logic
+    val end = this?.getMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: this?.getDarkVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: defaultStart
-
-    val end = this?.getMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getDarkMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: defaultEnd
 
-    return Pair(start.toMiddleColor(), end.toMiddleColor())
+    return Pair(finalStart.toMiddleColor(), end.toMiddleColor())
 }
 
 fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pair<Int, Int> {
@@ -703,9 +809,13 @@ fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pa
 
     return when (mode) {
         DATA.MODE_PALETTE -> {
-            val start = paletteColors?.first ?: track
-            val end = paletteColors?.second ?: tick
-            Pair(start, end)
+            // If colors are null OR (0,0), it means it's a song without art.
+            // Return live system colors instead of fixed DB colors.
+            if (paletteColors == null || (paletteColors.first == 0 && paletteColors.second == 0)) {
+                Pair(tick, track)
+            } else {
+                Pair(paletteColors.first, paletteColors.second)
+            }
         }
 
         DATA.MODE_WHITE -> Pair(Color.WHITE, Color.WHITE)

@@ -161,7 +161,9 @@ class PlayerViewModel @Inject constructor(
             position = newPosition
             if (listSongs.isNotEmpty() && (newPosition in listSongs.indices)) {
                 val song = listSongs[position]
-                uri = Uri.parse(song.path)
+                song.path?.let {
+                    uri = Uri.parse(it)
+                }
                 _currentSong.value = song
                 song.id?.let { songId ->
                     checkFavorite(songId)

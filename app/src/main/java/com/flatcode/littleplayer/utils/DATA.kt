@@ -39,6 +39,7 @@ object DATA {
     const val COLOR_SONG_ID = "COLOR_SONG_ID"
     const val EXCLUDED_FOLDERS = "EXCLUDED_FOLDERS"
     const val SHUFFLE_MODE = "SHUFFLE_MODE"
+    const val LAST_SYNC_TIME = "LAST_SYNC_TIME"
 
     const val PLAYBACK_SPEED = "PLAYBACK_SPEED"
     const val PLAYBACK_PITCH = "PLAYBACK_PITCH"

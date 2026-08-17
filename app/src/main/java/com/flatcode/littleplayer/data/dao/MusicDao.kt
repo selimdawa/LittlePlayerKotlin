@@ -28,6 +28,9 @@ interface MusicDao {
     @Query("SELECT * FROM favorites_table")
     fun getAllFavorites(): Flow<List<FavoriteEntity>>
 
+    @Query("SELECT * FROM favorites_table")
+    suspend fun getAllFavoritesSync(): List<FavoriteEntity>
+
     @Query("SELECT EXISTS(SELECT * FROM favorites_table WHERE songId = :id)")
     suspend fun isFavorite(id: String): Boolean
 
@@ -66,6 +69,9 @@ interface MusicDao {
 
     @Query("SELECT * FROM recent_table ORDER BY timestamp DESC")
     fun getAllRecent(): Flow<List<RecentEntity>>
+
+    @Query("DELETE FROM recent_table WHERE songId = :songId")
+    suspend fun deleteRecentById(songId: String)
 
     @Query("DELETE FROM recent_table")
     suspend fun clearRecent()

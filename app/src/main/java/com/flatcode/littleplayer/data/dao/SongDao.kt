@@ -56,6 +56,9 @@ interface SongDao {
     @Query("UPDATE songs_table SET dominantColor = NULL, vibrantColor = NULL")
     suspend fun resetAllColors()
 
+    @Query("UPDATE songs_table SET isFavorite = :isFavorite WHERE id = :songId")
+    suspend fun updateFavoriteStatus(songId: String, isFavorite: Boolean)
+
     @Query("DELETE FROM songs_table WHERE id = :songId")
     suspend fun deleteSongById(songId: String)
 }

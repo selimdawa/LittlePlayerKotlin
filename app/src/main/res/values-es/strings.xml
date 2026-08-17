@@ -110,8 +110,11 @@
     <string name="system_notification_settings">Ajustes de notificaciones del sistema</string>
     <string name="system_notification_settings_desc">Gestionar las notificaciones de la aplicación en los ajustes de Android.</string>
     <string name="remove_from_playlist">Eliminar de la lista</string>
+    <string name="remove_from_recent">Eliminar de recientes</string>
     <string name="remove_song_from_playlist_message">Estás seguro de que quieres eliminar \"%1$s\" de esta lista de reproducción?</string>
+    <string name="clear_recent_message">¿Estás seguro de borrar el historial de reproducción?</string>
     <string name="remove">Eliminar</string>
+    <string name="clear">Borrar</string>
     <string name="playlist_details_format">Lista de reproducción / %1$s</string>
     <plurals name="songs_count">
         <item quantity="one">%1$d canción</item>
@@ -163,4 +166,5 @@
     <string name="reset_palette_colors">Restablecer colores de paleta</string>
     <string name="reset_palette_colors_desc">Volver a extraer colores para todas las canciones de tu biblioteca.</string>
     <string name="palette_colors_reset">Los colores de la paleta se están volviendo a extraer en segundo plano</string>
+    <string name="loading_data">Cargando datos...</string>
 </resources>

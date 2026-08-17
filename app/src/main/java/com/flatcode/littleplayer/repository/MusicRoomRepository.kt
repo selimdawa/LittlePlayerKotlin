@@ -13,8 +13,9 @@ import com.flatcode.littleplayer.data.entity.PlaybackStateEntity
 import com.flatcode.littleplayer.data.entity.PlaylistEntity
 import com.flatcode.littleplayer.data.entity.RecentEntity
 import com.flatcode.littleplayer.data.entity.SongEntity
+import com.flatcode.littleplayer.di.IoDispatcher
 import com.flatcode.littleplayer.utils.DATA
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -27,49 +28,53 @@ class MusicRoomRepository @Inject constructor(
     private val songDao: SongDao,
     private val albumImageDao: AlbumImageDao,
     private val musicDao: MusicDao,
-    dataStore: DataStore<Preferences>
+    dataStore: DataStore<Preferences>,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     val excludedFolders: Flow<Set<String>> = dataStore.data.map { preferences ->
         preferences[stringSetPreferencesKey(DATA.EXCLUDED_FOLDERS)] ?: emptySet()
     }.distinctUntilChanged()
 
     suspend fun getAlbumImageByName(albumName: String): AlbumImageEntity? =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             albumImageDao.getAlbumImageByName(albumName)
         }
 
-    suspend fun insertFavorite(song: FavoriteEntity) = withContext(Dispatchers.IO) {
+    suspend fun insertFavorite(song: FavoriteEntity) = withContext(ioDispatcher) {
         musicDao.insertFavorite(song)
+        songDao.updateFavoriteStatus(song.songId, true)
     }
 
-    suspend fun deleteFavorite(song: FavoriteEntity) = withContext(Dispatchers.IO) {
+    suspend fun deleteFavorite(song: FavoriteEntity) = withContext(ioDispatcher) {
         musicDao.deleteFavorite(song)
+        songDao.updateFavoriteStatus(song.songId, false)
     }
 
-    suspend fun deleteFavoriteById(id: String) = withContext(Dispatchers.IO) {
+    suspend fun deleteFavoriteById(id: String) = withContext(ioDispatcher) {
         musicDao.deleteFavoriteById(id)
+        songDao.updateFavoriteStatus(id, false)
     }
 
     fun getAllFavorites(): Flow<List<FavoriteEntity>> = musicDao.getAllFavorites()
 
-    suspend fun isFavorite(id: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun isFavorite(id: String): Boolean = withContext(ioDispatcher) {
         musicDao.isFavorite(id)
     }
 
     suspend fun insertToPlaylist(playlistItems: List<PlaylistEntity>) =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             musicDao.insertToPlaylist(playlistItems)
         }
 
-    suspend fun deleteFromPlaylist(name: String, songId: String) = withContext(Dispatchers.IO) {
+    suspend fun deleteFromPlaylist(name: String, songId: String) = withContext(ioDispatcher) {
         musicDao.deleteFromPlaylist(name, songId)
     }
 
-    suspend fun deletePlaylist(name: String) = withContext(Dispatchers.IO) {
+    suspend fun deletePlaylist(name: String) = withContext(ioDispatcher) {
         musicDao.deletePlaylist(name)
     }
 
-    suspend fun renamePlaylist(oldName: String, newName: String) = withContext(Dispatchers.IO) {
+    suspend fun renamePlaylist(oldName: String, newName: String) = withContext(ioDispatcher) {
         musicDao.renamePlaylist(oldName, newName)
     }
 
@@ -77,7 +82,7 @@ class MusicRoomRepository @Inject constructor(
         musicDao.getSongsFromPlaylist(name)
 
     suspend fun getSongsFromPlaylistSync(name: String): List<PlaylistEntity> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             musicDao.getSongsFromPlaylistSync(name)
         }
 
@@ -88,49 +93,57 @@ class MusicRoomRepository @Inject constructor(
 
     fun getAllAlbumImages(): Flow<List<AlbumImageEntity>> = albumImageDao.getAllAlbumImages()
 
-    suspend fun insertRecent(song: RecentEntity) = withContext(Dispatchers.IO) {
+    suspend fun insertRecent(song: RecentEntity) = withContext(ioDispatcher) {
         musicDao.insertRecent(song)
         musicDao.trimRecent()
     }
 
     fun getAllRecent(): Flow<List<RecentEntity>> = musicDao.getAllRecent()
 
-    suspend fun incrementPlayCount(songId: String) = withContext(Dispatchers.IO) {
+    suspend fun deleteRecentById(songId: String) = withContext(ioDispatcher) {
+        musicDao.deleteRecentById(songId)
+    }
+
+    suspend fun clearRecent() = withContext(ioDispatcher) {
+        musicDao.clearRecent()
+    }
+
+    suspend fun incrementPlayCount(songId: String) = withContext(ioDispatcher) {
         songDao.incrementPlayCount(songId)
     }
 
-    suspend fun updateWaveform(songId: String, waveform: String) = withContext(Dispatchers.IO) {
+    suspend fun updateWaveform(songId: String, waveform: String) = withContext(ioDispatcher) {
         songDao.updateWaveform(songId, waveform)
     }
 
-    suspend fun updateSongColors(songId: String, dominant: Int?, vibrant: Int?) = withContext(Dispatchers.IO) {
+    suspend fun updateSongColors(songId: String, dominant: Int?, vibrant: Int?) = withContext(ioDispatcher) {
         songDao.updateSongColors(songId, dominant, vibrant)
     }
 
-    suspend fun resetAllColors() = withContext(Dispatchers.IO) {
+    suspend fun resetAllColors() = withContext(ioDispatcher) {
         songDao.resetAllColors()
     }
 
-    suspend fun getSongById(songId: String): SongEntity? = withContext(Dispatchers.IO) {
+    suspend fun getSongById(songId: String): SongEntity? = withContext(ioDispatcher) {
         songDao.getSongById(songId)
     }
 
     suspend fun saveEqualizerSettings(equalizerEntity: EqualizerEntity) =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             musicDao.saveEqualizerSettings(equalizerEntity)
         }
 
     fun getEqualizerSettings(): Flow<EqualizerEntity?> = musicDao.getEqualizerSettings()
 
-    suspend fun savePlaybackState(state: PlaybackStateEntity) = withContext(Dispatchers.IO) {
+    suspend fun savePlaybackState(state: PlaybackStateEntity) = withContext(ioDispatcher) {
         musicDao.savePlaybackState(state)
     }
 
-    suspend fun getPlaybackStateSync(): PlaybackStateEntity? = withContext(Dispatchers.IO) {
+    suspend fun getPlaybackStateSync(): PlaybackStateEntity? = withContext(ioDispatcher) {
         musicDao.getPlaybackStateSync()
     }
 
-    suspend fun getQueue() = withContext(Dispatchers.IO) {
+    suspend fun getQueue() = withContext(ioDispatcher) {
         musicDao.getQueue()
     }
 }

@@ -151,6 +151,7 @@
             app:tint="?attr/mc_track" />
 
         <TextView
+            android:id="@+id/optionRemoveText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/spacing_12"
