@@ -12,6 +12,7 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.getLibraryColor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -120,7 +121,6 @@ class NowPlayerViewModel @Inject constructor(
     }
 
     private val _colorSongId = MutableStateFlow<String?>(null)
-    val colorSongId: StateFlow<String?> = _colorSongId.asStateFlow()
 
     fun updateThemeColor(songId: String?, start: Int, end: Int) {
         if (songId != null && _colorSongId.value == songId && _currentThemeColor.value != null) {
@@ -134,12 +134,6 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[themeExtractedColorSecondKey] = end
                 songId?.let { preferences[colorSongIdKey] = it }
             }
-        }
-    }
-
-    fun updateSongColors(songId: String, dominant: Int, vibrant: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            roomRepository.updateSongColors(songId, dominant, vibrant)
         }
     }
 
@@ -183,8 +177,37 @@ class NowPlayerViewModel @Inject constructor(
         return repository.loadCurrentQueue()
     }
 
+    fun getCurrentSongFromRepository(id: String): MusicFiles? {
+        return repository.currentPlaylist.value.find { it.id == id }
+    }
+
     fun saveAndBroadcastNextSong(song: MusicFiles) {
         _currentPlayingSong.value = song
+
+        // If song has colors, update theme immediately
+        if (song.vibrantColor != null && song.dominantColor != null) {
+            updateThemeColor(song.id, song.vibrantColor, song.dominantColor)
+        } else {
+            // Trigger background extraction if missing
+            viewModelScope.launch(Dispatchers.IO) {
+                val track = repository.context.getLibraryColor("mc_track")
+                val tick = repository.context.getLibraryColor("mc_tick")
+                song.id?.let { id ->
+                    song.path?.let { path ->
+                        repository.extractColorsForSong(id, path, song.albumId, song.album, track, tick)
+                        // After extraction, the repository updates Room. 
+                        // We should probably fetch the updated song or just rely on the next update.
+                        // For immediate feedback:
+                        val updatedSong = roomRepository.getSongById(id)
+                        if (updatedSong?.vibrantColor != null && updatedSong.dominantColor != null) {
+                            launch(Dispatchers.Main) {
+                                updateThemeColor(id, updatedSong.vibrantColor, updatedSong.dominantColor)
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
@@ -197,8 +220,8 @@ class NowPlayerViewModel @Inject constructor(
                 preferences[albumIdKey] = song.albumId ?: ""
                 preferences[cachedImagePathKey] = song.cachedImagePath ?: ""
                 
-                song.dominantColor?.let { preferences[themeExtractedColorKey] = it }
-                song.vibrantColor?.let { preferences[themeExtractedColorSecondKey] = it }
+                song.vibrantColor?.let { preferences[themeExtractedColorKey] = it }
+                song.dominantColor?.let { preferences[themeExtractedColorSecondKey] = it }
                 song.id?.let { preferences[colorSongIdKey] = it }
             }
         }

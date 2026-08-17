@@ -107,6 +107,10 @@ class MusicRoomRepository @Inject constructor(
         songDao.updateSongColors(songId, dominant, vibrant)
     }
 
+    suspend fun resetAllColors() = withContext(Dispatchers.IO) {
+        songDao.resetAllColors()
+    }
+
     suspend fun getSongById(songId: String): SongEntity? = withContext(Dispatchers.IO) {
         songDao.getSongById(songId)
     }

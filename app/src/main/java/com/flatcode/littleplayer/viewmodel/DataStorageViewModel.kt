@@ -38,4 +38,10 @@ class DataStorageViewModel @Inject constructor(
             repository.clearHistory()
         }
     }
+
+    fun resetPaletteColors() {
+        viewModelScope.launch {
+            repository.resetPaletteColors()
+        }
+    }
 }

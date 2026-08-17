@@ -510,7 +510,10 @@ fun getSongImageModel(
     album: String? = null,
     fallback: Int = R.drawable.ic_cover_song,
 ): Any {
-    if (!cachedPath.isNullOrEmpty()) return File(cachedPath)
+    if (!cachedPath.isNullOrEmpty()) {
+        val file = File(cachedPath)
+        if (file.exists()) return file
+    }
 
     val isUnknownAlbum = album == null || album == DATA.UNKNOWN
     if (!isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
@@ -679,12 +682,16 @@ internal fun Int.toMiddleColor(): Int {
 fun Palette?.extractDynamicColors(defaultStart: Int, defaultEnd: Int): Pair<Int, Int> {
     val start = this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getDarkVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: defaultStart
 
     val end = this?.getMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-        ?: this?.getDarkVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getLightMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getDarkMutedColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
+        ?: this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
         ?: defaultEnd
 
     return Pair(start.toMiddleColor(), end.toMiddleColor())

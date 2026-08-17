@@ -182,4 +182,7 @@
     <string name="kbps_format">%1$s كيلوبت/ثانية</string>
     <string name="kbps_placeholder">320 كيلوبت/ثانية</string>
     <string name="one_x">1.0x</string>
+    <string name="reset_palette_colors">إعادة ضبط ألوان لوحة الألوان</string>
+    <string name="reset_palette_colors_desc">إعادة استخراج الألوان لجميع الأغاني في مكتبتك.</string>
+    <string name="palette_colors_reset">يتم إعادة استخراج ألوان لوحة الألوان في الخلفية</string>
 </resources>

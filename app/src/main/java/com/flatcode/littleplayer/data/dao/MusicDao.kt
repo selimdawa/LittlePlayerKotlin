@@ -76,6 +76,9 @@ interface MusicDao {
     @Query("DELETE FROM current_queue_table")
     suspend fun clearQueue()
 
+    @Query("UPDATE current_queue_table SET cachedImagePath = NULL")
+    suspend fun clearQueueCachedImagePaths()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertQueue(queue: List<CurrentQueueEntity>)
 

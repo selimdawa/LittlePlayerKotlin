@@ -178,4 +178,7 @@
     <string name="kbps_format">%1$s kbps</string>
     <string name="kbps_placeholder">320 kbps</string>
     <string name="one_x">1.0x</string>
+    <string name="reset_palette_colors">Reset Palette Colors</string>
+    <string name="reset_palette_colors_desc">Re-extract colors for all songs in your library.</string>
+    <string name="palette_colors_reset">Palette colors are being re-extracted in the background</string>
 </resources>

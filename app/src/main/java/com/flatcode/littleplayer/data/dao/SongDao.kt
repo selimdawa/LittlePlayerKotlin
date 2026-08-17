@@ -38,14 +38,23 @@ interface SongDao {
     @Query("UPDATE songs_table SET cachedImagePath = :path WHERE id = :songId")
     suspend fun updateCachedImagePath(songId: String, path: String?)
 
+    @Query("UPDATE songs_table SET cachedImagePath = NULL")
+    suspend fun clearAllCachedImagePaths()
+
     @Query("UPDATE songs_table SET dominantColor = :dominantColor, vibrantColor = :vibrantColor WHERE id = :songId")
     suspend fun updateSongColors(songId: String, dominantColor: Int?, vibrantColor: Int?)
 
     @Query("SELECT * FROM songs_table WHERE id = :songId")
     suspend fun getSongById(songId: String): SongEntity?
 
+    @Query("SELECT * FROM songs_table WHERE dominantColor IS NULL OR vibrantColor IS NULL")
+    suspend fun getSongsMissingColors(): List<SongEntity>
+
     @Query("SELECT * FROM songs_table WHERE isFavorite = 1")
     fun getFavoriteSongs(): Flow<List<SongEntity>>
+
+    @Query("UPDATE songs_table SET dominantColor = NULL, vibrantColor = NULL")
+    suspend fun resetAllColors()
 
     @Query("DELETE FROM songs_table WHERE id = :songId")
     suspend fun deleteSongById(songId: String)

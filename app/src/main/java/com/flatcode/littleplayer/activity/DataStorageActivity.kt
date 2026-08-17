@@ -80,6 +80,11 @@ class DataStorageActivity : AppCompatActivity() {
             launchActivity<HiddenFoldersActivity>()
         }
 
+        binding.btnResetPalette.setOnClickListener {
+            dataViewModel.resetPaletteColors()
+            binding.root.snackbar(getString(R.string.palette_colors_reset))
+        }
+
         binding.btnClearCache.setOnClickListener {
             dataViewModel.clearCache()
             binding.root.snackbar(getString(R.string.art_cache_cleared))

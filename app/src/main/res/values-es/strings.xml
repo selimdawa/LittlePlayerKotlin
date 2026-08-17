@@ -160,4 +160,7 @@
     <string name="kbps_format">%1$s kbps</string>
     <string name="kbps_placeholder">320 kbps</string>
     <string name="one_x">1.0x</string>
+    <string name="reset_palette_colors">Restablecer colores de paleta</string>
+    <string name="reset_palette_colors_desc">Volver a extraer colores para todas las canciones de tu biblioteca.</string>
+    <string name="palette_colors_reset">Los colores de la paleta se están volviendo a extraer en segundo plano</string>
 </resources>

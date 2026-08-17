@@ -25,11 +25,7 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.extractDynamicColors
-import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.getCurrentThemeColors
-import com.flatcode.littleplayer.utils.getLibraryColor
-import com.flatcode.littleplayer.utils.getSongImageModel
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -160,26 +156,6 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
                 if (lastLoadedPath != it.path) {
                     lastLoadedPath = it.path
-                    
-                    val track = requireContext().getLibraryColor("mc_track")
-                    val tick = requireContext().getLibraryColor("mc_tick")
-
-                    if (it.dominantColor != null && it.vibrantColor != null) {
-                        // Use cached colors from Room
-                        viewModel.updateThemeColor(it.id, it.vibrantColor, it.dominantColor)
-                    } else if (viewModel.colorSongId.value != it.id) {
-                        // Extract and save only if not already extracted in VM
-                        val model = getSongImageModel(it.albumId, it.path, it.cachedImagePath, it.album)
-                        requireContext().extractPalette(model) { palette ->
-                            val colors = palette.extractDynamicColors(track, tick)
-                            viewModel.updateThemeColor(it.id, colors.first, colors.second)
-                            
-                            // Save to Room
-                            it.id?.let { id ->
-                                viewModel.updateSongColors(id, colors.second, colors.first)
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -232,27 +208,33 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun updateUiFromPlayer(player: Player) {
         val currentMediaItem = player.currentMediaItem
         if (currentMediaItem != null) {
-            val title =
-                currentMediaItem.mediaMetadata.title?.toString() ?: getString(R.string.unknown)
-            val artist =
-                currentMediaItem.mediaMetadata.artist?.toString() ?: getString(R.string.unknown)
-            val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
             val id = currentMediaItem.mediaId
-            val path = currentMediaItem.localConfiguration?.uri?.path
-            val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
-            val cachedPath = currentMediaItem.mediaMetadata.extras?.getString("CACHED_IMAGE_PATH")
+            
+            // Try to find the song in the existing playlist to get its colors
+            val existingSong = viewModel.getCurrentSongFromRepository(id)
+            
+            if (existingSong != null) {
+                viewModel.saveAndBroadcastNextSong(existingSong)
+            } else {
+                val title = currentMediaItem.mediaMetadata.title?.toString() ?: getString(R.string.unknown)
+                val artist = currentMediaItem.mediaMetadata.artist?.toString() ?: getString(R.string.unknown)
+                val album = currentMediaItem.mediaMetadata.albumTitle?.toString()
+                val path = currentMediaItem.localConfiguration?.uri?.path
+                val albumId = currentMediaItem.mediaMetadata.extras?.getString("ALBUM_ID")
+                val cachedPath = currentMediaItem.mediaMetadata.extras?.getString("CACHED_IMAGE_PATH")
 
-            viewModel.saveAndBroadcastNextSong(
-                MusicFiles(
-                    path = path,
-                    title = title,
-                    artist = artist,
-                    album = album,
-                    id = id,
-                    albumId = albumId,
-                    cachedImagePath = cachedPath,
-                ),
-            )
+                viewModel.saveAndBroadcastNextSong(
+                    MusicFiles(
+                        path = path,
+                        title = title,
+                        artist = artist,
+                        album = album,
+                        id = id,
+                        albumId = albumId,
+                        cachedImagePath = cachedPath,
+                    ),
+                )
+            }
         }
         updatePlayPauseAnimation(player.isPlaying)
     }

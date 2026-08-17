@@ -16,5 +16,7 @@ data class CurrentQueueEntity(
     val path: String?,
     val cachedImagePath: String?,
     val orderIndex: Int,
-    @ColumnInfo(defaultValue = "0") val originalOrderIndex: Int = 0
+    @ColumnInfo(defaultValue = "0") val originalOrderIndex: Int = 0,
+    val dominantColor: Int? = null,
+    val vibrantColor: Int? = null
 )

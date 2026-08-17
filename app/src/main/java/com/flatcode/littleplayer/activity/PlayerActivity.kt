@@ -28,7 +28,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import androidx.palette.graphics.Palette
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.flatcode.littleplayer.R
@@ -364,12 +363,12 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 val bitmap = withContext(Dispatchers.Default) {
                     getSongArtwork(song.albumId, song.path, song.cachedImagePath, song.album, 600)
                 }
-                applyArtworkAndPalette(bitmap, song)
+                applyArtworkAndPalette(bitmap)
             }
         }
     }
 
-    private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?, song: MusicFiles) {
+    private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?) {
         var imageLoaded = false
         var blurLoaded = false
 
@@ -390,55 +389,6 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
         ) {
             blurLoaded = true
             checkReady()
-        }
-
-        // Extract Palette
-        if (bitmap != null) {
-            val track = getLibraryColor("mc_track")
-            val tick = getLibraryColor("mc_tick")
-
-            if (song.dominantColor != null && song.vibrantColor != null) {
-                // Use cached colors from Room
-                val colors = Pair(song.vibrantColor, song.dominantColor)
-                currentDominantColor = colors
-                binding.paletteColorBg.applySimpleGradient(
-                    colors.first.toMiddleColor(),
-                    colors.second.toMiddleColor()
-                )
-                nowPlayerViewModel.updateThemeColor(song.id, colors.first, colors.second)
-                if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
-            } else if (nowPlayerViewModel.colorSongId.value != song.id) {
-                // Extract and save
-                Palette.from(bitmap).generate { palette ->
-                    val colors = palette.extractDynamicColors(track, tick)
-                    currentDominantColor = colors
-
-                    binding.paletteColorBg.applySimpleGradient(
-                        colors.first.toMiddleColor(),
-                        colors.second.toMiddleColor()
-                    )
-                    nowPlayerViewModel.updateThemeColor(song.id, colors.first, colors.second)
-                    
-                    // Save to Room
-                    song.id?.let { id ->
-                        nowPlayerViewModel.updateSongColors(id, colors.second, colors.first)
-                    }
-
-                    if (currentMode == DATA.MODE_PALETTE) {
-                        applyCurrentModeColors()
-                    }
-                }
-            }
-        } else {
-            val track = getLibraryColor("mc_track")
-            val tick = getLibraryColor("mc_tick")
-            currentDominantColor = Pair(track, tick)
-            binding.paletteColorBg.applySimpleGradient(
-                track.toMiddleColor(),
-                tick.toMiddleColor()
-            )
-            nowPlayerViewModel.updateThemeColor(null, track, tick)
-            if (currentMode == DATA.MODE_PALETTE) applyCurrentModeColors()
         }
     }
 
@@ -605,49 +555,24 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     nextSong.albumId, nextSong.path, nextSong.cachedImagePath, nextSong.album
                 )
 
-                // Pre-load Bitmap and Palette
+                // Pre-load Bitmap
                 val request = ImageRequest.Builder(this@PlayerActivity).data(model)
                     .allowHardware(enable = false).precision(coil.size.Precision.INEXACT).size(600)
                     .listener(onError = { _, _ ->
-                        val track = getLibraryColor("mc_track")
-                        val tick = getLibraryColor("mc_tick")
-                        currentDominantColor = Pair(track, tick)
                         preloadedBitmap = null
                         dataReady = true
                         onReady()
                     }, onCancel = {
-                        val track = getLibraryColor("mc_track")
-                        val tick = getLibraryColor("mc_tick")
-                        currentDominantColor = Pair(track, tick)
                         preloadedBitmap = null
                         dataReady = true
                         onReady()
                     }).target { result ->
-                        val bitmap = (result as? BitmapDrawable)?.bitmap
-                        preloadedBitmap = bitmap
-
-                        if (bitmap != null) {
-                            Palette.from(bitmap).generate { palette ->
-                                val track = getLibraryColor("mc_track")
-                                val tick = getLibraryColor("mc_tick")
-                                currentDominantColor = palette.extractDynamicColors(track, tick)
-                                nowPlayerViewModel.updateThemeColor(nextSong.id, currentDominantColor.first, currentDominantColor.second)
-                                dataReady = true
-                                onReady()
-                            }
-                        } else {
-                            val track = getLibraryColor("mc_track")
-                            val tick = getLibraryColor("mc_tick")
-                            currentDominantColor = Pair(track, tick)
-                            dataReady = true
-                            onReady()
-                        }
+                        preloadedBitmap = (result as? BitmapDrawable)?.bitmap
+                        dataReady = true
+                        onReady()
                     }.build()
                 imageLoader.enqueue(request)
             } else {
-                val track = getLibraryColor("mc_track")
-                val tick = getLibraryColor("mc_tick")
-                currentDominantColor = Pair(track, tick)
                 preloadedBitmap = null
                 dataReady = true
                 onReady()
@@ -819,6 +744,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                     if (viewModel.position != index) {
                         viewModel.updatePositionAndSong(index)
                     }
+                    // Always sync with global ViewModel on connect
+                    nowPlayerViewModel.saveAndBroadcastNextSong(viewModel.listSongs[index])
                 } else if (controller.currentMediaItem == null && viewModel.position != -1) {
                     setupMediaItems(controller)
                 }
@@ -936,6 +863,8 @@ class PlayerActivity : AppCompatActivity(), Player.Listener {
                 if (index != viewModel.position) {
                     viewModel.updatePositionAndSong(index)
                 }
+                // Sync color extraction
+                nowPlayerViewModel.saveAndBroadcastNextSong(viewModel.listSongs[index])
             }
         }
     }
