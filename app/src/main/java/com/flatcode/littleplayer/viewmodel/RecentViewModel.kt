@@ -24,21 +24,28 @@ class RecentViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                repository.getAllRecent(), repository.getAllAlbumImages(), repository.excludedFolders
-            ) { recents, images, excluded ->
+                repository.getAllRecent(),
+                repository.getAllSongs(),
+                repository.getAllAlbumImages(),
+                repository.excludedFolders
+            ) { recents, allSongs, images, excluded ->
+                val songMap = allSongs.associateBy { it.id }
                 val imageMap = images.associateBy { it.albumName }
                 recents.filter { recent ->
                     excluded.none { excludedPath -> recent.path.startsWith(excludedPath) }
-                }.take(20).map {
+                }.take(20).map { recent ->
+                    val song = songMap[recent.songId]
                     MusicFiles(
-                        id = it.songId,
-                        title = it.title,
-                        artist = it.artist,
-                        album = it.album,
-                        albumId = it.albumId,
-                        duration = it.duration,
-                        path = it.path,
-                        cachedImagePath = imageMap[it.album ?: DATA.UNKNOWN]?.imagePath
+                        id = recent.songId,
+                        title = recent.title,
+                        artist = recent.artist,
+                        album = recent.album,
+                        albumId = recent.albumId,
+                        duration = recent.duration,
+                        path = recent.path,
+                        cachedImagePath = imageMap[recent.album ?: DATA.UNKNOWN]?.imagePath,
+                        dominantColor = song?.dominantColor,
+                        vibrantColor = song?.vibrantColor
                     )
                 }
             }.collect {

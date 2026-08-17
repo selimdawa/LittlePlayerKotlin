@@ -789,7 +789,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 try {
                     val song = runBlocking { repository.getSongById(mediaId) }
                     if (song != null) {
-                        LibraryResult.ofItem(song.toMediaItem(), null)
+                        LibraryResult.ofItem(song.songToMediaItem(), null)
                     } else {
                         LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
                     }
@@ -827,7 +827,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         it.title?.contains(query, ignoreCase = true) == true || 
                         it.artist?.contains(query, ignoreCase = true) == true ||
                         it.album?.contains(query, ignoreCase = true) == true
-                    }.map { it.toMediaItem() }
+                    }.map { it.musicFileToMediaItem() }
                     
                     LibraryResult.ofItemList(ImmutableList.copyOf(filtered), params)
                 } catch (e: Exception) {
@@ -883,7 +883,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
                         CATEGORY_SONGS -> {
                             val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
-                            val mediaItems = songs.map { it.toMediaItem() }
+                            val mediaItems = songs.map { it.musicFileToMediaItem() }
                             LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                         }
 
@@ -921,13 +921,13 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
                         CATEGORY_FAVORITES -> {
                             val favorites = runBlocking { repository.getAllFavorites().first() }
-                            val mediaItems = favorites.map { it.toMediaItem() }
+                            val mediaItems = favorites.map { it.favoriteToMediaItem() }
                             LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                         }
 
                         CATEGORY_RECENT -> {
                             val recent = runBlocking { repository.getAllRecent().first() }
-                            val mediaItems = recent.map { it.toMediaItem() }
+                            val mediaItems = recent.map { it.recentToMediaItem() }
                             LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                         }
 
@@ -936,18 +936,18 @@ class MusicService : MediaLibraryService(), Player.Listener {
                                 val albumName = parentId.removePrefix("album|")
                                 val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
                                 val mediaItems =
-                                    songs.filter { it.album == albumName }.map { it.toMediaItem() }
+                                    songs.filter { it.album == albumName }.map { it.musicFileToMediaItem() }
                                 LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                             } else if (parentId.startsWith("artist|")) {
                                 val artistName = parentId.removePrefix("artist|")
                                 val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
                                 val mediaItems =
-                                    songs.filter { it.artist == artistName }.map { it.toMediaItem() }
+                                    songs.filter { it.artist == artistName }.map { it.musicFileToMediaItem() }
                                 LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                             } else if (parentId.startsWith("playlist|")) {
                                 val playlistName = parentId.removePrefix("playlist|")
                                 val playlistSongs = runBlocking { musicDao.getSongsFromPlaylistSync(playlistName) }
-                                val mediaItems = playlistSongs.map { it.toMediaItem() }
+                                val mediaItems = playlistSongs.map { it.playlistToMediaItem() }
                                 LibraryResult.ofItemList(ImmutableList.copyOf(mediaItems), params)
                             } else {
                                 LibraryResult.ofItemList(ImmutableList.of(), params)
@@ -962,7 +962,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
             }
         }
 
-        private fun RecentEntity.toMediaItem(): MediaItem {
+        private fun RecentEntity.recentToMediaItem(): MediaItem {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.songId.toLong()
@@ -986,7 +986,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
             ).build()
         }
 
-        private fun MusicFiles.toMediaItem(): MediaItem {
+        private fun MusicFiles.musicFileToMediaItem(): MediaItem {
             val uri = this.path?.toUri() ?: "".toUri()
             val artworkUri = try {
                 val id = this.id?.toLong() ?: 0L
@@ -999,13 +999,13 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
                     .setArtworkUri(artworkUri)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).setExtras(Bundle().apply {
-                        putString("ALBUM_ID", this@toMediaItem.albumId)
-                        putString("CACHED_IMAGE_PATH", this@toMediaItem.cachedImagePath)
+                        putString("ALBUM_ID", this@musicFileToMediaItem.albumId)
+                        putString("CACHED_IMAGE_PATH", this@musicFileToMediaItem.cachedImagePath)
                     }).build()
             ).build()
         }
 
-        private fun SongEntity.toMediaItem(): MediaItem {
+        private fun SongEntity.songToMediaItem(): MediaItem {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.id.toLong()
@@ -1018,13 +1018,13 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
                     .setArtworkUri(artworkUri)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).setExtras(Bundle().apply {
-                        putString("ALBUM_ID", this@toMediaItem.albumId)
-                        putString("CACHED_IMAGE_PATH", this@toMediaItem.cachedImagePath)
+                        putString("ALBUM_ID", this@songToMediaItem.albumId)
+                        putString("CACHED_IMAGE_PATH", this@songToMediaItem.cachedImagePath)
                     }).build()
             ).build()
         }
 
-        private fun PlaylistEntity.toMediaItem(): MediaItem {
+        private fun PlaylistEntity.playlistToMediaItem(): MediaItem {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.songId.toLong()
@@ -1034,13 +1034,13 @@ class MusicService : MediaLibraryService(), Player.Listener {
             }
             return MediaItem.Builder().setMediaId(this.songId).setUri(uri).setMediaMetadata(
                 MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
-                    .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
+                    .setAlbumTitle(null).setIsBrowsable(false).setIsPlayable(true)
                     .setArtworkUri(artworkUri)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
             ).build()
         }
 
-        private fun FavoriteEntity.toMediaItem(): MediaItem {
+        private fun FavoriteEntity.favoriteToMediaItem(): MediaItem {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.songId.toLong()

@@ -63,13 +63,14 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
         this.currentThemeColor = color
         this.currentThemeColorSecond = colorSecond
 
-        if (listItemThemeEnabled && ((oldMode != mode) || (oldColor != color) || (oldColorSecond != colorSecond))) {
-            // Only update the playing item to avoid full list refresh
-            currentList.forEachIndexed { index, musicFiles ->
-                if (musicFiles.path == playingPath) {
-                    notifyItemChanged(index)
-                }
-            }
+        if ((oldMode != mode) || (oldColor != color) || (oldColorSecond != colorSecond)) {
+            // Reset colors so they are re-fetched from the new theme
+            colorOnSurface = Color.GRAY
+            mcTrack = Color.GRAY
+            mcTick = Color.GRAY
+            
+            // Refresh all items to update placeholders (ic_cover_song uses theme attributes)
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 

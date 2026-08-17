@@ -8,6 +8,7 @@ import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -308,6 +309,9 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
 
     val isInitialLoading: StateFlow<Boolean> = repository.isInitialLoading
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val syncStatus: StateFlow<Resource<Unit>> = repository.syncStatus
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Resource.Success(Unit))
 }
 
 sealed class MusicEvent {

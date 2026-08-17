@@ -14,8 +14,8 @@ android {
         applicationId = "com.flatcode.littleplayer"
         minSdk = 24
         targetSdk = 37
-        versionCode = 5
-        versionName = "1.0.4"
+        versionCode = 6
+        versionName = "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,7 +56,7 @@ dependencies {
     implementation(libs.multicolors)                       //Theme Colors
     //Image
     implementation(libs.coil)                              //Coil Image
-    implementation(libs.androidx.palette.ktx)              //Background Color
+    implementation(libs.androidx.palette.ktx)              //Changing Colors
     //Lifecycle
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.livedata.ktx)
@@ -70,7 +70,7 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
     //Navigation
-    implementation(libs.navigation.fragment.ktx)                 //Need New Style |Swapping Fragments|
+    implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
     //Media Player
     implementation(libs.androidx.media)

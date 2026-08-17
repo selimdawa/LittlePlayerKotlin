@@ -485,11 +485,15 @@ fun ImageView.loadSongImage(
 ) {
     val model = getSongImageModel(albumId, path, cachedPath, album, fallback, isAlbum)
     val currentModel = getTag(R.id.image_model_tag)
-    if (currentModel == model && drawable != null) {
+    val currentThemeId = MultiColorManager.currentThemeId.value
+    val lastThemeId = getTag(R.id.image_theme_tag)
+
+    if (currentModel == model && drawable != null && (model !is Int || lastThemeId == currentThemeId)) {
         onComplete?.invoke()
         return
     }
     setTag(R.id.image_model_tag, model)
+    setTag(R.id.image_theme_tag, currentThemeId)
 
     load(model) {
         crossfade(enable = true)
@@ -513,8 +517,12 @@ fun ImageView.loadSongImageByPath(
         fallback
     }
 
-    if (getTag(R.id.image_model_tag) == model && drawable != null) return
+    val currentThemeId = MultiColorManager.currentThemeId.value
+    val lastThemeId = getTag(R.id.image_theme_tag)
+
+    if (getTag(R.id.image_model_tag) == model && drawable != null && (model !is Int || lastThemeId == currentThemeId)) return
     setTag(R.id.image_model_tag, model)
+    setTag(R.id.image_theme_tag, currentThemeId)
 
     load(model) {
         crossfade(true)
@@ -536,10 +544,13 @@ fun ImageView.loadSongImageBlur(
     val blurTag = "blur_$level"
     val currentModel = getTag(R.id.image_model_tag)
     val currentBlur = getTag(R.id.image_blur_tag)
+    val currentThemeId = MultiColorManager.currentThemeId.value
+    val lastThemeId = getTag(R.id.image_theme_tag)
 
-    if (currentModel == model && currentBlur == blurTag && drawable != null) return
+    if (currentModel == model && currentBlur == blurTag && drawable != null && (model !is Int || lastThemeId == currentThemeId)) return
     setTag(R.id.image_model_tag, model)
     setTag(R.id.image_blur_tag, blurTag)
+    setTag(R.id.image_theme_tag, currentThemeId)
 
     val actualFallback =
         if (fallback == R.drawable.ic_cover_song) R.drawable.ic_cover_song_blur else fallback
@@ -759,7 +770,7 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
 }
 
 /* OK */
-internal fun Int.toMiddleColor(): Int {
+fun Int.toMiddleColor(): Int {
     val hsv = FloatArray(3)
     Color.colorToHSV(this, hsv)
     
@@ -812,7 +823,8 @@ fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pa
             // If colors are null OR (0,0), it means it's a song without art.
             // Return live system colors instead of fixed DB colors.
             if (paletteColors == null || (paletteColors.first == 0 && paletteColors.second == 0)) {
-                Pair(tick, track)
+                val colors = null.extractDynamicColors(track, tick)
+                Pair(colors.first, colors.second)
             } else {
                 Pair(paletteColors.first, paletteColors.second)
             }

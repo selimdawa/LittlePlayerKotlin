@@ -24,21 +24,28 @@ class FavoritesViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                repository.getAllFavorites(), repository.getAllAlbumImages(), repository.excludedFolders
-            ) { favorites, images, excluded ->
+                repository.getAllFavorites(),
+                repository.getAllSongs(),
+                repository.getAllAlbumImages(),
+                repository.excludedFolders
+            ) { favorites, allSongs, images, excluded ->
+                val songMap = allSongs.associateBy { it.id }
                 val imageMap = images.associateBy { it.albumName }
-                favorites.filter { fav -> 
+                favorites.filter { fav ->
                     excluded.none { excludedPath -> fav.path.startsWith(excludedPath) }
-                }.map {
+                }.map { fav ->
+                    val song = songMap[fav.songId]
                     MusicFiles(
-                        id = it.songId,
-                        title = it.title,
-                        artist = it.artist,
-                        album = it.album,
-                        albumId = it.albumId,
-                        duration = it.duration,
-                        path = it.path,
-                        cachedImagePath = imageMap[it.album ?: DATA.UNKNOWN]?.imagePath
+                        id = fav.songId,
+                        title = fav.title,
+                        artist = fav.artist,
+                        album = fav.album,
+                        albumId = fav.albumId,
+                        duration = fav.duration,
+                        path = fav.path,
+                        cachedImagePath = imageMap[fav.album ?: DATA.UNKNOWN]?.imagePath,
+                        dominantColor = song?.dominantColor,
+                        vibrantColor = song?.vibrantColor
                     )
                 }
             }.collect {

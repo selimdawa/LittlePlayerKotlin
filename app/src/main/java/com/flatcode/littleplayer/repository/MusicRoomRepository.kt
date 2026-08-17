@@ -100,6 +100,10 @@ class MusicRoomRepository @Inject constructor(
 
     fun getAllRecent(): Flow<List<RecentEntity>> = musicDao.getAllRecent()
 
+    fun getAllSongs(): Flow<List<SongEntity>> = songDao.getAllSongs()
+
+    fun getFavoriteSongs(): Flow<List<SongEntity>> = songDao.getFavoriteSongs()
+
     suspend fun deleteRecentById(songId: String) = withContext(ioDispatcher) {
         musicDao.deleteRecentById(songId)
     }
