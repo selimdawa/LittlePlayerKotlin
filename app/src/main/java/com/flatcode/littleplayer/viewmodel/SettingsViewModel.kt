@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.repository.MusicRepository
@@ -24,9 +25,9 @@ class SettingsViewModel @Inject constructor(
     private val darkModeKey = intPreferencesKey("dark_mode_preference")
     private val showSongToastKey = booleanPreferencesKey(DATA.SHOW_SONG_TOAST)
     private val doubleClickActionKey =
-        androidx.datastore.preferences.core.stringPreferencesKey(DATA.HEADSET_DOUBLE_CLICK_ACTION)
+        stringPreferencesKey(DATA.HEADSET_DOUBLE_CLICK_ACTION)
     private val tripleClickActionKey =
-        androidx.datastore.preferences.core.stringPreferencesKey(DATA.HEADSET_TRIPLE_CLICK_ACTION)
+        stringPreferencesKey(DATA.HEADSET_TRIPLE_CLICK_ACTION)
 
     val darkModeFlow: Flow<Int> = dataStore.data.map { preferences ->
         preferences[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM

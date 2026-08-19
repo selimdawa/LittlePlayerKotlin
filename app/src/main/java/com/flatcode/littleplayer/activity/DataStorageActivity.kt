@@ -1,12 +1,9 @@
 package com.flatcode.littleplayer.activity
 
-import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import coil.load
@@ -17,8 +14,8 @@ import com.flatcode.littleplayer.databinding.ItemNowPlayerPreviewBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.SimpleBlurTransformation
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.extractDynamicColors
+import com.flatcode.littleplayer.utils.extractPalette
 import com.flatcode.littleplayer.utils.formatAsSize
 import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
@@ -34,19 +31,15 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
-class DataStorageActivity : BaseActivity<ActivityDataStorageBinding>(ActivityDataStorageBinding::inflate) {
+class DataStorageActivity :
+    BaseActivity<ActivityDataStorageBinding>(ActivityDataStorageBinding::inflate) {
 
     private val viewModel: NowPlayerViewModel by viewModels()
     private val dataViewModel: DataStorageViewModel by viewModels()
     private var currentDominantColor: Pair<Int, Int>? = null
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.customToolbar.root.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
         initToolbar(getString(R.string.data_storage))
         val track = getLibraryColor("mc_track")
@@ -239,7 +232,7 @@ class DataStorageActivity : BaseActivity<ActivityDataStorageBinding>(ActivityDat
         itemBinding.musicItem.songName.setTextColor(colors.first)
         itemBinding.musicItem.wave.startColor = colors.first
         itemBinding.musicItem.wave.closeColor = colors.second
-        itemBinding.musicItem.wave.visibility = android.view.View.VISIBLE
+        itemBinding.musicItem.wave.visibility = View.VISIBLE
 
         itemBinding.musicItem.image.load(imageSource ?: R.drawable.ic_music) {
             crossfade(true)

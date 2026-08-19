@@ -13,6 +13,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
@@ -731,7 +732,7 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
     return try {
         val size = 512
         val bitmap = createBitmap(size, size)
-        val canvas = android.graphics.Canvas(bitmap)
+        val canvas = Canvas(bitmap)
 
         // The context (MusicService) already has MultiColorManager.applyTheme(this) called
         val backgroundColor = context.getLibraryColor("mc_track")

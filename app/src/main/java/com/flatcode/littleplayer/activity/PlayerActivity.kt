@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.activity
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.media.MediaMetadataRetriever
@@ -14,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
@@ -72,7 +74,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     private var lastSongId: String? = null
     private var lastArtworkSongId: String? = null
     private var isProcessingShuffle = false
-    private var preloadedBitmap: android.graphics.Bitmap? = null
+    private var preloadedBitmap: Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         isIntentProcessed = savedInstanceState?.getBoolean("intent_processed") ?: false
@@ -81,12 +83,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     }
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.toolbar.updatePadding(top = systemBars.top)
-            binding.container.updatePadding(bottom = systemBars.bottom)
-            insets
-        }
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+
+        applyEdgeToEdge(topView = binding.toolbar, bottomView = binding.container)
 
         amplituda = Amplituda(this)
         currentDominantColor = Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
@@ -270,7 +269,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
         }
     }
 
-    private fun applyArtworkAndPalette(bitmap: android.graphics.Bitmap?) {
+    private fun applyArtworkAndPalette(bitmap: Bitmap?) {
         var imageLoaded = false
         var blurLoaded = false
         val checkReady = { if (imageLoaded && blurLoaded && !isTransitionStarted) { isTransitionStarted = true; startPostponedEnterTransition() } }
@@ -490,8 +489,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
             } else {
                 val index = controller.currentMediaItemIndex
                 if (index != -1 && index in viewModel.listSongs.indices) {
-                    if (viewModel.position != index) viewModel.updatePositionAndSong(index)
-                    nowPlayerViewModel.saveAndBroadcastNextSong(viewModel.listSongs[index])
+                    if (controller.currentMediaItem != null) {
+                        if (viewModel.position != index) viewModel.updatePositionAndSong(index)
+                        nowPlayerViewModel.saveAndBroadcastNextSong(viewModel.listSongs[index])
+                    }
                 } else if (controller.currentMediaItem == null && viewModel.position != -1) setupMediaItems(controller)
             }
             if ((controller.duration / 1000).toInt() > 0) binding.seekBar.max = (controller.duration / 1000).toInt()

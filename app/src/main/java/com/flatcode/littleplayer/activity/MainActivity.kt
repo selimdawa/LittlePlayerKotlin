@@ -1,14 +1,23 @@
 package com.flatcode.littleplayer.activity
 
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.READ_MEDIA_AUDIO
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.TIRAMISU
 import android.text.TextUtils.TruncateAt
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,6 +44,7 @@ import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
+import com.flatcode.littleplayer.viewmodel.RecentViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
@@ -50,25 +60,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private val viewModel: MusicViewModel by viewModels()
     private val favoritesViewModel: FavoritesViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
+    private val recentViewModel: RecentViewModel by viewModels()
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val audioGranted = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            permissions[android.Manifest.permission.READ_MEDIA_AUDIO] == true
+        val audioGranted = if (SDK_INT >= TIRAMISU) {
+            permissions[READ_MEDIA_AUDIO] == true
         } else {
-            permissions[android.Manifest.permission.READ_EXTERNAL_STORAGE] == true
+            permissions[READ_EXTERNAL_STORAGE] == true
         }
         if (audioGranted) setupUI()
     }
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.toolbar.card.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.toolbar.card)
 
         setupSearchSwitcher()
         setupBackPressed()
@@ -85,12 +91,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private fun setupSearchSwitcher() {
         binding.toolbar.searchTextSwitcher.setFactory {
             TextView(this).apply {
-                layoutParams = android.widget.FrameLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
                 )
                 gravity = Gravity.START or Gravity.CENTER_VERTICAL
-                textAlignment = android.view.View.TEXT_ALIGNMENT_VIEW_START
+                textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                 setTextSize(
                     TypedValue.COMPLEX_UNIT_PX,
                     resources.getDimension(R.dimen.text_size_search_hint)
@@ -146,12 +151,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
-            if (song != null) {
+        }
+
+        recentViewModel.recentSongs.collectWithLifecycle(this) { songs ->
+            val lastSong = songs.firstOrNull()
+            if (lastSong != null) {
                 binding.toolbar2.ivRecent.loadSongImage(
-                    song.albumId, song.path, song.cachedImagePath, song.album
+                    lastSong.albumId, lastSong.path, lastSong.cachedImagePath, lastSong.album
                 )
             } else {
-                binding.toolbar2.ivRecent.loadSongImage(null)
+                binding.toolbar2.ivRecent.setImageDrawable(null)
+                binding.toolbar2.ivRecent.setTag(R.id.image_model_tag, null)
             }
         }
 
@@ -162,7 +172,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                     lastSong.albumId, lastSong.path, lastSong.cachedImagePath, lastSong.album
                 )
             } else {
-                binding.toolbar2.ivFavourites.loadSongImage(null)
+                binding.toolbar2.ivFavourites.setImageDrawable(null)
+                binding.toolbar2.ivFavourites.setTag(R.id.image_model_tag, null)
             }
         }
 
@@ -171,7 +182,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 MultiColorManager.applyTheme(this@MainActivity)
 
                 // Refresh themed fallbacks without flickering real images
-                fun refreshIfThemed(iv: android.widget.ImageView, song: MusicFiles?) {
+                fun refreshIfThemed(iv: ImageView, song: MusicFiles?) {
                     // If tag is an Int, it means it's a resource (fallback), so reset to force re-theming
                     if (iv.getTag(R.id.image_model_tag) is Int) {
                         iv.setTag(R.id.image_model_tag, null)
@@ -179,12 +190,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                     if (song != null) {
                         iv.loadSongImage(song.albumId, song.path, song.cachedImagePath, song.album)
                     } else {
-                        iv.loadSongImage(null)
+                        iv.setImageDrawable(null)
+                        iv.setTag(R.id.image_model_tag, null)
                     }
                 }
 
                 refreshIfThemed(
-                    binding.toolbar2.ivRecent, nowPlayerViewModel.currentPlayingSong.value
+                    binding.toolbar2.ivRecent, recentViewModel.recentSongs.value.firstOrNull()
                 )
                 refreshIfThemed(
                     binding.toolbar2.ivFavourites,
@@ -217,8 +229,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }.attach()
     }
 
-    class ViewPagerAdapter(act: androidx.appcompat.app.AppCompatActivity) :
-        FragmentStateAdapter(act) {
+    class ViewPagerAdapter(act: AppCompatActivity) : FragmentStateAdapter(act) {
         private val titles = ArrayList<String>()
         private val fragments = ArrayList<() -> Fragment>()
 

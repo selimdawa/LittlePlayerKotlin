@@ -29,10 +29,12 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @UnstableApi
 @AndroidEntryPoint
-class EqualizerActivity : BaseActivity<ActivityEqualizerBinding>(ActivityEqualizerBinding::inflate) {
+class EqualizerActivity :
+    BaseActivity<ActivityEqualizerBinding>(ActivityEqualizerBinding::inflate) {
 
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private val equalizerViewModel: EqualizerViewModel by viewModels()
@@ -53,12 +55,7 @@ class EqualizerActivity : BaseActivity<ActivityEqualizerBinding>(ActivityEqualiz
     )
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.topBar.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.topBar)
 
         binding.back.setOnClickListener { finish() }
         setupListeners()
@@ -207,6 +204,7 @@ class EqualizerActivity : BaseActivity<ActivityEqualizerBinding>(ActivityEqualiz
     private fun updatePresetSelectionUI(selected: String?, themeColor: Int) {
         val containerBg = getLibraryColor("colorSurfaceContainerHigh")
         val trackColor = getLibraryColor("mc_track")
+        val errorColor = getLibraryColor("colorError")
         val trackCsl = ColorStateList.valueOf(trackColor)
         val whiteCsl = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
 
@@ -237,43 +235,43 @@ class EqualizerActivity : BaseActivity<ActivityEqualizerBinding>(ActivityEqualiz
         when (selected) {
             "Custom" -> {
                 binding.cardCustom.setCardBackgroundColor(themeColor)
-                binding.textCustom.setTextColor(ContextCompat.getColor(this, R.color.white))
+                binding.textCustom.setTextColor(errorColor)
                 binding.icCustom.imageTintList = whiteCsl
             }
 
             "Pop" -> {
                 binding.cardPop.setCardBackgroundColor(themeColor)
-                binding.textPop.setTextColor(ContextCompat.getColor(this, R.color.white))
+                binding.textPop.setTextColor(errorColor)
                 binding.icPop.imageTintList = whiteCsl
             }
 
             "Rock" -> {
                 binding.cardRock.setCardBackgroundColor(themeColor)
-                binding.textRock.setTextColor(ContextCompat.getColor(this, R.color.white))
+                binding.textRock.setTextColor(errorColor)
                 binding.icRock.imageTintList = whiteCsl
             }
 
             "Jazz" -> {
                 binding.cardJazz.setCardBackgroundColor(themeColor)
-                binding.textJazz.setTextColor(ContextCompat.getColor(this, R.color.white))
+                binding.textJazz.setTextColor(errorColor)
                 binding.icJazz.imageTintList = whiteCsl
             }
 
             "Classical" -> {
                 binding.cardClassical.setCardBackgroundColor(themeColor)
-                binding.textClassical.setTextColor(ContextCompat.getColor(this, R.color.white))
+                binding.textClassical.setTextColor(errorColor)
                 binding.icClassical.imageTintList = whiteCsl
             }
 
             "Dance" -> {
                 binding.cardDance.setCardBackgroundColor(themeColor)
-                binding.textDance.setTextColor(ContextCompat.getColor(this, R.color.white))
+                binding.textDance.setTextColor(errorColor)
                 binding.icDance.imageTintList = whiteCsl
             }
 
             "Flat" -> {
                 binding.cardFlat.setCardBackgroundColor(themeColor)
-                binding.textFlat.setTextColor(ContextCompat.getColor(this, R.color.white))
+                binding.textFlat.setTextColor(errorColor)
                 binding.icFlat.imageTintList = whiteCsl
             }
         }
@@ -322,7 +320,7 @@ class EqualizerActivity : BaseActivity<ActivityEqualizerBinding>(ActivityEqualiz
 
                     if (fromUser) {
                         val currentLevel = progress - 1500
-                        if (kotlin.math.abs(currentLevel - lastSentLevel) > 10) {
+                        if (abs(currentLevel - lastSentLevel) > 10) {
                             lastSentLevel = currentLevel
                             val bundle = Bundle().apply {
                                 putShort("BAND", i.toShort())

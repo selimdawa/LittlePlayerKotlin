@@ -5,6 +5,7 @@ import android.R.color.transparent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.DialogSortSongsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getLibraryColor
@@ -99,34 +100,34 @@ class SortSongsBottomSheet(
 
         when (category) {
             DATA.ALBUMS -> {
-                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_albums)
+                binding.title.text = getString(R.string.sort_albums)
                 binding.sortByPlayCount.visibility = View.GONE
                 binding.sortByReleaseDate.visibility = View.GONE
-                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+                binding.textBySize.text = getString(R.string.by_song_count)
             }
 
             DATA.PLAYLISTS -> {
-                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_playlists)
+                binding.title.text = getString(R.string.sort_playlists)
                 binding.sortByDate.visibility = View.GONE
                 binding.sortByPlayCount.visibility = View.GONE
                 binding.sortByReleaseDate.visibility = View.GONE
-                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+                binding.textBySize.text = getString(R.string.by_song_count)
             }
 
             DATA.ARTISTS -> {
-                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_artists)
+                binding.title.text = getString(R.string.sort_artists)
                 binding.sortByDate.visibility = View.GONE
                 binding.sortByPlayCount.visibility = View.GONE
                 binding.sortByReleaseDate.visibility = View.GONE
-                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+                binding.textBySize.text = getString(R.string.by_song_count)
             }
 
             DATA.FOLDERS -> {
-                binding.title.text = getString(com.flatcode.littleplayer.R.string.sort_folders)
+                binding.title.text = getString(R.string.sort_folders)
                 binding.sortByDate.visibility = View.GONE
                 binding.sortByPlayCount.visibility = View.GONE
                 binding.sortByReleaseDate.visibility = View.GONE
-                binding.textBySize.text = getString(com.flatcode.littleplayer.R.string.by_song_count)
+                binding.textBySize.text = getString(R.string.by_song_count)
             }
         }
     }

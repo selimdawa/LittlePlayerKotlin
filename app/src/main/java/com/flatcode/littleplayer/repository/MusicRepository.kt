@@ -1,19 +1,23 @@
 package com.flatcode.littleplayer.repository
 
+import android.Manifest
 import android.content.ContentUris
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.ContentObserver
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
-import androidx.core.net.toUri
+import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.palette.graphics.Palette
@@ -33,7 +37,6 @@ import com.flatcode.littleplayer.utils.getLibraryColor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -44,7 +47,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.joinAll
@@ -74,6 +76,17 @@ class MusicRepository @Inject constructor(
             super.onChange(selfChange)
             scheduleSync()
         }
+    }
+
+    private fun hasAudioPermission(): Boolean {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        return ContextCompat.checkSelfPermission(
+            context, permission
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun scheduleSync() {
@@ -119,14 +132,12 @@ class MusicRepository @Inject constructor(
     }
 
     val shuffleMode: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)]
-            ?: false
+        preferences[booleanPreferencesKey(DATA.SHUFFLE_MODE)] ?: false
     }.distinctUntilChanged()
 
     suspend fun saveShuffleMode(enabled: Boolean) {
         dataStore.edit { preferences ->
-            preferences[androidx.datastore.preferences.core.booleanPreferencesKey(DATA.SHUFFLE_MODE)] =
-                enabled
+            preferences[booleanPreferencesKey(DATA.SHUFFLE_MODE)] = enabled
         }
     }
 
@@ -172,12 +183,17 @@ class MusicRepository @Inject constructor(
                 val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
                     val path = dbSong.path
                     val lastSlash = path.lastIndexOf(File.separatorChar)
-                    val secondLastSlash = if (lastSlash > 0) path.lastIndexOf(File.separatorChar, lastSlash - 1) else -1
+                    val secondLastSlash = if (lastSlash > 0) path.lastIndexOf(
+                        File.separatorChar, lastSlash - 1
+                    ) else -1
                     val folderName = if (lastSlash > 0) {
                         path.substring(secondLastSlash + 1, lastSlash)
                     } else null
 
-                    if (dbSong.album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else dbSong.album
+                    if (dbSong.album.equals(
+                            folderName, ignoreCase = true
+                        )
+                    ) DATA.UNKNOWN else dbSong.album
                 } else {
                     dbSong.album ?: DATA.UNKNOWN
                 }
@@ -203,199 +219,212 @@ class MusicRepository @Inject constructor(
         }.flowOn(ioDispatcher)
     }
 
-    suspend fun getAllAudio(sortOrder: String): ArrayList<MusicFiles> =
-        withContext(ioDispatcher) {
-            val tempAudioList = ArrayList<MusicFiles>()
-            val excluded = try {
-                excludedFolders.first()
-            } catch (_: Exception) {
-                emptySet()
-            }
-
-            try {
-                val dbSongs = songDao.getAllSongsSync()
-                if (dbSongs.isNotEmpty()) {
-                    dbSongs.forEach { dbSong ->
-                        if (excluded.any { dbSong.path.startsWith(it) }) return@forEach
-
-                        val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
-                            val folderName = File(dbSong.path).parentFile?.name
-                            if (dbSong.album.equals(
-                                    folderName, ignoreCase = true
-                                )
-                            ) DATA.UNKNOWN else dbSong.album
-                        } else {
-                            dbSong.album ?: DATA.UNKNOWN
-                        }
-
-                        tempAudioList.add(
-                            MusicFiles(
-                                path = dbSong.path,
-                                title = dbSong.title,
-                                artist = dbSong.artist,
-                                album = cleanedAlbum,
-                                duration = dbSong.duration.toString(),
-                                id = dbSong.id,
-                                albumId = dbSong.albumId,
-                                waveform = dbSong.waveform,
-                                playCount = dbSong.playCount,
-                                cachedImagePath = dbSong.cachedImagePath,
-                                dominantColor = dbSong.dominantColor,
-                                vibrantColor = dbSong.vibrantColor,
-                                dateAdded = dbSong.dateAdded,
-                                size = dbSong.size,
-                                year = dbSong.year
-                            )
-                        )
-                    }
-
-                    when (sortOrder) {
-                        DATA.SORT_BY_NAME -> tempAudioList.sortWith(
-                            compareBy({ it.title?.lowercase() }, { it.id })
-                        )
-
-                        DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.playCount }.thenBy { it.title })
-                        DATA.SORT_BY_DATE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.dateAdded }.thenBy { it.title })
-                        DATA.SORT_BY_SIZE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.size }.thenBy { it.title })
-                        DATA.SORT_BY_RELEASE_DATE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.year }.thenBy { it.title })
-                    }
-
-                    if (tempAudioList.isNotEmpty()) {
-                        scheduleSync()
-                        if (_isInitialLoading.value) {
-                            startBackgroundColorExtraction()
-                            startBackgroundArtCaching(tempAudioList)
-                            _isInitialLoading.value = false
-                        } else {
-                            startBackgroundColorExtraction()
-                        }
-                        return@withContext tempAudioList
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            try {
-                val mediaStoreSortOrder = when (sortOrder) {
-                    DATA.SORT_BY_NAME -> MediaStore.Audio.Media.TITLE + " ASC"
-                    DATA.SORT_BY_DATE -> MediaStore.Audio.Media.DATE_ADDED + " DESC"
-                    DATA.SORT_BY_SIZE -> MediaStore.Audio.Media.SIZE + " DESC"
-                    DATA.SORT_BY_RELEASE_DATE -> MediaStore.Audio.Media.YEAR + " DESC"
-                    else -> MediaStore.Audio.Media.TITLE + " ASC"
-                }
-
-                val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                val projection = arrayOf(
-                    MediaStore.Audio.Media.ALBUM,
-                    MediaStore.Audio.Media.TITLE,
-                    MediaStore.Audio.Media.DURATION,
-                    MediaStore.Audio.Media.DATA,
-                    MediaStore.Audio.Media.ARTIST,
-                    MediaStore.Audio.Media._ID,
-                    MediaStore.Audio.Media.ALBUM_ID,
-                    MediaStore.Audio.Media.DATE_ADDED,
-                    MediaStore.Audio.Media.SIZE,
-                    MediaStore.Audio.Media.YEAR
-                )
-
-                context.contentResolver.query(uri, projection, null, null, mediaStoreSortOrder)
-                    ?.use { cursor ->
-                        val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                        val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                        val durationColumn =
-                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                        val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-                        val artistColumn =
-                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                        val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                        val albumIdColumn =
-                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                        val dateAddedColumn =
-                            cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
-                        val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
-                        val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
-
-                        while (cursor.moveToNext()) {
-                            val path = cursor.getString(pathColumn) ?: ""
-                            if (path.contains(
-                                    "/Android/data", true
-                                ) || path.contains("/Android/media", true)
-                            ) continue
-                            if (excluded.any { path.startsWith(it) }) continue
-
-                            val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
-                            val folderName = File(path).parentFile?.name
-                            val cleanedAlbum = if (rawAlbum.equals(
-                                    folderName, ignoreCase = true
-                                )
-                            ) DATA.UNKNOWN else rawAlbum
-
-                            tempAudioList.add(
-                                MusicFiles(
-                                    path = path,
-                                    title = cursor.getString(titleColumn) ?: DATA.UNKNOWN,
-                                    artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN,
-                                    album = cleanedAlbum,
-                                    duration = cursor.getLong(durationColumn).toString(),
-                                    id = cursor.getString(idColumn) ?: "",
-                                    albumId = cursor.getString(albumIdColumn) ?: "",
-                                    dateAdded = cursor.getLong(dateAddedColumn),
-                                    size = cursor.getLong(sizeColumn),
-                                    year = cursor.getInt(yearColumn)
-                                )
-                            )
-                        }
-                    }
-
-                if (tempAudioList.isNotEmpty()) {
-                    syncWithMediaStore() // Perform sync immediately if it was the first time and empty DB
-                    if (_isInitialLoading.value) {
-                        startBackgroundColorExtraction()
-                        startBackgroundArtCaching(tempAudioList)
-                        _isInitialLoading.value = false
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _isInitialLoading.value = false // Ensure we don't get stuck
-            }
-
-            tempAudioList
-        }
-
-    private suspend fun syncWithMediaStore() {
+    suspend fun getAllAudio(sortOrder: String): ArrayList<MusicFiles> = withContext(ioDispatcher) {
+        val tempAudioList = ArrayList<MusicFiles>()
         val excluded = try {
             excludedFolders.first()
         } catch (_: Exception) {
             emptySet()
         }
 
-        val lastSyncTime = dataStore.data.map { it[androidx.datastore.preferences.core.longPreferencesKey(DATA.LAST_SYNC_TIME)] ?: 0L }.first()
+        try {
+            val dbSongs = songDao.getAllSongsSync()
+            if (dbSongs.isNotEmpty()) {
+                dbSongs.forEach { dbSong ->
+                    if (excluded.any { dbSong.path.startsWith(it) }) return@forEach
+
+                    val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
+                        val folderName = File(dbSong.path).parentFile?.name
+                        if (dbSong.album.equals(
+                                folderName, ignoreCase = true
+                            )
+                        ) DATA.UNKNOWN else dbSong.album
+                    } else {
+                        dbSong.album ?: DATA.UNKNOWN
+                    }
+
+                    tempAudioList.add(
+                        MusicFiles(
+                            path = dbSong.path,
+                            title = dbSong.title,
+                            artist = dbSong.artist,
+                            album = cleanedAlbum,
+                            duration = dbSong.duration.toString(),
+                            id = dbSong.id,
+                            albumId = dbSong.albumId,
+                            waveform = dbSong.waveform,
+                            playCount = dbSong.playCount,
+                            cachedImagePath = dbSong.cachedImagePath,
+                            dominantColor = dbSong.dominantColor,
+                            vibrantColor = dbSong.vibrantColor,
+                            dateAdded = dbSong.dateAdded,
+                            size = dbSong.size,
+                            year = dbSong.year
+                        )
+                    )
+                }
+
+                when (sortOrder) {
+                    DATA.SORT_BY_NAME -> tempAudioList.sortWith(
+                        compareBy({ it.title?.lowercase() }, { it.id })
+                    )
+
+                    DATA.SORT_BY_PLAY_COUNT -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.playCount }.thenBy { it.title })
+                    DATA.SORT_BY_DATE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.dateAdded }.thenBy { it.title })
+                    DATA.SORT_BY_SIZE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.size }.thenBy { it.title })
+                    DATA.SORT_BY_RELEASE_DATE -> tempAudioList.sortWith(compareByDescending<MusicFiles> { it.year }.thenBy { it.title })
+                }
+
+                if (tempAudioList.isNotEmpty()) {
+                    scheduleSync()
+                    if (_isInitialLoading.value) {
+                        startBackgroundColorExtraction()
+                        startBackgroundArtCaching(tempAudioList)
+                        _isInitialLoading.value = false
+                    } else {
+                        startBackgroundColorExtraction()
+                    }
+                    return@withContext tempAudioList
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            val mediaStoreSortOrder = when (sortOrder) {
+                DATA.SORT_BY_NAME -> MediaStore.Audio.Media.TITLE + " ASC"
+                DATA.SORT_BY_DATE -> MediaStore.Audio.Media.DATE_ADDED + " DESC"
+                DATA.SORT_BY_SIZE -> MediaStore.Audio.Media.SIZE + " DESC"
+                DATA.SORT_BY_RELEASE_DATE -> MediaStore.Audio.Media.YEAR + " DESC"
+                else -> MediaStore.Audio.Media.TITLE + " ASC"
+            }
+
+            val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            val projection = arrayOf(
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.DATE_ADDED,
+                MediaStore.Audio.Media.SIZE,
+                MediaStore.Audio.Media.YEAR
+            )
+
+            context.contentResolver.query(uri, projection, null, null, mediaStoreSortOrder)
+                ?.use { cursor ->
+                    val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                    val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                    val durationColumn =
+                        cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+                    val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+                    val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                    val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                    val albumIdColumn =
+                        cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                    val dateAddedColumn =
+                        cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+                    val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
+                    val yearColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.YEAR)
+
+                    while (cursor.moveToNext()) {
+                        val path = cursor.getString(pathColumn) ?: ""
+                        if (path.contains(
+                                "/Android/data", true
+                            ) || path.contains("/Android/media", true)
+                        ) continue
+                        if (excluded.any { path.startsWith(it) }) continue
+
+                        val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
+                        val folderName = File(path).parentFile?.name
+                        val cleanedAlbum = if (rawAlbum.equals(
+                                folderName, ignoreCase = true
+                            )
+                        ) DATA.UNKNOWN else rawAlbum
+
+                        tempAudioList.add(
+                            MusicFiles(
+                                path = path,
+                                title = cursor.getString(titleColumn) ?: DATA.UNKNOWN,
+                                artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN,
+                                album = cleanedAlbum,
+                                duration = cursor.getLong(durationColumn).toString(),
+                                id = cursor.getString(idColumn) ?: "",
+                                albumId = cursor.getString(albumIdColumn) ?: "",
+                                dateAdded = cursor.getLong(dateAddedColumn),
+                                size = cursor.getLong(sizeColumn),
+                                year = cursor.getInt(yearColumn)
+                            )
+                        )
+                    }
+                }
+
+            if (tempAudioList.isNotEmpty()) {
+                syncWithMediaStore() // Perform sync immediately if it was the first time and empty DB
+                if (_isInitialLoading.value) {
+                    startBackgroundColorExtraction()
+                    startBackgroundArtCaching(tempAudioList)
+                    _isInitialLoading.value = false
+                }
+            } else if (!hasAudioPermission()) {
+                // If list is empty but it's because of missing permissions, keep loading flag true
+                // to avoid showing empty state prematurely.
+                return@withContext tempAudioList
+            } else {
+                _isInitialLoading.value = false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _isInitialLoading.value = false // Ensure we don't get stuck
+        }
+
+        tempAudioList
+    }
+
+    private suspend fun syncWithMediaStore() {
+        if (!hasAudioPermission()) return
+
+        val excluded = try {
+            excludedFolders.first()
+        } catch (_: Exception) {
+            emptySet()
+        }
+
+        val lastSyncTime =
+            dataStore.data.map { it[longPreferencesKey(DATA.LAST_SYNC_TIME)] ?: 0L }.first()
         val currentTime = System.currentTimeMillis() / 1000
 
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        
+
         // 1. Handle Deletions: Get all IDs from MediaStore
         val mediaStoreIds = mutableSetOf<String>()
-        context.contentResolver.query(uri, arrayOf(MediaStore.Audio.Media._ID), null, null, null)?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            while (cursor.moveToNext()) {
-                mediaStoreIds.add(cursor.getString(idColumn))
+        context.contentResolver.query(uri, arrayOf(MediaStore.Audio.Media._ID), null, null, null)
+            ?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                while (cursor.moveToNext()) {
+                    mediaStoreIds.add(cursor.getString(idColumn))
+                }
             }
-        }
 
+        // Critical Check: If MediaStore returns nothing, it might be a temporary error or lack of permissions
+        // Even if hasAudioPermission() returned true, sometimes the ContentResolver might be busy or failing.
+        // We only proceed with deletions if we successfully queried SOME IDs or if the DB was already empty.
         val dbSongs = songDao.getAllSongsSync()
-        dbSongs.filter { it.id !in mediaStoreIds }.forEach {
-            songDao.deleteSongById(it.id)
-            musicDao.deleteRecentById(it.id)
-            musicDao.deleteFavoriteById(it.id)
+        if (mediaStoreIds.isNotEmpty() || dbSongs.isEmpty()) {
+            dbSongs.filter { it.id !in mediaStoreIds }.forEach {
+                songDao.deleteSongById(it.id)
+                musicDao.deleteRecentById(it.id)
+                musicDao.deleteFavoriteById(it.id)
+            }
         }
 
         // 2. Handle Additions/Updates: Query items modified since last sync
         val selection = "${MediaStore.Audio.Media.DATE_MODIFIED} > ?"
         val selectionArgs = arrayOf(lastSyncTime.toString())
-        
+
         val projection = arrayOf(
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.TITLE,
@@ -426,7 +455,10 @@ class MusicRepository @Inject constructor(
 
             while (c.moveToNext()) {
                 val path = c.getString(pathColumn) ?: ""
-                if (path.contains("/Android/data", true) || path.contains("/Android/media", true)) continue
+                if (path.contains("/Android/data", true) || path.contains(
+                        "/Android/media", true
+                    )
+                ) continue
                 if (excluded.any { path.startsWith(it) }) continue
 
                 val id = c.getString(idColumn) ?: ""
@@ -461,7 +493,7 @@ class MusicRepository @Inject constructor(
             scheduleBackgroundColorExtraction()
         }
 
-        dataStore.edit { it[androidx.datastore.preferences.core.longPreferencesKey(DATA.LAST_SYNC_TIME)] = currentTime }
+        dataStore.edit { it[longPreferencesKey(DATA.LAST_SYNC_TIME)] = currentTime }
     }
 
     private var colorExtractionJob: Job? = null
@@ -549,7 +581,9 @@ class MusicRepository @Inject constructor(
         return null
     }
 
-    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int
+    ): Int {
         val (height: Int, width: Int) = options.outHeight to options.outWidth
         var inSampleSize = 1
 

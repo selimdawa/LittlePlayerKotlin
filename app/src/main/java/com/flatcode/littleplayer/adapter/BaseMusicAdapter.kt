@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.adapter
 
 import android.content.Context
 import android.graphics.Color
+import android.view.View
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -84,7 +85,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
         val isCurrentlyPlaying = song.path == playingPath
 
         if (isCurrentlyPlaying) {
-            if (wave.visibility != android.view.View.VISIBLE) {
+            if (wave.visibility != View.VISIBLE) {
                 wave.visible()
                 wave.start()
             }
@@ -97,7 +98,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
             wave.closeColor = colors.second
             songName.setTextColor(colors.first)
         } else {
-            if (wave.visibility != android.view.View.GONE) {
+            if (wave.visibility != View.GONE) {
                 wave.gone()
                 wave.stop()
             }

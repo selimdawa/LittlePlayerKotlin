@@ -1,5 +1,7 @@
 package com.flatcode.littleplayer.activity
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
@@ -33,12 +35,7 @@ class RecentActivity : BaseActivity<ActivityRecentBinding>(ActivityRecentBinding
     private var adapter: MusicAdapter? = null
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.customToolbar.root.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
         initToolbar(getString(R.string.recent))
         setupToolbar()
@@ -77,8 +74,8 @@ class RecentActivity : BaseActivity<ActivityRecentBinding>(ActivityRecentBinding
 
         // Make buttons consistent (Text style for both if we want colorError text)
         btnClear.backgroundTintList =
-            android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
-        btnClear.rippleColor = android.content.res.ColorStateList.valueOf(errorColor).withAlpha(30)
+            ColorStateList.valueOf(Color.TRANSPARENT)
+        btnClear.rippleColor = ColorStateList.valueOf(errorColor).withAlpha(30)
 
         btnClear.setOnClickListener {
             viewModel.clearRecent()

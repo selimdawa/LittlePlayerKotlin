@@ -6,6 +6,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
@@ -29,12 +30,7 @@ class ArtistDetailsActivity : BaseActivity<ActivityArtistDetailsBinding>(Activit
     private var adapter: MusicAdapter? = null
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.customToolbar.root.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
         val artistName = intent.extras?.getString("ARTIST_NAME")
         initUI(artistName)
@@ -42,7 +38,7 @@ class ArtistDetailsActivity : BaseActivity<ActivityArtistDetailsBinding>(Activit
     }
 
     private fun initUI(artistName: String?) {
-        initToolbar(artistName ?: getString(com.flatcode.littleplayer.R.string.artist))
+        initToolbar(artistName ?: getString(R.string.artist))
     }
 
     override fun observeViewModel() {

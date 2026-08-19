@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -15,6 +16,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.FolderDetailsActivity
 import com.flatcode.littleplayer.adapter.FolderAdapter
 import com.flatcode.littleplayer.databinding.FragmentFoldersBinding
 import com.flatcode.littleplayer.model.Folder
@@ -100,7 +102,7 @@ class FoldersFragment : Fragment() {
             adapter = FolderAdapter(requireContext(), { folderName, folderPath, _ ->
                 val intent = Intent(
                     requireContext(),
-                    com.flatcode.littleplayer.activity.FolderDetailsActivity::class.java
+                    FolderDetailsActivity::class.java
                 ).apply {
                     putExtra("FOLDER_NAME", folderName)
                     putExtra("FOLDER_PATH", folderPath)
@@ -138,7 +140,7 @@ class FoldersFragment : Fragment() {
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         
-        view.findViewById<android.widget.TextView>(R.id.dialogTitle).text = folder.name
+        view.findViewById<TextView>(R.id.dialogTitle).text = folder.name
 
         view.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.btnHide).setOnClickListener {

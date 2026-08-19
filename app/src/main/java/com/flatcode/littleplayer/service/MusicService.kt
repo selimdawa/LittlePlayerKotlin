@@ -7,6 +7,9 @@ import android.media.audiofx.Equalizer
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.core.content.IntentCompat
 import androidx.core.net.toUri
@@ -107,7 +110,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
     private var clickCount = 0
     private var updateLastPlayedJob: Job? = null
-    private val clickHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val clickHandler = Handler(Looper.getMainLooper())
     private val clickRunnable = Runnable { handleHeadsetClicks() }
 
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
@@ -264,10 +267,15 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         val newMediaItems = updateResult.first
                         val newIds = updateResult.second
                         
-                        val newIndex = if (currentMediaItem != null) {
-                            val index = newIds.indexOf(currentMediaItem.mediaId)
-                            if (index != -1) index else 0
-                        } else 0
+                        val currentId = player.currentMediaItem?.mediaId
+                        val currentIndex = player.currentMediaItemIndex
+                        
+                        val newIndex = if (currentId != null) {
+                            val index = newIds.indexOf(currentId)
+                            if (index != -1) index else currentIndex.coerceAtLeast(0)
+                        } else {
+                            if (currentIndex != -1 && currentIndex < newIds.size) currentIndex else 0
+                        }
 
                         player.setMediaItems(newMediaItems, newIndex, currentPosition)
                         if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
@@ -1083,10 +1091,10 @@ class MusicService : MediaLibraryService(), Player.Listener {
         override fun onMediaButtonEvent(
             session: MediaSession, controllerInfo: MediaSession.ControllerInfo, intent: Intent
         ): Boolean {
-            val ke = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_KEY_EVENT, android.view.KeyEvent::class.java)
-            if (ke != null && ke.action == android.view.KeyEvent.ACTION_DOWN) {
+            val ke = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+            if (ke != null && ke.action == KeyEvent.ACTION_DOWN) {
                 when (ke.keyCode) {
-                    android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, android.view.KeyEvent.KEYCODE_HEADSETHOOK -> {
+                    KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK -> {
                         clickCount++
                         clickHandler.removeCallbacks(clickRunnable)
                         clickHandler.postDelayed(clickRunnable, 300)

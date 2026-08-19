@@ -110,6 +110,8 @@ class PlayerViewModel @Inject constructor(
                 val savedPos = preferences[intPreferencesKey(DATA.LAST_POSITION)] ?: -1
                 if (savedPos != -1 && listSongs.isNotEmpty() && savedPos in listSongs.indices) {
                     position = savedPos
+                    _currentSong.value = listSongs[savedPos]
+                    listSongs[savedPos].id?.let { checkFavorite(it) }
                 }
             }
         }

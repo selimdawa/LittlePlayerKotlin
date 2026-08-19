@@ -1,8 +1,8 @@
 package com.flatcode.littleplayer.activity
 
 import android.R.color.transparent
-import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
@@ -24,14 +24,17 @@ import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsEvent
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
 import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
-class PlaylistsActivity : BaseActivity<ActivityPlaylistsBinding>(ActivityPlaylistsBinding::inflate) {
+class PlaylistsActivity :
+    BaseActivity<ActivityPlaylistsBinding>(ActivityPlaylistsBinding::inflate) {
 
     private val viewModel: PlaylistsViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
@@ -113,10 +116,8 @@ class PlaylistsActivity : BaseActivity<ActivityPlaylistsBinding>(ActivityPlaylis
         alertDialog.setCanceledOnTouchOutside(false)
 
         val dialogMessage = dialogView.findViewById<TextView>(R.id.dialogMessage)
-        val btnDelete =
-            dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDelete)
-        val btnCancel =
-            dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<MaterialButton>(R.id.btnDelete)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnCancel)
 
         dialogMessage.text = getString(R.string.delete_playlist_message, name)
 
@@ -140,19 +141,16 @@ class PlaylistsActivity : BaseActivity<ActivityPlaylistsBinding>(ActivityPlaylis
         alertDialog.setCanceledOnTouchOutside(false)
 
         val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
-        val editText =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editText)
-        val btnCreate =
-            dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCreate)
-        val btnCancel =
-            dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+        val editText = dialogView.findViewById<TextInputEditText>(R.id.editText)
+        val btnCreate = dialogView.findViewById<MaterialButton>(R.id.btnCreate)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnCancel)
 
         dialogTitle.text = getString(R.string.rename_playlist)
         editText.setText(oldName)
         btnCreate.text = getString(R.string.rename)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
-        alertDialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        alertDialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         alertDialog.setOnShowListener {
             editText.requestFocus()
             editText.showKeyboard()
@@ -180,17 +178,14 @@ class PlaylistsActivity : BaseActivity<ActivityPlaylistsBinding>(ActivityPlaylis
         alertDialog.setCanceledOnTouchOutside(false)
 
         val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
-        val editText =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editText)
-        val btnCreate =
-            dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCreate)
-        val btnCancel =
-            dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+        val editText = dialogView.findViewById<TextInputEditText>(R.id.editText)
+        val btnCreate = dialogView.findViewById<MaterialButton>(R.id.btnCreate)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnCancel)
 
         dialogTitle.text = getString(R.string.new_playlist)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
-        alertDialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        alertDialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         alertDialog.setOnShowListener {
             editText.requestFocus()
             editText.showKeyboard()

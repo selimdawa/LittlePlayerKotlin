@@ -1,8 +1,10 @@
 package com.flatcode.littleplayer.fragment
 
-import android.app.Activity
 import android.R.color.transparent
+import android.app.Activity
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,19 +13,19 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
+import com.flatcode.littleplayer.R
+import com.flatcode.littleplayer.activity.InfoEditActivity
 import com.flatcode.littleplayer.databinding.DialogSongOptionsBinding
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.requestDeletion
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.flatcode.littleplayer.activity.InfoEditActivity
-import com.flatcode.littleplayer.utils.DATA
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.flatcode.littleplayer.R
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.R as MaterialR
 
 class SongOptionsBottomSheet(
@@ -96,9 +98,7 @@ class SongOptionsBottomSheet(
 
     private fun showRemoveFromPlaylistConfirmation() {
         val view = layoutInflater.inflate(R.layout.dialog_confirm_remove, null)
-        val alertDialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(view)
-            .create()
+        val alertDialog = MaterialAlertDialogBuilder(requireContext()).setView(view).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 
@@ -121,10 +121,8 @@ class SongOptionsBottomSheet(
         btnRemove.setTextColor(errorColor)
 
         // Text style for button
-        btnRemove.backgroundTintList =
-            android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
-        btnRemove.rippleColor =
-            android.content.res.ColorStateList.valueOf(errorColor).withAlpha(30)
+        btnRemove.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+        btnRemove.rippleColor = ColorStateList.valueOf(errorColor).withAlpha(30)
 
         btnRemove.setOnClickListener {
             onRemoveFromPlaylistClick?.invoke(song)

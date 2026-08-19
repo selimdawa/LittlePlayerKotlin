@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.DiffUtil
@@ -66,7 +67,7 @@ class PlaylistSelectionBottomSheet(
 
         dialog.setCanceledOnTouchOutside(false)
         dialog.window?.setBackgroundDrawableResource(transparent)
-        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
 
         dialogBinding.btnCreate.setOnClickListener {
             val name = dialogBinding.editText.text.toString().trim()

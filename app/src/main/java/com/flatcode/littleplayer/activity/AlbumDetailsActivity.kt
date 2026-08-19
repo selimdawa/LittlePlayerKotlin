@@ -7,6 +7,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
@@ -36,12 +37,7 @@ class AlbumDetailsActivity : BaseActivity<ActivityAlbumDetailsBinding>(ActivityA
     private var albumName: String? = null
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.customToolbar.root.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
         albumName = intent.extras?.getString("ALBUM_NAME")
         initUI(albumName)
@@ -49,7 +45,7 @@ class AlbumDetailsActivity : BaseActivity<ActivityAlbumDetailsBinding>(ActivityA
     }
 
     private fun initUI(albumName: String?) {
-        initToolbar(albumName ?: getString(com.flatcode.littleplayer.R.string.album))
+        initToolbar(albumName ?: getString(R.string.album))
     }
 
     override fun observeViewModel() {

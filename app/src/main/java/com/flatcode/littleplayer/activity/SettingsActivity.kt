@@ -1,9 +1,12 @@
 package com.flatcode.littleplayer.activity
 
+import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -49,12 +52,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
     private var mediaController: MediaController? = null
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.customToolbar.root.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
         initToolbar(getString(R.string.settings))
         setupListeners()
@@ -126,7 +124,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
 
     private fun showAddWidgetDialog() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val appWidgetManager = getSystemService(android.appwidget.AppWidgetManager::class.java)
+            val appWidgetManager = getSystemService(AppWidgetManager::class.java)
             if (appWidgetManager.isRequestPinAppWidgetSupported) {
                 val options = arrayOf(
                     getString(R.string.widget_tiny),
@@ -159,18 +157,17 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
                         try {
                             val success = appWidgetManager.requestPinAppWidget(provider, null, null)
                             if (success) {
-                                android.widget.Toast.makeText(
+                                Toast.makeText(
                                     this,
                                     getString(R.string.widget_added_success),
-                                    android.widget.Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT
                                 ).show()
 
                                 lifecycleScope.launch {
                                     delay(500.milliseconds)
-                                    val intent =
-                                        android.content.Intent(android.content.Intent.ACTION_MAIN)
-                                    intent.addCategory(android.content.Intent.CATEGORY_HOME)
-                                    intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+                                    val intent = Intent(Intent.ACTION_MAIN)
+                                    intent.addCategory(Intent.CATEGORY_HOME)
+                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                     startActivity(intent)
                                 }
                             }
@@ -256,7 +253,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
     override fun observeViewModel() {
         viewModel.darkModeFlow.collectWithLifecycle(this) { mode ->
             val isDark = if (mode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-                val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                val currentNightMode =
+                    resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 currentNightMode == Configuration.UI_MODE_NIGHT_YES
             } else {
                 mode == AppCompatDelegate.MODE_NIGHT_YES

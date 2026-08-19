@@ -6,8 +6,15 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
+import android.graphics.RectF
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import androidx.media3.common.util.UnstableApi
@@ -122,9 +129,9 @@ class MusicWidget4x4 : MusicWidgetBase() {
 @UnstableApi
 object MusicWidgetUtils {
     private var lastImagePath: String? = null
-    private var cachedBitmap: android.graphics.Bitmap? = null
+    private var cachedBitmap: Bitmap? = null
 
-    fun loadAndProcessBitmap(imagePath: String?): android.graphics.Bitmap? {
+    fun loadAndProcessBitmap(imagePath: String?): Bitmap? {
         if (imagePath == null) {
             lastImagePath = null
             cachedBitmap = null
@@ -212,7 +219,7 @@ object MusicWidgetUtils {
         isPlaying: Boolean,
         isShuffle: Boolean,
         isFavorite: Boolean,
-        processedBitmap: android.graphics.Bitmap?
+        processedBitmap: Bitmap?
     ) {
         val views = RemoteViews(context.packageName, layoutId)
         views.setTextViewText(R.id.widgetTitle, title)
@@ -273,27 +280,27 @@ object MusicWidgetUtils {
     }
 
     private fun getRoundedCornerBitmap(
-        bitmap: android.graphics.Bitmap, pixels: Float
-    ): android.graphics.Bitmap {
+        bitmap: Bitmap, pixels: Float
+    ): Bitmap {
         val size = bitmap.width.coerceAtMost(bitmap.height)
-        val output = android.graphics.Bitmap.createBitmap(
-            size, size, android.graphics.Bitmap.Config.ARGB_8888
+        val output = Bitmap.createBitmap(
+            size, size, Bitmap.Config.ARGB_8888
         )
-        val canvas = android.graphics.Canvas(output)
+        val canvas = Canvas(output)
 
-        val paint = android.graphics.Paint()
-        val rect = android.graphics.Rect(0, 0, size, size)
-        val rectF = android.graphics.RectF(rect)
+        val paint = Paint()
+        val rect = Rect(0, 0, size, size)
+        val rectF = RectF(rect)
 
         paint.isAntiAlias = true
         canvas.drawARGB(0, 0, 0, 0)
         paint.color = Color.BLACK
         canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
 
-        paint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN)
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
         
         // Center crop
-        val srcRect = android.graphics.Rect(
+        val srcRect = Rect(
             (bitmap.width - size) / 2,
             (bitmap.height - size) / 2,
             (bitmap.width + size) / 2,
@@ -303,7 +310,7 @@ object MusicWidgetUtils {
         
         // Add a clean white stroke around the circle (1.5dp equivalent)
         paint.xfermode = null
-        paint.style = android.graphics.Paint.Style.STROKE
+        paint.style = Paint.Style.STROKE
         paint.color = Color.parseColor("#33FFFFFF") // white_20
         paint.strokeWidth = 4f 
         canvas.drawCircle(size / 2f, size / 2f, (size / 2f) - 2f, paint)

@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.activity
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
@@ -22,7 +23,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
 @AndroidEntryPoint
-class HiddenFoldersActivity : BaseActivity<ActivityHiddenFoldersBinding>(ActivityHiddenFoldersBinding::inflate) {
+class HiddenFoldersActivity :
+    BaseActivity<ActivityHiddenFoldersBinding>(ActivityHiddenFoldersBinding::inflate) {
 
     private val viewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
@@ -50,7 +52,7 @@ class HiddenFoldersActivity : BaseActivity<ActivityHiddenFoldersBinding>(Activit
         }
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
-            findViewById<android.view.View>(R.id.fragBottomPlayer)?.isVisible = song != null
+            findViewById<View>(R.id.fragBottomPlayer)?.isVisible = song != null
         }
     }
 
@@ -70,7 +72,7 @@ class HiddenFoldersActivity : BaseActivity<ActivityHiddenFoldersBinding>(Activit
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val path = getItem(position)
             val folderName = path.trimEnd('/').substringAfterLast('/')
-            
+
             holder.binding.folderName.text = folderName
             holder.binding.folderPath.text = path
             holder.binding.btnUnhide.setOnClickListener { onUnhideClick(path) }

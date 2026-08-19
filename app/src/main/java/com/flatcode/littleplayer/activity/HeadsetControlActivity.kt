@@ -1,5 +1,7 @@
 package com.flatcode.littleplayer.activity
 
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
@@ -15,10 +17,12 @@ import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import android.R as AndroidR
 
 @UnstableApi
 @AndroidEntryPoint
-class HeadsetControlActivity : BaseActivity<ActivityHeadsetControlBinding>(ActivityHeadsetControlBinding::inflate) {
+class HeadsetControlActivity :
+    BaseActivity<ActivityHeadsetControlBinding>(ActivityHeadsetControlBinding::inflate) {
 
     private val viewModel: SettingsViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
@@ -34,12 +38,7 @@ class HeadsetControlActivity : BaseActivity<ActivityHeadsetControlBinding>(Activ
     )
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.customToolbar.root.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
         initToolbar(getString(R.string.headset_controls))
         setupSpinners()
@@ -59,25 +58,33 @@ class HeadsetControlActivity : BaseActivity<ActivityHeadsetControlBinding>(Activ
             }
         }
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, displayNames)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val adapter = ArrayAdapter(this, AndroidR.layout.simple_spinner_item, displayNames)
+        adapter.setDropDownViewResource(AndroidR.layout.simple_spinner_dropdown_item)
 
         binding.spinnerDoubleAction.adapter = adapter
         binding.spinnerTripleAction.adapter = adapter
 
-        binding.spinnerDoubleAction.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                viewModel.setHeadsetDoubleClickAction(actions[position])
-            }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        }
+        binding.spinnerDoubleAction.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?, view: View?, position: Int, id: Long
+                ) {
+                    viewModel.setHeadsetDoubleClickAction(actions[position])
+                }
 
-        binding.spinnerTripleAction.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                viewModel.setHeadsetTripleClickAction(actions[position])
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        }
+
+        binding.spinnerTripleAction.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?, view: View?, position: Int, id: Long
+                ) {
+                    viewModel.setHeadsetTripleClickAction(actions[position])
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
     }
 
     override fun observeViewModel() {

@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.activity
 
 import android.R.color.transparent
 import android.view.View
+import android.view.WindowManager
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
@@ -168,7 +169,7 @@ class PlaylistDetailsActivity :
         dialogBinding.btnCreate.text = getString(R.string.rename)
 
         alertDialog.window?.setBackgroundDrawableResource(transparent)
-        alertDialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        alertDialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         alertDialog.setOnShowListener {
             dialogBinding.editText.requestFocus()
             dialogBinding.editText.showKeyboard()

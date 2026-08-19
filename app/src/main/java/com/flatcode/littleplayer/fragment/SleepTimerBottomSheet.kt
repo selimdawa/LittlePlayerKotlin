@@ -5,6 +5,7 @@ import android.R.color.transparent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.DialogSleepTimerBinding
 import com.flatcode.littleplayer.databinding.DialogSleepTimerCustomBinding
@@ -66,7 +67,7 @@ class SleepTimerBottomSheet(
 
         dialog.setOnShowListener {
             dialog.window?.setBackgroundDrawableResource(transparent)
-            dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
             dialogBinding.editText.requestFocus()
             dialogBinding.editText.showKeyboard()
         }

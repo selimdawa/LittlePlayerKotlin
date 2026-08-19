@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import com.flatcode.littleplayer.activity.ArtistDetailsActivity
 import com.flatcode.littleplayer.adapter.ArtistAdapter
 import com.flatcode.littleplayer.databinding.FragmentArtistsBinding
 import com.flatcode.littleplayer.utils.DATA
@@ -97,7 +98,7 @@ class ArtistsFragment : Fragment() {
             adapter = ArtistAdapter(requireContext()) { artistName, _ ->
                 val intent = Intent(
                     requireContext(),
-                    com.flatcode.littleplayer.activity.ArtistDetailsActivity::class.java
+                    ArtistDetailsActivity::class.java
                 ).apply {
                     putExtra("ARTIST_NAME", artistName)
                 }
