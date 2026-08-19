@@ -1,9 +1,10 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.Context
-import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
@@ -19,21 +20,21 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
 @AndroidEntryPoint
-class ArtistDetailsActivity : AppCompatActivity() {
+class ArtistDetailsActivity : BaseActivity<ActivityArtistDetailsBinding>(ActivityArtistDetailsBinding::inflate) {
 
-    private lateinit var binding: ActivityArtistDetailsBinding
     private val context: Context = this@ArtistDetailsActivity
     private val viewModel: ArtistDetailsViewModel by viewModels()
     private val musicViewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: MusicAdapter? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityArtistDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        observeViewModel()
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         val artistName = intent.extras?.getString("ARTIST_NAME")
         initUI(artistName)
@@ -44,7 +45,7 @@ class ArtistDetailsActivity : AppCompatActivity() {
         initToolbar(artistName ?: getString(com.flatcode.littleplayer.R.string.artist))
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.songs.collectWithLifecycle(this) { songList ->
             if (songList.isNotEmpty()) {
                 if (adapter == null) {

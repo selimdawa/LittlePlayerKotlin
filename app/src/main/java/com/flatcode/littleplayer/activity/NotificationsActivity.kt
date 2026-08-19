@@ -2,11 +2,12 @@ package com.flatcode.littleplayer.activity
 
 import android.content.Intent
 import android.os.Build
-import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityNotificationsBinding
 import com.flatcode.littleplayer.utils.collectWithLifecycle
@@ -16,20 +17,21 @@ import com.flatcode.littleplayer.viewmodel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class NotificationsActivity : AppCompatActivity() {
+class NotificationsActivity : BaseActivity<ActivityNotificationsBinding>(ActivityNotificationsBinding::inflate) {
 
-    private lateinit var binding: ActivityNotificationsBinding
     private val viewModel: SettingsViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityNotificationsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         initToolbar(getString(R.string.notifications))
         setupListeners()
-        observeViewModel()
     }
 
     private fun setupListeners() {
@@ -56,7 +58,7 @@ class NotificationsActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.showSongToastFlow.collectWithLifecycle(this) { isEnabled ->
             if (binding.switchShowSongToast.isChecked != isEnabled) {
                 binding.switchShowSongToast.isChecked = isEnabled

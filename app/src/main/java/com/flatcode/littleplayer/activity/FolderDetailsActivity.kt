@@ -1,9 +1,10 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.Context
-import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFolderDetailsBinding
@@ -18,27 +19,27 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
 @AndroidEntryPoint
-class FolderDetailsActivity : AppCompatActivity() {
+class FolderDetailsActivity : BaseActivity<ActivityFolderDetailsBinding>(ActivityFolderDetailsBinding::inflate) {
 
-    private lateinit var binding: ActivityFolderDetailsBinding
     private val context: Context = this@FolderDetailsActivity
     private val viewModel: FolderDetailsViewModel by viewModels()
     private val musicViewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: MusicAdapter? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityFolderDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        observeViewModel()
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.recyclerView.updatePadding(top = systemBars.top)
+            insets
+        }
 
         val folderPath = intent.extras?.getString("FOLDER_PATH")
         viewModel.filterSongsByFolder(folderPath)
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.songs.collectWithLifecycle(this) { songList ->
             if (songList.isNotEmpty()) {
                 if (adapter == null) {

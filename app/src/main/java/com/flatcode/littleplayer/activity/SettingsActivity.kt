@@ -5,11 +5,13 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -38,24 +40,24 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 @AndroidEntryPoint
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsBinding::inflate) {
 
-    private lateinit var binding: ActivitySettingsBinding
     private val viewModel: SettingsViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        MultiColorManager.applyTheme(this)
-        super.onCreate(savedInstanceState)
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         initToolbar(getString(R.string.settings))
         setupListeners()
-        observeViewModel()
     }
 
     override fun onStart() {
@@ -251,7 +253,7 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.darkModeFlow.collectWithLifecycle(this) { mode ->
             val isDark = if (mode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
                 val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK

@@ -8,9 +8,11 @@ import android.view.MotionEvent
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -30,9 +32,8 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
-class EqualizerActivity : AppCompatActivity() {
+class EqualizerActivity : BaseActivity<ActivityEqualizerBinding>(ActivityEqualizerBinding::inflate) {
 
-    private lateinit var binding: ActivityEqualizerBinding
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private val equalizerViewModel: EqualizerViewModel by viewModels()
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -51,18 +52,19 @@ class EqualizerActivity : AppCompatActivity() {
         "Dance" to shortArrayOf(600, 0, 200, 400, 100),
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        MultiColorManager.applyTheme(this)
-        super.onCreate(savedInstanceState)
-        binding = ActivityEqualizerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.topBar.updatePadding(top = systemBars.top)
+            insets
+        }
 
         binding.back.setOnClickListener { finish() }
         setupListeners()
-        observeViewModel()
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
         }

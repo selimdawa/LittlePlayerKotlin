@@ -9,12 +9,13 @@ import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
@@ -76,12 +77,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         isIntentProcessed = savedInstanceState?.getBoolean("intent_processed") ?: false
         postponeEnterTransition()
-        window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
         super.onCreate(savedInstanceState)
     }
 
     override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.toolbar.updatePadding(top = systemBars.top)
+            binding.container.updatePadding(bottom = systemBars.bottom)
+            insets
+        }
+
         amplituda = Amplituda(this)
         currentDominantColor = Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
 

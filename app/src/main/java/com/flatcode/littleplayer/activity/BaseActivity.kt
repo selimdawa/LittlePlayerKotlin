@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.activity
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
 import io.selimdawa.multicolors.MultiColorManager
@@ -15,6 +16,7 @@ abstract class BaseActivity<VB : ViewBinding>(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         MultiColorManager.applyTheme(this)
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = bindingInflater(layoutInflater)
         setContentView(binding.root)

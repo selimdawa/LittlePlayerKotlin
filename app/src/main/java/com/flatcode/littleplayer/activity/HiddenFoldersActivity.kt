@@ -1,11 +1,12 @@
 package com.flatcode.littleplayer.activity
 
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -21,26 +22,27 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
 @AndroidEntryPoint
-class HiddenFoldersActivity : AppCompatActivity() {
+class HiddenFoldersActivity : BaseActivity<ActivityHiddenFoldersBinding>(ActivityHiddenFoldersBinding::inflate) {
 
-    private lateinit var binding: ActivityHiddenFoldersBinding
     private val viewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityHiddenFoldersBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         initToolbar(getString(R.string.hidden_folders))
         val adapter = HiddenFolderAdapter { path ->
             viewModel.removeExcludedFolder(path)
         }
         binding.recyclerView.adapter = adapter
-        observeViewModel()
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.excludedFolders.collectWithLifecycle(this) { folders ->
             val list = folders.toList().sorted()
             (binding.recyclerView.adapter as? HiddenFolderAdapter)?.submitList(list)

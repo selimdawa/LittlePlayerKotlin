@@ -1,9 +1,10 @@
 package com.flatcode.littleplayer.activity
 
 import android.content.Context
-import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
@@ -25,9 +26,8 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
-class AlbumDetailsActivity : AppCompatActivity() {
+class AlbumDetailsActivity : BaseActivity<ActivityAlbumDetailsBinding>(ActivityAlbumDetailsBinding::inflate) {
 
-    private lateinit var binding: ActivityAlbumDetailsBinding
     private val context: Context = this@AlbumDetailsActivity
     private val viewModel: AlbumDetailsViewModel by viewModels()
     private val musicViewModel: MusicViewModel by viewModels()
@@ -35,15 +35,15 @@ class AlbumDetailsActivity : AppCompatActivity() {
     private var adapter: MusicAdapter? = null
     private var albumName: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        MultiColorManager.applyTheme(this)
-        super.onCreate(savedInstanceState)
-        binding = ActivityAlbumDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         albumName = intent.extras?.getString("ALBUM_NAME")
-        observeViewModel()
-
         initUI(albumName)
         viewModel.filterSongsByAlbum(albumName)
     }
@@ -52,7 +52,7 @@ class AlbumDetailsActivity : AppCompatActivity() {
         initToolbar(albumName ?: getString(com.flatcode.littleplayer.R.string.album))
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.uiState.collectWithLifecycle(this) { state ->
             if (state.songs.isNotEmpty()) {
                 if (!state.imagePath.isNullOrEmpty()) {

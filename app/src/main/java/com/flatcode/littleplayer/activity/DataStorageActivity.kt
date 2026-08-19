@@ -2,9 +2,11 @@ package com.flatcode.littleplayer.activity
 
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import coil.load
@@ -32,18 +34,19 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
-class DataStorageActivity : AppCompatActivity() {
+class DataStorageActivity : BaseActivity<ActivityDataStorageBinding>(ActivityDataStorageBinding::inflate) {
 
-    private lateinit var binding: ActivityDataStorageBinding
     private val viewModel: NowPlayerViewModel by viewModels()
     private val dataViewModel: DataStorageViewModel by viewModels()
     private var currentDominantColor: Pair<Int, Int>? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        MultiColorManager.applyTheme(this)
-        super.onCreate(savedInstanceState)
-        binding = ActivityDataStorageBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         initToolbar(getString(R.string.data_storage))
         val track = getLibraryColor("mc_track")
@@ -54,7 +57,6 @@ class DataStorageActivity : AppCompatActivity() {
             updatePreview()
         }
         setupListeners()
-        observeViewModel()
     }
 
     private fun setupListeners() {
@@ -100,7 +102,7 @@ class DataStorageActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.bottomPlayerThemeEnabled.collectWithLifecycle(this) { enabled ->
             binding.switchBottomPlayerTheme.isChecked = enabled
             updatePreview()

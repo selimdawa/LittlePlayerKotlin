@@ -5,16 +5,12 @@ import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
-import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityInfoEditBinding
@@ -34,9 +30,8 @@ import java.io.File
 import java.io.FileOutputStream
 
 @AndroidEntryPoint
-class InfoEditActivity : AppCompatActivity() {
+class InfoEditActivity : BaseActivity<ActivityInfoEditBinding>(ActivityInfoEditBinding::inflate) {
 
-    private lateinit var binding: ActivityInfoEditBinding
     private val viewModel: MusicViewModel by viewModels()
     private var song: MusicFiles? = null
     private var newArtworkUri: Uri? = null
@@ -50,24 +45,11 @@ class InfoEditActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-
-        binding = ActivityInfoEditBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = false
-        }
-
-        binding.toolbar.setOnApplyWindowInsetsListener { view, insets ->
-            val systemBars = WindowInsetsCompat.toWindowInsetsCompat(insets)
-                .getInsets(WindowInsetsCompat.Type.systemBars())
-            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = systemBars.top
-            }
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.toolbar.updatePadding(top = systemBars.top)
             insets
         }
 
@@ -92,7 +74,13 @@ class InfoEditActivity : AppCompatActivity() {
         binding.etArtist.setText(song?.artist)
         binding.etAlbum.setText(song?.album)
         binding.ivCover.loadSongImage(song?.albumId, song?.path, song?.cachedImagePath, song?.album)
-        binding.imageBlur.loadSongImageBlur(song?.albumId, 100, song?.path, song?.cachedImagePath, song?.album)
+        binding.imageBlur.loadSongImageBlur(
+            song?.albumId,
+            100,
+            song?.path,
+            song?.cachedImagePath,
+            song?.album
+        )
     }
 
     private fun setupListeners() {
@@ -146,10 +134,18 @@ class InfoEditActivity : AppCompatActivity() {
 
             if (success) {
                 viewModel.updateMetadata(currentSong.id ?: "", newTitle, newArtist, newAlbum)
-                Toast.makeText(this@InfoEditActivity, R.string.tags_saved_successfully, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@InfoEditActivity,
+                    R.string.tags_saved_successfully,
+                    Toast.LENGTH_SHORT
+                ).show()
                 finish()
             } else {
-                Toast.makeText(this@InfoEditActivity, R.string.error_saving_tags, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@InfoEditActivity,
+                    R.string.error_saving_tags,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

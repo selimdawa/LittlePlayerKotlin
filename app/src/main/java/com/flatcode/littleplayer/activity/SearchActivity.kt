@@ -1,11 +1,12 @@
 package com.flatcode.littleplayer.activity
 
-import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivitySearchBinding
@@ -19,23 +20,20 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
 @AndroidEntryPoint
-class SearchActivity : AppCompatActivity() {
+class SearchActivity : BaseActivity<ActivitySearchBinding>(ActivitySearchBinding::inflate) {
 
-    private lateinit var binding: ActivitySearchBinding
     private val viewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: MusicAdapter? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivitySearchBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
-        setupUI()
-        observeViewModel()
-    }
-
-    private fun setupUI() {
         binding.customToolbar.backBtn.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
 
         val searchEditText = binding.customToolbar.searchEditText
@@ -54,7 +52,7 @@ class SearchActivity : AppCompatActivity() {
         })
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.filteredMusicFiles.collectWithLifecycle(this) { songs ->
             binding.emptyState.isVisible = songs.isEmpty()
             if (adapter == null) {

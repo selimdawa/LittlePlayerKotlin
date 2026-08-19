@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
@@ -29,19 +31,20 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 @AndroidEntryPoint
-class PlaylistsActivity : AppCompatActivity() {
+class PlaylistsActivity : BaseActivity<ActivityPlaylistsBinding>(ActivityPlaylistsBinding::inflate) {
 
-    private lateinit var binding: ActivityPlaylistsBinding
     private val viewModel: PlaylistsViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityPlaylistsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         setupUI()
-        observeViewModel()
     }
 
     private fun setupUI() {
@@ -210,7 +213,7 @@ class PlaylistsActivity : AppCompatActivity() {
 
     private var adapter: PlaylistAdapter? = null
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.playlists.collectWithLifecycle(this) { playlists ->
             binding.emptyState.isVisible = playlists.isEmpty()
             if (adapter == null) {

@@ -1,12 +1,13 @@
 package com.flatcode.littleplayer.activity
 
 import android.R.color.transparent
-import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
@@ -20,8 +21,8 @@ import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
-import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.MusicEvent
+import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.PlaylistsViewModel
@@ -30,9 +31,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
 @AndroidEntryPoint
-class PlaylistDetailsActivity : AppCompatActivity() {
+class PlaylistDetailsActivity :
+    BaseActivity<ActivityPlaylistDetailsBinding>(ActivityPlaylistDetailsBinding::inflate) {
 
-    private lateinit var binding: ActivityPlaylistDetailsBinding
     private val viewModel: PlaylistDetailsViewModel by viewModels()
     private val playlistsViewModel: PlaylistsViewModel by viewModels()
     private val musicViewModel: MusicViewModel by viewModels()
@@ -40,16 +41,18 @@ class PlaylistDetailsActivity : AppCompatActivity() {
     private var adapter: MusicAdapter? = null
     private var currentPlaylistName: String = ""
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityPlaylistDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         currentPlaylistName = intent.getStringExtra("PLAYLIST_NAME") ?: getString(R.string.playlist)
         setupUI()
 
         viewModel.loadSongs(currentPlaylistName)
-        observeViewModel()
     }
 
     private fun setupUI() {
@@ -77,11 +80,13 @@ class PlaylistDetailsActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.songs.collectWithLifecycle(this) { songs ->
             if (adapter == null) {
                 adapter = MusicAdapter(this, onItemClick = { _, position, _ ->
-                    musicViewModel.updatePlaylistAndPlay(adapter?.currentList ?: emptyList(), position)
+                    musicViewModel.updatePlaylistAndPlay(
+                        adapter?.currentList ?: emptyList(), position
+                    )
                 }, onDeleteClick = { song ->
                     musicViewModel.deleteSong(song)
                 }, onRemoveFromPlaylistClick = { song ->

@@ -1,10 +1,11 @@
 package com.flatcode.littleplayer.activity
 
-import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
@@ -21,26 +22,26 @@ import com.flatcode.littleplayer.viewmodel.RecentViewModel
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import com.google.android.material.R as MaterialR
 
 @UnstableApi
 @AndroidEntryPoint
-class RecentActivity : AppCompatActivity() {
+class RecentActivity : BaseActivity<ActivityRecentBinding>(ActivityRecentBinding::inflate) {
 
-    private lateinit var binding: ActivityRecentBinding
     private val viewModel: RecentViewModel by viewModels()
     private val musicViewModel: MusicViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: MusicAdapter? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityRecentBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun setupViews() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.customToolbar.root.updatePadding(top = systemBars.top)
+            insets
+        }
 
         initToolbar(getString(R.string.recent))
         setupToolbar()
-        observeViewModel()
     }
 
     private fun setupToolbar() {
@@ -92,7 +93,7 @@ class RecentActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private fun observeViewModel() {
+    override fun observeViewModel() {
         viewModel.recentSongs.collectWithLifecycle(this) { songs ->
             binding.emptyState.isVisible = songs.isEmpty()
             binding.customToolbar.btnMore.isVisible = songs.isNotEmpty()
