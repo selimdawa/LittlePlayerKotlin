@@ -147,12 +147,9 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private fun observeViewModel() {
         viewModel.currentPlayingSong.collectWithLifecycle(viewLifecycleOwner) { song ->
             song?.let {
-                if (lastArtworkSongId != it.id) {
-                    lastArtworkSongId = it.id
-                    binding.playerContent.albumArt.loadSongImage(
-                        it.albumId, it.path, it.cachedImagePath, it.album
-                    )
-                }
+                binding.playerContent.albumArt.loadSongImage(
+                    it.albumId, it.path, it.cachedImagePath, it.album
+                )
                 binding.playerContent.name.text = it.safeTitle
                 binding.playerContent.artist.text = it.safeArtist
 

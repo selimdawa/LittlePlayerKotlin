@@ -180,29 +180,11 @@ class MusicRepository @Inject constructor(
             }
 
             sortedDbSongs.map { dbSong ->
-                val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
-                    val path = dbSong.path
-                    val lastSlash = path.lastIndexOf(File.separatorChar)
-                    val secondLastSlash = if (lastSlash > 0) path.lastIndexOf(
-                        File.separatorChar, lastSlash - 1
-                    ) else -1
-                    val folderName = if (lastSlash > 0) {
-                        path.substring(secondLastSlash + 1, lastSlash)
-                    } else null
-
-                    if (dbSong.album.equals(
-                            folderName, ignoreCase = true
-                        )
-                    ) DATA.UNKNOWN else dbSong.album
-                } else {
-                    dbSong.album ?: DATA.UNKNOWN
-                }
-
                 MusicFiles(
                     path = dbSong.path,
                     title = dbSong.title,
                     artist = dbSong.artist,
-                    album = cleanedAlbum,
+                    album = MusicFiles.getCleanedAlbum(dbSong.album, dbSong.path),
                     duration = dbSong.duration.toString(),
                     id = dbSong.id,
                     albumId = dbSong.albumId,
@@ -233,22 +215,12 @@ class MusicRepository @Inject constructor(
                 dbSongs.forEach { dbSong ->
                     if (excluded.any { dbSong.path.startsWith(it) }) return@forEach
 
-                    val cleanedAlbum = if (dbSong.album != null && dbSong.path.isNotEmpty()) {
-                        val folderName = File(dbSong.path).parentFile?.name
-                        if (dbSong.album.equals(
-                                folderName, ignoreCase = true
-                            )
-                        ) DATA.UNKNOWN else dbSong.album
-                    } else {
-                        dbSong.album ?: DATA.UNKNOWN
-                    }
-
                     tempAudioList.add(
                         MusicFiles(
                             path = dbSong.path,
                             title = dbSong.title,
                             artist = dbSong.artist,
-                            album = cleanedAlbum,
+                            album = MusicFiles.getCleanedAlbum(dbSong.album, dbSong.path),
                             duration = dbSong.duration.toString(),
                             id = dbSong.id,
                             albumId = dbSong.albumId,
@@ -338,19 +310,12 @@ class MusicRepository @Inject constructor(
                         ) continue
                         if (excluded.any { path.startsWith(it) }) continue
 
-                        val rawAlbum = cursor.getString(albumColumn) ?: DATA.UNKNOWN
-                        val folderName = File(path).parentFile?.name
-                        val cleanedAlbum = if (rawAlbum.equals(
-                                folderName, ignoreCase = true
-                            )
-                        ) DATA.UNKNOWN else rawAlbum
-
                         tempAudioList.add(
                             MusicFiles(
                                 path = path,
                                 title = cursor.getString(titleColumn) ?: DATA.UNKNOWN,
                                 artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN,
-                                album = cleanedAlbum,
+                                album = MusicFiles.getCleanedAlbum(cursor.getString(albumColumn), path),
                                 duration = cursor.getLong(durationColumn).toString(),
                                 id = cursor.getString(idColumn) ?: "",
                                 albumId = cursor.getString(albumIdColumn) ?: "",

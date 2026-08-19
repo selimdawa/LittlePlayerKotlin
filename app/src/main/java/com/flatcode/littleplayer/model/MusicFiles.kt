@@ -40,4 +40,18 @@ data class MusicFiles(
 
     val durationDuration: Duration
         get() = durationLong.milliseconds
+
+    companion object {
+        fun getCleanedAlbum(album: String?, path: String?): String {
+            if (album == null || album.isBlank() || album == DATA.UNKNOWN) return DATA.UNKNOWN
+            
+            // Logic used in Songs fragment via MusicRepository
+            val folderName = if (!path.isNullOrBlank()) {
+                val file = java.io.File(path)
+                file.parentFile?.name
+            } else null
+
+            return if (album.equals(folderName, ignoreCase = true)) DATA.UNKNOWN else album
+        }
+    }
 }

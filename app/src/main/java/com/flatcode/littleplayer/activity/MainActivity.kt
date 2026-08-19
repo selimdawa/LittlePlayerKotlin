@@ -19,10 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
@@ -35,11 +32,14 @@ import com.flatcode.littleplayer.fragment.ArtistsFragment
 import com.flatcode.littleplayer.fragment.FoldersFragment
 import com.flatcode.littleplayer.fragment.SongsFragment
 import com.flatcode.littleplayer.model.MusicFiles
+import com.flatcode.littleplayer.utils.ThemeManager
 import com.flatcode.littleplayer.utils.checkAudioPermissions
 import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.launchActivity
 import com.flatcode.littleplayer.utils.loadSongImage
 import com.flatcode.littleplayer.utils.openPlayer
+import com.flatcode.littleplayer.utils.setGradientBackground
 import com.flatcode.littleplayer.viewmodel.FavoritesViewModel
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -61,6 +61,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private val favoritesViewModel: FavoritesViewModel by viewModels()
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private val recentViewModel: RecentViewModel by viewModels()
+
+    override fun applyInitialTheme() {
+        val colors = getCurrentThemeColors(ThemeManager.currentMode, ThemeManager.currentColors)
+        binding.toolbar.card.setGradientBackground(colors.first, colors.second)
+    }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -154,55 +159,45 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
 
         recentViewModel.recentSongs.collectWithLifecycle(this) { songs ->
-            val lastSong = songs.firstOrNull()
-            if (lastSong != null) {
-                binding.toolbar2.ivRecent.loadSongImage(
-                    lastSong.albumId, lastSong.path, lastSong.cachedImagePath, lastSong.album
-                )
-            } else {
-                binding.toolbar2.ivRecent.setImageDrawable(null)
-                binding.toolbar2.ivRecent.setTag(R.id.image_model_tag, null)
-            }
+            binding.toolbar2.ivRecent.loadSongImageWithFallback(songs.firstOrNull())
         }
 
         favoritesViewModel.favoriteSongs.collectWithLifecycle(this) { songs ->
-            val lastSong = songs.firstOrNull()
-            if (lastSong != null) {
-                binding.toolbar2.ivFavourites.loadSongImage(
-                    lastSong.albumId, lastSong.path, lastSong.cachedImagePath, lastSong.album
-                )
-            } else {
-                binding.toolbar2.ivFavourites.setImageDrawable(null)
-                binding.toolbar2.ivFavourites.setTag(R.id.image_model_tag, null)
-            }
+            binding.toolbar2.ivFavourites.loadSongImageWithFallback(songs.firstOrNull())
         }
 
         lifecycleScope.launch {
             MultiColorManager.currentThemeId.collect {
                 MultiColorManager.applyTheme(this@MainActivity)
 
-                // Refresh themed fallbacks without flickering real images
-                fun refreshIfThemed(iv: ImageView, song: MusicFiles?) {
-                    // If tag is an Int, it means it's a resource (fallback), so reset to force re-theming
-                    if (iv.getTag(R.id.image_model_tag) is Int) {
-                        iv.setTag(R.id.image_model_tag, null)
-                    }
-                    if (song != null) {
-                        iv.loadSongImage(song.albumId, song.path, song.cachedImagePath, song.album)
-                    } else {
-                        iv.setImageDrawable(null)
-                        iv.setTag(R.id.image_model_tag, null)
-                    }
-                }
-
-                refreshIfThemed(
-                    binding.toolbar2.ivRecent, recentViewModel.recentSongs.value.firstOrNull()
+                binding.toolbar2.ivRecent.loadSongImageWithFallback(
+                    recentViewModel.recentSongs.value.firstOrNull()
                 )
-                refreshIfThemed(
-                    binding.toolbar2.ivFavourites,
+                binding.toolbar2.ivFavourites.loadSongImageWithFallback(
                     favoritesViewModel.favoriteSongs.value.firstOrNull()
                 )
             }
+        }
+    }
+
+    private fun ImageView.loadSongImageWithFallback(song: MusicFiles?) {
+        if (song != null) {
+            loadSongImage(
+                song.albumId,
+                song.path,
+                song.cachedImagePath,
+                song.album,
+                fallback = R.drawable.ic_cover_song
+            )
+        } else {
+            val typedValue = TypedValue()
+            val id = resources.getIdentifier("mc_bg", "attr", packageName)
+            if (id != 0 && theme.resolveAttribute(id, typedValue, true)) {
+                setImageResource(typedValue.resourceId)
+            } else {
+                setImageDrawable(null)
+            }
+            setTag(R.id.image_model_tag, null)
         }
     }
 

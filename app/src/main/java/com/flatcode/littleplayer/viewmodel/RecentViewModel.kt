@@ -42,7 +42,7 @@ class RecentViewModel @Inject constructor(
                             id = song.id,
                             title = song.title,
                             artist = song.artist,
-                            album = song.album ?: DATA.UNKNOWN,
+                            album = MusicFiles.getCleanedAlbum(song.album, song.path),
                             duration = song.duration.toString(),
                             path = song.path,
                             albumId = song.albumId,

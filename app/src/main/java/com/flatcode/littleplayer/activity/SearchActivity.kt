@@ -27,12 +27,7 @@ class SearchActivity : BaseActivity<ActivitySearchBinding>(ActivitySearchBinding
     private var adapter: MusicAdapter? = null
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.customToolbar.root.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
         binding.customToolbar.backBtn.setOnClickListener { onBackPressedDispatcher.onBackPressed() }
 

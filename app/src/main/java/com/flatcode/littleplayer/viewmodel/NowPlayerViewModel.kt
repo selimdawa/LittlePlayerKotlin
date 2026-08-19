@@ -12,6 +12,7 @@ import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.ThemeManager
 import com.flatcode.littleplayer.utils.getLibraryColor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -98,11 +99,12 @@ class NowPlayerViewModel @Inject constructor(
                 if (_currentPlayingSong.value == null) {
                     val path = preferences[musicFileKey]
                     if (!path.isNullOrEmpty()) {
+                        val rawAlbum = preferences[albumKey] ?: DATA.UNKNOWN
                         _currentPlayingSong.value = MusicFiles(
                             path = path,
                             artist = preferences[artistNameKey] ?: DATA.UNKNOWN,
                             title = preferences[songNameKey] ?: DATA.UNKNOWN,
-                            album = preferences[albumKey] ?: DATA.UNKNOWN,
+                            album = MusicFiles.getCleanedAlbum(rawAlbum, path),
                             duration = preferences[stringPreferencesKey(DATA.DURATION)],
                             id = preferences[songIdKey],
                             albumId = preferences[albumIdKey],
@@ -128,6 +130,7 @@ class NowPlayerViewModel @Inject constructor(
         }
         _colorSongId.value = songId
         _currentThemeColor.value = Pair(start, end)
+        ThemeManager.updateColors(start, end)
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[themeExtractedColorKey] = start
@@ -139,6 +142,7 @@ class NowPlayerViewModel @Inject constructor(
 
     fun setThemeColorMode(mode: Int) {
         _themeColorMode.value = mode
+        ThemeManager.updateMode(mode)
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[themeColorModeKey] = mode

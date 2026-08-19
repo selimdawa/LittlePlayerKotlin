@@ -55,7 +55,14 @@ class EqualizerActivity :
     )
 
     override fun setupViews() {
-        applyEdgeToEdge(topView = binding.topBar)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = systemBars.bottom)
+            binding.topBar.updatePadding(
+                top = systemBars.top + resources.getDimensionPixelSize(R.dimen.spacing_8)
+            )
+            insets
+        }
 
         binding.back.setOnClickListener { finish() }
         setupListeners()

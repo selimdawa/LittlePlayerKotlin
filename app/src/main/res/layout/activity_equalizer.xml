@@ -9,27 +9,27 @@
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
-        android:paddingHorizontal="@dimen/spacing_8">
+        android:paddingHorizontal="@dimen/spacing_8"
+        android:paddingVertical="@dimen/spacing_8">
 
         <ImageView
             android:id="@+id/back"
-            android:layout_width="@dimen/icon_size_48"
-            android:layout_height="@dimen/icon_size_48"
-            android:layout_centerVertical="true"
+            android:layout_width="@dimen/icon_size_21"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="@dimen/spacing_12"
+            android:layout_height="@dimen/icon_size_21"
+            android:layout_centerVertical="true"
+            android:contentDescription="@null"
+            android:layout_marginHorizontal="10dp"
             android:src="@drawable/ic_navigate_before"
-            app:tint="?attr/mc_track" />
+            app:tint="?attr/colorError" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="@string/equalizer"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/text_size_20"
-            android:textStyle="bold" />
+            android:textColor="?attr/colorError"
+            android:textSize="@dimen/text_size_20" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switchEq"
@@ -44,7 +44,7 @@
             app:switchMinWidth="@dimen/icon_size_48"
             app:thumbTint="?attr/mc_track"
             app:track="@drawable/switch_track_custom"
-            app:trackTint="@null" />
+            app:trackTint="@null" />/>
 
     </RelativeLayout>
 
@@ -59,7 +59,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/spacing_medium">
+            android:paddingHorizontal="@dimen/spacing_medium"
+            android:paddingBottom="@dimen/spacing_medium">
 
             <HorizontalScrollView
                 android:layout_width="match_parent"

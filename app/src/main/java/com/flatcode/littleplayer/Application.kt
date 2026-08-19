@@ -4,20 +4,16 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.intPreferencesKey
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.flatcode.littleplayer.utils.AudioArtFetcher
+import com.flatcode.littleplayer.utils.ThemeManager
 import dagger.hilt.android.HiltAndroidApp
 import io.selimdawa.multicolors.MultiColorManager
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -27,17 +23,10 @@ class Application : Application(), ImageLoaderFactory {
     lateinit var dataStore: DataStore<Preferences>
 
     override fun onCreate() {
+        ThemeManager.init(this)
         super.onCreate()
 
-        runBlocking {
-            val darkModeKey = intPreferencesKey("dark_mode_preference")
-            val mode = dataStore.data.map { 
-                it[darkModeKey] ?: AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM 
-            }.first()
-
-            AppCompatDelegate.setDefaultNightMode(mode)
-        }
-
+        ThemeManager.init(dataStore)
         MultiColorManager.init(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -54,13 +43,13 @@ class Application : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this).components {
-                add(AudioArtFetcher.Factory(this@Application))
-            }.memoryCache {
-                MemoryCache.Builder(this).maxSizePercent(0.25).build()
-            }.diskCache {
-                DiskCache.Builder().directory(cacheDir.resolve("image_cache"))
-                    .maxSizeBytes(50L * 1024 * 1024).build()
-            }.crossfade(true).allowRgb565(true) // Optimize memory by using RGB_565 for images
+            add(AudioArtFetcher.Factory(this@Application))
+        }.memoryCache {
+            MemoryCache.Builder(this).maxSizePercent(0.25).build()
+        }.diskCache {
+            DiskCache.Builder().directory(cacheDir.resolve("image_cache"))
+                .maxSizeBytes(50L * 1024 * 1024).build()
+        }.crossfade(true).allowRgb565(true) // Optimize memory by using RGB_565 for images
             .build()
     }
 

@@ -82,6 +82,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
         super.onCreate(savedInstanceState)
     }
 
+    override fun applyInitialTheme() {
+        currentMode = ThemeManager.currentMode
+        currentDominantColor = ThemeManager.currentColors ?: Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
+
+        val colors = getCurrentThemeColors(currentMode, currentDominantColor)
+        updatePlayerUIColors(colors.first, colors.second)
+
+        val paletteColors = getCurrentThemeColors(DATA.MODE_PALETTE, currentDominantColor)
+        binding.paletteColorBg.applySimpleGradient(paletteColors.first, paletteColors.second)
+    }
+
     override fun setupViews() {
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 

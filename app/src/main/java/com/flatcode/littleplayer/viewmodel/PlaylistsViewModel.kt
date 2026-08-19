@@ -76,12 +76,14 @@ class PlaylistsViewModel @Inject constructor(
             viewModelScope.launch {
                 repository.getSongsFromPlaylistSync(randomPlaylist.name).let { entities ->
                     val songs = entities.filter { it.songId.isNotEmpty() }.map {
+                        val dbSong = repository.getSongById(it.songId)
                         MusicFiles(
                             id = it.songId,
-                            title = it.title,
-                            albumId = it.albumId,
-                            artist = it.artist,
-                            path = it.path
+                            title = dbSong?.title ?: it.title,
+                            albumId = dbSong?.albumId ?: it.albumId,
+                            artist = dbSong?.artist ?: it.artist,
+                            album = MusicFiles.getCleanedAlbum(dbSong?.album, dbSong?.path ?: it.path),
+                            path = dbSong?.path ?: it.path
                         )
                     }
                     if (songs.isNotEmpty()) {

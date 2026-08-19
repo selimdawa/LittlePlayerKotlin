@@ -28,12 +28,7 @@ class FolderDetailsActivity : BaseActivity<ActivityFolderDetailsBinding>(Activit
     private var adapter: MusicAdapter? = null
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.recyclerView.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.recyclerView)
 
         val folderPath = intent.extras?.getString("FOLDER_PATH")
         viewModel.filterSongsByFolder(folderPath)

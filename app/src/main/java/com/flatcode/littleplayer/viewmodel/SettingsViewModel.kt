@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.repository.MusicRepository
 import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.ThemeManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -46,6 +47,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setDarkMode(mode: Int) {
+        ThemeManager.saveDarkMode(mode)
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[darkModeKey] = mode
