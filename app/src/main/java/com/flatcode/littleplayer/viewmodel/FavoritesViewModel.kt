@@ -4,21 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.repository.MusicRoomRepository
-import com.flatcode.littleplayer.utils.DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val repository: MusicRoomRepository
@@ -33,11 +31,9 @@ class FavoritesViewModel @Inject constructor(
                 repository.getFavoriteSongs().distinctUntilChanged(),
                 repository.excludedFolders.distinctUntilChanged()
             ) { favorites, excluded ->
-                favorites.asSequence()
-                    .filter { song ->
+                favorites.asSequence().filter { song ->
                         excluded.none { excludedPath -> song.path.startsWith(excludedPath) }
-                    }
-                    .map { song ->
+                    }.map { song ->
                         MusicFiles(
                             id = song.id,
                             title = song.title,
@@ -50,13 +46,10 @@ class FavoritesViewModel @Inject constructor(
                             dominantColor = song.dominantColor,
                             vibrantColor = song.vibrantColor
                         )
-                    }
-                    .toList()
-            }
-            .flowOn(Dispatchers.Default)
-            .collect {
-                _favoriteSongs.value = it
-            }
+                    }.toList()
+            }.flowOn(Dispatchers.Default).collect {
+                    _favoriteSongs.value = it
+                }
         }
     }
 }

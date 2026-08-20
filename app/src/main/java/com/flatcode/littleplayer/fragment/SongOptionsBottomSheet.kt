@@ -10,11 +10,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.InfoEditActivity
+import com.flatcode.littleplayer.databinding.DialogConfirmRemoveBinding
 import com.flatcode.littleplayer.databinding.DialogSongOptionsBinding
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.utils.DATA
@@ -24,7 +24,6 @@ import com.flatcode.littleplayer.utils.requestDeletion
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.R as MaterialR
 
@@ -97,40 +96,37 @@ class SongOptionsBottomSheet(
     }
 
     private fun showRemoveFromPlaylistConfirmation() {
-        val view = layoutInflater.inflate(R.layout.dialog_confirm_remove, null)
-        val alertDialog = MaterialAlertDialogBuilder(requireContext()).setView(view).create()
+        val dialogBinding = DialogConfirmRemoveBinding.inflate(layoutInflater)
+        val alertDialog =
+            MaterialAlertDialogBuilder(requireContext()).setView(dialogBinding.root).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 
-        val tvTitle = view.findViewById<TextView>(R.id.dialogTitle)
-        val tvMessage = view.findViewById<TextView>(R.id.dialogMessage)
-        val btnRemove = view.findViewById<MaterialButton>(R.id.btnRemove)
-        val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
-
         if (removeLabel != null) {
-            tvTitle.text = removeLabel
+            dialogBinding.dialogTitle.text = removeLabel
         }
 
-        tvMessage.text = getString(R.string.remove_song_from_playlist_message, song.title)
+        dialogBinding.dialogMessage.text =
+            getString(R.string.remove_song_from_playlist_message, song.title)
 
         // Force colors to ?attr/colorError
         val errorColor = requireContext().getLibraryColor("colorError")
-        tvTitle.setTextColor(errorColor)
-        tvMessage.setTextColor(errorColor)
-        btnCancel.setTextColor(errorColor)
-        btnRemove.setTextColor(errorColor)
+        dialogBinding.dialogTitle.setTextColor(errorColor)
+        dialogBinding.dialogMessage.setTextColor(errorColor)
+        dialogBinding.btnCancel.setTextColor(errorColor)
+        dialogBinding.btnRemove.setTextColor(errorColor)
 
         // Text style for button
-        btnRemove.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-        btnRemove.rippleColor = ColorStateList.valueOf(errorColor).withAlpha(30)
+        dialogBinding.btnRemove.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+        dialogBinding.btnRemove.rippleColor = ColorStateList.valueOf(errorColor).withAlpha(30)
 
-        btnRemove.setOnClickListener {
+        dialogBinding.btnRemove.setOnClickListener {
             onRemoveFromPlaylistClick?.invoke(song)
             alertDialog.dismiss()
             dismiss()
         }
 
-        btnCancel.setOnClickListener {
+        dialogBinding.btnCancel.setOnClickListener {
             alertDialog.dismiss()
         }
 

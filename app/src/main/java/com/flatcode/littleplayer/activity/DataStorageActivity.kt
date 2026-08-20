@@ -156,7 +156,7 @@ class DataStorageActivity :
             imageRes,
             20,
             DATA.MODE_WHITE,
-            ContextCompat.getColor(this, R.color.white)
+            null
         )
 
         // List Item Previews
@@ -175,7 +175,7 @@ class DataStorageActivity :
             getString(R.string.white),
             imageRes,
             DATA.MODE_WHITE,
-            ContextCompat.getColor(this, R.color.white)
+            null
         )
     }
 
@@ -185,7 +185,7 @@ class DataStorageActivity :
         imageSource: Any?,
         progress: Int,
         mode: Int,
-        colorPair: Any?,
+        colorPair: Pair<Int, Int>?,
     ) {
         itemBinding.tvThemeLabel.text = label
 
@@ -194,7 +194,7 @@ class DataStorageActivity :
         itemBinding.playerContent.artist.text = getString(R.string.the_weeknd)
         itemBinding.playerContent.miniProgressBar.progress = progress
 
-        val colors = getCurrentThemeColors(mode, colorPair as? Pair<Int, Int>)
+        val colors = getCurrentThemeColors(mode, colorPair)
 
         itemBinding.playerContent.bottomPlayerContainer.setGradientBackground(
             colors.first, colors.second
@@ -217,7 +217,7 @@ class DataStorageActivity :
         label: String,
         imageSource: Any?,
         mode: Int,
-        colorPair: Any?
+        colorPair: Pair<Int, Int>?
     ) {
         itemBinding.tvThemeLabel.text = label
         itemBinding.musicItem.songName.text = getString(R.string.blinding_lights)
@@ -227,7 +227,7 @@ class DataStorageActivity :
         )
         itemBinding.musicItem.songDetails.text = songDetailsText
 
-        val colors = getCurrentThemeColors(mode, colorPair as? Pair<Int, Int>)
+        val colors = getCurrentThemeColors(mode, colorPair)
 
         itemBinding.musicItem.songName.setTextColor(colors.first)
         itemBinding.musicItem.wave.startColor = colors.first

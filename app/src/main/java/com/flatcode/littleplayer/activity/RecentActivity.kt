@@ -2,26 +2,21 @@ package com.flatcode.littleplayer.activity
 
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.widget.TextView
 import androidx.activity.viewModels
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityRecentBinding
+import com.flatcode.littleplayer.databinding.DialogConfirmRemoveBinding
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.collectWithLifecycle
-import com.flatcode.littleplayer.utils.getColorFromAttr
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.RecentViewModel
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -51,38 +46,32 @@ class RecentActivity : BaseActivity<ActivityRecentBinding>(ActivityRecentBinding
     }
 
     private fun showClearRecentDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_confirm_remove, null)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(view).create()
+        val dialogBinding = DialogConfirmRemoveBinding.inflate(layoutInflater)
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 
-        val tvTitle = view.findViewById<TextView>(R.id.dialogTitle)
-        val tvMessage = view.findViewById<TextView>(R.id.dialogMessage)
-        val btnClear = view.findViewById<MaterialButton>(R.id.btnRemove)
-        val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
-
-        tvTitle.text = getString(R.string.clear_recent_history)
-        tvMessage.text = getString(R.string.clear_recent_message)
-        btnClear.text = getString(R.string.clear)
+        dialogBinding.dialogTitle.text = getString(R.string.clear_recent_history)
+        dialogBinding.dialogMessage.text = getString(R.string.clear_recent_message)
+        dialogBinding.btnRemove.text = getString(R.string.clear)
 
         // Force colors to ?attr/colorError
         val errorColor = getLibraryColor("colorError")
-        tvTitle.setTextColor(errorColor)
-        tvMessage.setTextColor(errorColor)
-        btnCancel.setTextColor(errorColor)
-        btnClear.setTextColor(errorColor)
+        dialogBinding.dialogTitle.setTextColor(errorColor)
+        dialogBinding.dialogMessage.setTextColor(errorColor)
+        dialogBinding.btnCancel.setTextColor(errorColor)
+        dialogBinding.btnRemove.setTextColor(errorColor)
 
         // Make buttons consistent (Text style for both if we want colorError text)
-        btnClear.backgroundTintList =
-            ColorStateList.valueOf(Color.TRANSPARENT)
-        btnClear.rippleColor = ColorStateList.valueOf(errorColor).withAlpha(30)
+        dialogBinding.btnRemove.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+        dialogBinding.btnRemove.rippleColor = ColorStateList.valueOf(errorColor).withAlpha(30)
 
-        btnClear.setOnClickListener {
+        dialogBinding.btnRemove.setOnClickListener {
             viewModel.clearRecent()
             alertDialog.dismiss()
         }
 
-        btnCancel.setOnClickListener {
+        dialogBinding.btnCancel.setOnClickListener {
             alertDialog.dismiss()
         }
 

@@ -1,9 +1,7 @@
 package com.flatcode.littleplayer.activity
 
 import android.R.color.transparent
-import android.view.View
 import android.view.WindowManager
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -15,6 +13,7 @@ import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityPlaylistDetailsBinding
 import com.flatcode.littleplayer.databinding.DialogConfirmDeleteBinding
 import com.flatcode.littleplayer.databinding.DialogPlaylistNewBinding
+import com.flatcode.littleplayer.databinding.DialogPlaylistOptionsBinding
 import com.flatcode.littleplayer.fragment.SortSongsBottomSheet
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
@@ -110,23 +109,19 @@ class PlaylistDetailsActivity :
     }
 
     private fun showPlaylistOptionsDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_playlist_options, null)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogView).create()
+        val dialogBinding = DialogPlaylistOptionsBinding.inflate(layoutInflater)
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
 
         alertDialog.setCanceledOnTouchOutside(false)
 
-        val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
-        val btnEdit = dialogView.findViewById<View>(R.id.btnEdit)
-        val btnRemove = dialogView.findViewById<View>(R.id.btnRemove)
+        dialogBinding.dialogTitle.text = currentPlaylistName
 
-        dialogTitle.text = currentPlaylistName
-
-        btnEdit.setOnClickListener {
+        dialogBinding.btnEdit.setOnClickListener {
             alertDialog.dismiss()
             showRenamePlaylistDialog()
         }
 
-        btnRemove.setOnClickListener {
+        dialogBinding.btnRemove.setOnClickListener {
             alertDialog.dismiss()
             showDeletePlaylistDialog()
         }

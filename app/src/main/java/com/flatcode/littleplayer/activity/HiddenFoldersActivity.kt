@@ -1,7 +1,6 @@
 package com.flatcode.littleplayer.activity
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
@@ -52,7 +51,7 @@ class HiddenFoldersActivity :
         }
 
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
-            findViewById<View>(R.id.fragBottomPlayer)?.isVisible = song != null
+            binding.fragBottomPlayer.root.isVisible = song != null
         }
     }
 

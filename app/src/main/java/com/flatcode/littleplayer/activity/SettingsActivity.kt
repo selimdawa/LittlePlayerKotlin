@@ -5,16 +5,12 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
@@ -23,6 +19,7 @@ import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivitySettingsBinding
 import com.flatcode.littleplayer.databinding.DialogAboutBinding
+import com.flatcode.littleplayer.databinding.DialogLanguageBinding
 import com.flatcode.littleplayer.fragment.SleepTimerBottomSheet
 import com.flatcode.littleplayer.service.MusicService
 import com.flatcode.littleplayer.utils.appVersionName
@@ -188,18 +185,18 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
     }
 
     private fun showLanguageDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_language, null)
-        val alertDialog = MaterialAlertDialogBuilder(this).setView(view).create()
+        val dialogBinding = DialogLanguageBinding.inflate(layoutInflater)
+        val alertDialog = MaterialAlertDialogBuilder(this).setView(dialogBinding.root).create()
 
         alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val currentLocale = AppCompatDelegate.getApplicationLocales().get(0)
         val currentTag = currentLocale?.language ?: ""
 
-        view.findViewById<View>(R.id.checkSystem).isVisible = currentTag == ""
-        view.findViewById<View>(R.id.checkEnglish).isVisible = currentTag == "en"
-        view.findViewById<View>(R.id.checkArabic).isVisible = currentTag == "ar"
-        view.findViewById<View>(R.id.checkSpanish).isVisible = currentTag == "es"
+        dialogBinding.checkSystem.isVisible = currentTag == ""
+        dialogBinding.checkEnglish.isVisible = currentTag == "en"
+        dialogBinding.checkArabic.isVisible = currentTag == "ar"
+        dialogBinding.checkSpanish.isVisible = currentTag == "es"
 
         val setLanguage = { tag: String ->
             val appLocale: LocaleListCompat = if (tag.isEmpty()) {
@@ -211,10 +208,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
             alertDialog.dismiss()
         }
 
-        view.findViewById<View>(R.id.langSystem).setOnClickListener { setLanguage("") }
-        view.findViewById<View>(R.id.langEnglish).setOnClickListener { setLanguage("en") }
-        view.findViewById<View>(R.id.langArabic).setOnClickListener { setLanguage("ar") }
-        view.findViewById<View>(R.id.langSpanish).setOnClickListener { setLanguage("es") }
+        dialogBinding.langSystem.setOnClickListener { setLanguage("") }
+        dialogBinding.langEnglish.setOnClickListener { setLanguage("en") }
+        dialogBinding.langArabic.setOnClickListener { setLanguage("ar") }
+        dialogBinding.langSpanish.setOnClickListener { setLanguage("es") }
 
         alertDialog.show()
     }

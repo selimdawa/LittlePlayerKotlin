@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -18,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.FolderDetailsActivity
 import com.flatcode.littleplayer.adapter.FolderAdapter
+import com.flatcode.littleplayer.databinding.DialogHideFolderBinding
 import com.flatcode.littleplayer.databinding.FragmentFoldersBinding
 import com.flatcode.littleplayer.model.Folder
 import com.flatcode.littleplayer.utils.DATA
@@ -68,7 +68,8 @@ class FoldersFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.folderFiles.collect { folderList ->
                     val currentSortOrder = viewModel.foldersSortOrder.value
-                    val shouldScrollToTop = (lastSortOrder != null && lastSortOrder != currentSortOrder)
+                    val shouldScrollToTop =
+                        (lastSortOrder != null && lastSortOrder != currentSortOrder)
                     lastSortOrder = currentSortOrder
 
                     binding.emptyState.isVisible = folderList.isEmpty()
@@ -101,8 +102,7 @@ class FoldersFragment : Fragment() {
         if (adapter == null) {
             adapter = FolderAdapter(requireContext(), { folderName, folderPath, _ ->
                 val intent = Intent(
-                    requireContext(),
-                    FolderDetailsActivity::class.java
+                    requireContext(), FolderDetailsActivity::class.java
                 ).apply {
                     putExtra("FOLDER_NAME", folderName)
                     putExtra("FOLDER_PATH", folderPath)
@@ -126,6 +126,7 @@ class FoldersFragment : Fragment() {
                     showHideFolderDialog(folder)
                     true
                 }
+
                 else -> false
             }
         }
@@ -133,17 +134,16 @@ class FoldersFragment : Fragment() {
     }
 
     private fun showHideFolderDialog(folder: Folder) {
-        val view = layoutInflater.inflate(R.layout.dialog_hide_folder, null)
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(view)
-            .create()
+        val dialogBinding = DialogHideFolderBinding.inflate(layoutInflater)
+        val dialog =
+            MaterialAlertDialogBuilder(requireContext()).setView(dialogBinding.root).create()
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        
-        view.findViewById<TextView>(R.id.dialogTitle).text = folder.name
 
-        view.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
-        view.findViewById<View>(R.id.btnHide).setOnClickListener {
+        dialogBinding.dialogTitle.text = folder.name
+
+        dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+        dialogBinding.btnHide.setOnClickListener {
             viewModel.addExcludedFolder(folder.path)
             dialog.dismiss()
         }

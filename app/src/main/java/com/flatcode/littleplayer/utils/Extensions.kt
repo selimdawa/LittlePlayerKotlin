@@ -48,7 +48,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.palette.graphics.Palette
@@ -62,7 +61,9 @@ import coil.imageLoader
 import coil.load
 import coil.request.ImageRequest
 import coil.request.Options
+import coil.size.Precision
 import coil.size.Scale
+import coil.size.Size
 import coil.transform.Transformation
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.activity.PlayerActivity
@@ -77,6 +78,7 @@ import kotlinx.coroutines.launch
 import okio.buffer
 import okio.source
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.Locale
 import kotlin.time.Duration
@@ -120,8 +122,7 @@ fun TextView.fadeText(newText: String, duration: Long = 200L) {
 }
 
 fun AppCompatActivity.checkAudioPermissions(
-    permissionLauncher: ActivityResultLauncher<Array<String>>,
-    onGranted: () -> Unit
+    permissionLauncher: ActivityResultLauncher<Array<String>>, onGranted: () -> Unit
 ) {
     val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.POST_NOTIFICATIONS)
@@ -197,13 +198,6 @@ fun View.setHaloBackground(
     }
 }
 
-fun View.setHaloSolidBackground(@ColorInt color: Int) {
-    setHaloBackground(color, color)
-}
-
-fun View.setSolidBackground(@ColorInt color: Int, layerIndex: Int = 0) {
-    setGradientBackground(color, color, layerIndex)
-}
 
 fun View.applySimpleGradient(@ColorInt startColor: Int, @ColorInt endColor: Int) {
     background = GradientDrawable(
@@ -223,9 +217,8 @@ suspend fun Context.getSongArtwork(
     isAlbum: Boolean = false,
 ): Bitmap? {
     val model = getSongImageModel(albumId, path, cachedPath, album, isAlbum = isAlbum)
-    val request =
-        ImageRequest.Builder(this).data(model).size(size).precision(coil.size.Precision.INEXACT)
-            .allowHardware(false).bitmapConfig(Bitmap.Config.ARGB_8888).build()
+    val request = ImageRequest.Builder(this).data(model).size(size).precision(Precision.INEXACT)
+        .allowHardware(false).bitmapConfig(Bitmap.Config.ARGB_8888).build()
 
     val result = imageLoader.execute(request)
     return (result.drawable as? BitmapDrawable)?.bitmap
@@ -503,26 +496,6 @@ fun ImageView.loadSongImage(
     }
 }
 
-fun ImageView.loadSongImageByPath(
-    path: String?, cachedPath: String? = null, fallback: Int = R.drawable.ic_cover_song
-) {
-    val model: Any = if (!cachedPath.isNullOrEmpty()) {
-        File(cachedPath)
-    } else if (!path.isNullOrEmpty()) {
-        getAlbumArtBytes(path) ?: fallback
-    } else {
-        fallback
-    }
-
-    if (getTag(R.id.image_model_tag) == model && drawable != null) return
-    setTag(R.id.image_model_tag, model)
-
-    load(model) {
-        crossfade(true)
-        placeholder(R.color.image_profile)
-        error(fallback)
-    }
-}
 
 fun ImageView.loadSongImageBlur(
     albumId: String?,
@@ -747,7 +720,7 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
             drawable.draw(canvas)
         }
 
-        val stream = java.io.ByteArrayOutputStream()
+        val stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
         val byteArray = stream.toByteArray()
         stream.close()
@@ -763,10 +736,10 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
 fun Int.toMiddleColor(): Int {
     val hsv = FloatArray(3)
     Color.colorToHSV(this, hsv)
-    
+
     // Check if the color is too close to red/pink and has low saturation
     // Red is around 0-20 and 340-360 degrees
-    val isReddish = hsv[0] < 20f || hsv[0] > 330f
+    val isReddish = hsv[0] !in 20f..330f
     if (isReddish && hsv[1] < 0.3f) {
         // If it's a weak red/pink, shift it to a nice neutral blue/slate
         hsv[0] = 210f // Blue/Azure hue
@@ -774,7 +747,7 @@ fun Int.toMiddleColor(): Int {
     } else {
         hsv[1] = hsv[1].coerceIn(0.4f, 0.9f)
     }
-    
+
     hsv[2] = hsv[2].coerceIn(0.7f, 0.95f)
     return Color.HSVToColor(hsv)
 }
@@ -782,17 +755,17 @@ fun Int.toMiddleColor(): Int {
 fun Palette?.extractDynamicColors(defaultStart: Int, defaultEnd: Int): Pair<Int, Int> {
     // Priority 1: Light Vibrant (Greens, Yellows, Cyans)
     var start = this?.getLightVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
-    
+
     // Priority 2: Vibrant
     if (start == null) {
         start = this?.getVibrantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
     }
-    
+
     // Priority 3: If still null or too reddish/weak, try Muted colors which are often better for B&W images
     if (start == null) {
         start = this?.getDominantColor(Color.TRANSPARENT).takeIf { it != Color.TRANSPARENT }
     }
-    
+
     val finalStart = start ?: defaultStart
 
     // End color logic
@@ -839,7 +812,7 @@ fun Context.getAppCompatActivity(): AppCompatActivity? {
 class SimpleBlurTransformation(private val radius: Float) : Transformation {
     override val cacheKey: String = "${SimpleBlurTransformation::class.java.name}-$radius"
 
-    override suspend fun transform(input: Bitmap, size: coil.size.Size): Bitmap {
+    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
         val scaleFactor = 8
         val w = (input.width / scaleFactor).coerceAtLeast(1)
         val h = (input.height / scaleFactor).coerceAtLeast(1)
