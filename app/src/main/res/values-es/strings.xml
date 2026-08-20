@@ -143,8 +143,6 @@
     <string name="widget_compact">Compacto (4x1)</string>
     <string name="widget_modern">Moderno (4x2)</string>
     <string name="widget_large">Grande (4x4)</string>
-    <string name="refresh_widgets">Actualizar widgets</string>
-    <string name="widgets_refreshed">Widgets actualizados con éxito</string>
     <string name="widget_pinning_not_supported">El anclaje de widgets no es compatible con este dispositivo.</string>
     <string name="unknown">Desconocido</string>
     <string name="widget_added_success">Widget añadido! Revisa tu pantalla de inicio.</string>
@@ -157,7 +155,6 @@
     <string name="album">Álbum</string>
     <string name="save">Guardar</string>
     <string name="edit_cover">Editar portada</string>
-    <string name="error_loading_tags">Error al cargar etiquetas</string>
     <string name="error_saving_tags">Error al guardar etiquetas</string>
     <string name="tags_saved_successfully">Etiquetas guardadas con éxito</string>
     <string name="kbps_format">%1$s kbps</string>

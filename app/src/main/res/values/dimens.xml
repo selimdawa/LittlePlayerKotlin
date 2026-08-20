@@ -6,7 +6,6 @@
     <dimen name="dialog_item_text_size">16sp</dimen>
     <dimen name="dialog_item_padding">12dp</dimen>
     <dimen name="icon_size_small">24dp</dimen>
-    <dimen name="tab_margin_small">5dp</dimen>
     <dimen name="tab_padding_horizontal">15dp</dimen>
     <dimen name="tab_height">42dp</dimen>
 
@@ -26,7 +25,6 @@
     <dimen name="icon_size_40">40dp</dimen>
     <dimen name="icon_size_35">35dp</dimen>
     <dimen name="icon_size_18">18dp</dimen>
-    <dimen name="icon_size_45">45dp</dimen>
     <dimen name="icon_size_25">25dp</dimen>
     <dimen name="icon_size_36">36dp</dimen>
     <dimen name="icon_size_44">44dp</dimen>
@@ -35,7 +33,6 @@
     <dimen name="icon_size_34">34dp</dimen>
     <dimen name="cover_size_edit">240dp</dimen>
     <dimen name="radius_17">17dp</dimen>
-    <dimen name="radius_12">12dp</dimen>
     <dimen name="btn_min_width_large">160dp</dimen>
     <dimen name="divider_height">1dp</dimen>
 
@@ -52,7 +49,6 @@
     <dimen name="radius_medium">16dp</dimen>
     <dimen name="radius_large">24dp</dimen>
     <dimen name="radius_tiny">4dp</dimen>
-    <dimen name="radius_default">10dp</dimen>
     <dimen name="radius_circle">100dp</dimen>
     <dimen name="radius_20">20dp</dimen>
     <dimen name="radius_25">25dp</dimen>
@@ -93,11 +89,5 @@
     <dimen name="stroke_width_active">2dp</dimen>
     <dimen name="stroke_width_inactive">1dp</dimen>
     <dimen name="text_size_search_hint">14sp</dimen>
-    <dimen name="text_size_splash_title">32sp</dimen>
-    <dimen name="text_size_10">10sp</dimen>
-    <dimen name="radius_28">28dp</dimen>
-    <dimen name="gradient_radius_large">600dp</dimen>
-    <dimen name="gradient_radius_medium">400dp</dimen>
     <dimen name="wave_width_default">3dp</dimen>
-    <dimen name="gradient_radius_small">300dp</dimen>
 </resources>

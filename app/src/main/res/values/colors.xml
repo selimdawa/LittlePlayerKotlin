@@ -10,7 +10,6 @@
     <color name="light_gray_icon">#CCCCCC</color>
     <color name="pure_black">#FF000000</color>
     <color name="link">#2196F3</color>
-    <color name="blue">#2196F3</color>
     <color name="purple_500">#6200EE</color>
     <color name="purple_700">#3700B3</color>
     <color name="purple_equalizer">#7c4dde</color>
@@ -22,7 +21,6 @@
 
     <!-- Transparency Colors -->
     <color name="transparent">@android:color/transparent</color>
-    <color name="white_80">#CCFFFFFF</color>
     <color name="white_70">#B3FFFFFF</color>
     <color name="white_66">#66FFFFFF</color>
     <color name="white_50">#80FFFFFF</color>
@@ -31,7 +29,6 @@
     <color name="white_30">#4DFFFFFF</color>
     <color name="white_20">#33FFFFFF</color>
     <color name="white_10">#1AFFFFFF</color>
-    <color name="black_80">#CC000000</color>
     <color name="black_60">#99000000</color>
     <color name="black_50">#80000000</color>
     <color name="black_25">#40000000</color>
@@ -40,9 +37,7 @@
 
     <!-- Splash Colors -->
     <color name="splash_bg_night_start">#0D0D14</color>
-    <color name="splash_bg_night_end">#1B0B1B</color>
     <color name="splash_bg_day_start">#2196F3</color>
     <color name="splash_bg_day_end">#00BCD4</color>
-    <color name="star_color">#FFFFFF</color>
     <color name="splash_text_color">#FFFFFF</color>
 </resources>

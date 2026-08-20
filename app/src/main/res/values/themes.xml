@@ -8,10 +8,6 @@
         <item name="cornerSize">14dp</item>
     </style>
 
-    <style name="RoundedImage">
-        <item name="cornerSize">16dp</item>
-    </style>
-
     <!-- Custom Activity Animations -->
     <style name="ActivityAnimation.SlideUpDown" parent="android:Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/slide_in_up</item>

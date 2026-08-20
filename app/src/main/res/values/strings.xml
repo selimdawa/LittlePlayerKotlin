@@ -143,8 +143,6 @@
     <string name="widget_compact">Compact (4x1)</string>
     <string name="widget_modern">Modern (4x2)</string>
     <string name="widget_large">Large (4x4)</string>
-    <string name="refresh_widgets">Refresh Widgets</string>
-    <string name="widgets_refreshed">Widgets updated successfully</string>
     <string name="widget_pinning_not_supported">Widget pinning is not supported on this device.</string>
     <string name="widget_added_success">Widget added! Check your home screen.</string>
     <string name="widget_already_exists">Widget already exists on your home screen.</string>
@@ -175,7 +173,6 @@
     <string name="album">Album</string>
     <string name="save">Save</string>
     <string name="edit_cover">Edit Cover</string>
-    <string name="error_loading_tags">Error loading tags</string>
     <string name="error_saving_tags">Error saving tags</string>
     <string name="tags_saved_successfully">Tags saved successfully</string>
     <string name="kbps_format">%1$s kbps</string>
