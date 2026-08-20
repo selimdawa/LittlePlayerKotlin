@@ -1337,12 +1337,12 @@ class MusicService : MediaLibraryService(), Player.Listener {
         const val COMMAND_STOP_SERVICE = "COMMAND_STOP_SERVICE"
         const val COMMAND_SET_PRESET = "COMMAND_SET_PRESET"
 
-        const val ACTION_UPDATE_WIDGET = "com.flatcode.littleplayer.ACTION_UPDATE_WIDGET"
-        const val ACTION_PLAY_PAUSE = "com.flatcode.littleplayer.ACTION_PLAY_PAUSE"
-        const val ACTION_NEXT = "com.flatcode.littleplayer.ACTION_NEXT"
-        const val ACTION_PREV = "com.flatcode.littleplayer.ACTION_PREV"
-        const val ACTION_SHUFFLE = "com.flatcode.littleplayer.ACTION_SHUFFLE"
-        const val ACTION_FAVORITE = "com.flatcode.littleplayer.ACTION_FAVORITE"
+        const val ACTION_UPDATE_WIDGET = DATA.ACTION_UPDATE_WIDGET
+        const val ACTION_PLAY_PAUSE = DATA.ACTION_PLAY_PAUSE
+        const val ACTION_NEXT = DATA.ACTION_NEXT
+        const val ACTION_PREV = DATA.ACTION_PREV
+        const val ACTION_SHUFFLE = DATA.ACTION_SHUFFLE_MEDIA
+        const val ACTION_FAVORITE = DATA.ACTION_FAVORITE_MEDIA
 
         private const val ROOT_ID = "root"
         private const val CATEGORY_SONGS = "songs"

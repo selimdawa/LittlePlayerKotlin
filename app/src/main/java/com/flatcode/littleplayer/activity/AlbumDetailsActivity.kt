@@ -10,6 +10,7 @@ import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityAlbumDetailsBinding
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.loadCachedAlbumImage
 import com.flatcode.littleplayer.utils.loadSongImage
@@ -39,7 +40,7 @@ class AlbumDetailsActivity : BaseActivity<ActivityAlbumDetailsBinding>(ActivityA
     override fun setupViews() {
         applyEdgeToEdge(topView = binding.customToolbar.root)
 
-        albumName = intent.extras?.getString("ALBUM_NAME")
+        albumName = intent.extras?.getString(DATA.ALBUM_NAME_KEY)
         initUI(albumName)
         viewModel.filterSongsByAlbum(albumName)
     }

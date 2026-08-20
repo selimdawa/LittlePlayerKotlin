@@ -6,8 +6,11 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.SeekBar
+import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -59,9 +62,9 @@ class EqualizerActivity :
 
     private data class PresetUI(
         val name: String,
-        val card: androidx.cardview.widget.CardView,
-        val text: android.widget.TextView,
-        val icon: android.widget.ImageView
+        val card: CardView,
+        val text: TextView,
+        val icon: ImageView
     )
 
     private val presetUIs by lazy {

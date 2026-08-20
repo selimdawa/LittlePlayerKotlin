@@ -8,6 +8,7 @@ import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFolderDetailsBinding
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.openPlayer
@@ -30,7 +31,7 @@ class FolderDetailsActivity : BaseActivity<ActivityFolderDetailsBinding>(Activit
     override fun setupViews() {
         applyEdgeToEdge(topView = binding.recyclerView)
 
-        val folderPath = intent.extras?.getString("FOLDER_PATH")
+        val folderPath = intent.extras?.getString(DATA.FOLDER_PATH)
         viewModel.filterSongsByFolder(folderPath)
     }
 

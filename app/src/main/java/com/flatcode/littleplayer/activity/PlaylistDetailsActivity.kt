@@ -49,7 +49,8 @@ class PlaylistDetailsActivity :
             insets
         }
 
-        currentPlaylistName = intent.getStringExtra("PLAYLIST_NAME") ?: getString(R.string.playlist)
+        currentPlaylistName =
+            intent.getStringExtra(DATA.PLAYLIST_NAME) ?: getString(R.string.playlist)
         setupUI()
 
         viewModel.loadSongs(currentPlaylistName)

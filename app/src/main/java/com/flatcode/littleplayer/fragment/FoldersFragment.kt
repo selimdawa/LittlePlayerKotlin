@@ -104,8 +104,8 @@ class FoldersFragment : Fragment() {
                 val intent = Intent(
                     requireContext(), FolderDetailsActivity::class.java
                 ).apply {
-                    putExtra("FOLDER_NAME", folderName)
-                    putExtra("FOLDER_PATH", folderPath)
+                    putExtra(DATA.FOLDER_NAME, folderName)
+                    putExtra(DATA.FOLDER_PATH, folderPath)
                 }
                 startActivity(intent)
             }, { folder, view ->

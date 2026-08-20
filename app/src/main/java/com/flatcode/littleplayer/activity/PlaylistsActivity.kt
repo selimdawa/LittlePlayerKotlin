@@ -195,7 +195,7 @@ class PlaylistsActivity :
             if (adapter == null) {
                 adapter = PlaylistAdapter(onItemClick = { playlistName ->
                     launchActivity<PlaylistDetailsActivity> {
-                        putExtra("PLAYLIST_NAME", playlistName)
+                        putExtra(DATA.PLAYLIST_NAME, playlistName)
                     }
                 }, onMoreClick = { playlist, _ ->
                     showPlaylistOptionsDialog(playlist)

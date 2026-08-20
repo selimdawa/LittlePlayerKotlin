@@ -9,6 +9,7 @@ import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityArtistDetailsBinding
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.initToolbar
@@ -32,7 +33,7 @@ class ArtistDetailsActivity : BaseActivity<ActivityArtistDetailsBinding>(Activit
     override fun setupViews() {
         applyEdgeToEdge(topView = binding.customToolbar.root)
 
-        val artistName = intent.extras?.getString("ARTIST_NAME")
+        val artistName = intent.extras?.getString(DATA.ARTIST_NAME_KEY)
         initUI(artistName)
         viewModel.filterSongsByArtist(artistName)
     }
