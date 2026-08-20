@@ -8,9 +8,6 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityInfoEditBinding
@@ -46,18 +43,12 @@ class InfoEditActivity : BaseActivity<ActivityInfoEditBinding>(ActivityInfoEditB
     }
 
     override fun setupViews() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.toolbar.updatePadding(top = systemBars.top)
-            insets
-        }
+        applyEdgeToEdge(topView = binding.toolbar, bottomView = binding.root)
 
         song = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(DATA.SONG, MusicFiles::class.java)
         } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(DATA.SONG)
+            @Suppress("DEPRECATION") intent.getParcelableExtra(DATA.SONG)
         }
 
         if (song == null) {
@@ -75,11 +66,7 @@ class InfoEditActivity : BaseActivity<ActivityInfoEditBinding>(ActivityInfoEditB
         binding.etAlbum.setText(song?.album)
         binding.ivCover.loadSongImage(song?.albumId, song?.path, song?.cachedImagePath, song?.album)
         binding.imageBlur.loadSongImageBlur(
-            song?.albumId,
-            100,
-            song?.path,
-            song?.cachedImagePath,
-            song?.album
+            song?.albumId, 100, song?.path, song?.cachedImagePath, song?.album
         )
     }
 
@@ -135,16 +122,12 @@ class InfoEditActivity : BaseActivity<ActivityInfoEditBinding>(ActivityInfoEditB
             if (success) {
                 viewModel.updateMetadata(currentSong.id ?: "", newTitle, newArtist, newAlbum)
                 Toast.makeText(
-                    this@InfoEditActivity,
-                    R.string.tags_saved_successfully,
-                    Toast.LENGTH_SHORT
+                    this@InfoEditActivity, R.string.tags_saved_successfully, Toast.LENGTH_SHORT
                 ).show()
                 finish()
             } else {
                 Toast.makeText(
-                    this@InfoEditActivity,
-                    R.string.error_saving_tags,
-                    Toast.LENGTH_SHORT
+                    this@InfoEditActivity, R.string.error_saving_tags, Toast.LENGTH_SHORT
                 ).show()
             }
         }

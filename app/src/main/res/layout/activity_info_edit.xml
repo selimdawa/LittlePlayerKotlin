@@ -17,7 +17,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.7"
+        android:alpha="0.4"
         android:contentDescription="@null"
         android:scaleType="centerCrop"
         android:src="@color/dark" />
@@ -30,7 +30,8 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="wrap_content"
+            android:minHeight="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_close"
             app:navigationIconTint="@color/white"
             app:title="@string/tag_editor"
@@ -55,10 +56,11 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/spacing_20"
                     android:layout_marginBottom="@dimen/spacing_xlarge"
-                    app:cardBackgroundColor="@color/image_profile"
-                    app:cardCornerRadius="@dimen/spacing_15"
-                    app:cardElevation="@dimen/spacing_0"
-                    app:strokeWidth="@dimen/spacing_0">
+                    app:cardBackgroundColor="@color/white_10"
+                    app:cardCornerRadius="@dimen/radius_large"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/white_10"
+                    app:strokeWidth="1dp">
 
                     <FrameLayout
                         android:layout_width="match_parent"
@@ -222,11 +224,11 @@
                     android:textColor="@color/white"
                     android:textSize="@dimen/text_size_16"
                     android:textStyle="bold"
-                    app:backgroundTint="@color/transparent"
-                    app:cornerRadius="@dimen/radius_12"
+                    app:backgroundTint="@color/white_10"
+                    app:cornerRadius="@dimen/radius_large"
                     app:rippleColor="@color/white_40"
-                    app:strokeColor="?attr/mc_track"
-                    app:strokeWidth="@dimen/thickness_small" />
+                    app:strokeColor="@color/white_10"
+                    app:strokeWidth="1dp" />
 
             </LinearLayout>
 
