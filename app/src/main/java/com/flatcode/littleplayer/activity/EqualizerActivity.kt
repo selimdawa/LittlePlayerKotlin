@@ -5,13 +5,14 @@ import android.content.ComponentName
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.MotionEvent
+import android.view.ViewGroup
 import android.widget.SeekBar
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
@@ -20,7 +21,9 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.ActivityEqualizerBinding
+import com.flatcode.littleplayer.databinding.ItemEqBandVerticalBinding
 import com.flatcode.littleplayer.service.MusicService
+import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.viewmodel.EqualizerViewModel
@@ -40,27 +43,57 @@ class EqualizerActivity :
     private val equalizerViewModel: EqualizerViewModel by viewModels()
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
-    private var selectedPresetName: String = "Custom"
+    private var selectedPresetName: String = DATA.PRESET_CUSTOM
 
     private val bands = arrayOf("60Hz", "230Hz", "910Hz", "3.6kHz", "14kHz")
     private val bandSeekBars = mutableListOf<SeekBar>()
 
     private val presets = mapOf(
-        "Flat" to shortArrayOf(0, 0, 0, 0, 0),
-        "Pop" to shortArrayOf(-100, 200, 500, 100, -200),
-        "Rock" to shortArrayOf(400, 300, -100, 300, 500),
-        "Jazz" to shortArrayOf(400, 200, -200, 200, 500),
-        "Classical" to shortArrayOf(500, 300, -200, 400, 400),
-        "Dance" to shortArrayOf(600, 0, 200, 400, 100),
+        DATA.PRESET_FLAT to shortArrayOf(0, 0, 0, 0, 0),
+        DATA.PRESET_POP to shortArrayOf(-100, 200, 500, 100, -200),
+        DATA.PRESET_ROCK to shortArrayOf(400, 300, -100, 300, 500),
+        DATA.PRESET_JAZZ to shortArrayOf(400, 200, -200, 200, 500),
+        DATA.PRESET_CLASSICAL to shortArrayOf(500, 300, -200, 400, 400),
+        DATA.PRESET_DANCE to shortArrayOf(600, 0, 200, 400, 100),
     )
+
+    private data class PresetUI(
+        val name: String,
+        val card: androidx.cardview.widget.CardView,
+        val text: android.widget.TextView,
+        val icon: android.widget.ImageView
+    )
+
+    private val presetUIs by lazy {
+        listOf(
+            PresetUI(DATA.PRESET_CUSTOM, binding.cardCustom, binding.textCustom, binding.icCustom),
+            PresetUI(DATA.PRESET_POP, binding.cardPop, binding.textPop, binding.icPop),
+            PresetUI(DATA.PRESET_ROCK, binding.cardRock, binding.textRock, binding.icRock),
+            PresetUI(DATA.PRESET_JAZZ, binding.cardJazz, binding.textJazz, binding.icJazz),
+            PresetUI(
+                DATA.PRESET_CLASSICAL,
+                binding.cardClassical,
+                binding.textClassical,
+                binding.icClassical
+            ),
+            PresetUI(DATA.PRESET_DANCE, binding.cardDance, binding.textDance, binding.icDance),
+            PresetUI(DATA.PRESET_FLAT, binding.cardFlat, binding.textFlat, binding.icFlat)
+        )
+    }
 
     override fun setupViews() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBars.bottom)
-            binding.topBar.updatePadding(
-                top = systemBars.top + resources.getDimensionPixelSize(R.dimen.spacing_8)
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
+
+            // Push the root content above the navigation bar
+            v.updatePadding(bottom = systemBars.bottom)
+
+            // Push the topBar below the status bar and camera cutouts using Margin
+            binding.topBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = systemBars.top + resources.getDimensionPixelSize(R.dimen.spacing_8)
+            }
             insets
         }
 
@@ -156,13 +189,9 @@ class EqualizerActivity :
             }
         }
 
-        binding.btnPresetCustom.setOnClickListener { selectPreset("Custom") }
-        binding.btnPresetPop.setOnClickListener { selectPreset("Pop") }
-        binding.btnPresetRock.setOnClickListener { selectPreset("Rock") }
-        binding.btnPresetJazz.setOnClickListener { selectPreset("Jazz") }
-        binding.btnPresetClassical.setOnClickListener { selectPreset("Classical") }
-        binding.btnPresetDance.setOnClickListener { selectPreset("Dance") }
-        binding.btnPresetFlat.setOnClickListener { selectPreset("Flat") }
+        presetUIs.forEach { ui ->
+            ui.card.setOnClickListener { selectPreset(ui.name) }
+        }
     }
 
     private fun sendBassStrength(strength: Int) {
@@ -214,73 +243,13 @@ class EqualizerActivity :
         val errorColor = getLibraryColor("colorError")
         val trackCsl = ColorStateList.valueOf(trackColor)
         val whiteCsl = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
+        val grayColor = ContextCompat.getColor(this, R.color.gray)
 
-        binding.cardCustom.setCardBackgroundColor(containerBg)
-        binding.cardPop.setCardBackgroundColor(containerBg)
-        binding.cardRock.setCardBackgroundColor(containerBg)
-        binding.cardJazz.setCardBackgroundColor(containerBg)
-        binding.cardClassical.setCardBackgroundColor(containerBg)
-        binding.cardDance.setCardBackgroundColor(containerBg)
-        binding.cardFlat.setCardBackgroundColor(containerBg)
-
-        binding.textCustom.setTextColor(ContextCompat.getColor(this, R.color.gray))
-        binding.textPop.setTextColor(ContextCompat.getColor(this, R.color.gray))
-        binding.textRock.setTextColor(ContextCompat.getColor(this, R.color.gray))
-        binding.textJazz.setTextColor(ContextCompat.getColor(this, R.color.gray))
-        binding.textClassical.setTextColor(ContextCompat.getColor(this, R.color.gray))
-        binding.textDance.setTextColor(ContextCompat.getColor(this, R.color.gray))
-        binding.textFlat.setTextColor(ContextCompat.getColor(this, R.color.gray))
-
-        binding.icCustom.imageTintList = trackCsl
-        binding.icPop.imageTintList = trackCsl
-        binding.icRock.imageTintList = trackCsl
-        binding.icJazz.imageTintList = trackCsl
-        binding.icClassical.imageTintList = trackCsl
-        binding.icDance.imageTintList = trackCsl
-        binding.icFlat.imageTintList = trackCsl
-
-        when (selected) {
-            "Custom" -> {
-                binding.cardCustom.setCardBackgroundColor(themeColor)
-                binding.textCustom.setTextColor(errorColor)
-                binding.icCustom.imageTintList = whiteCsl
-            }
-
-            "Pop" -> {
-                binding.cardPop.setCardBackgroundColor(themeColor)
-                binding.textPop.setTextColor(errorColor)
-                binding.icPop.imageTintList = whiteCsl
-            }
-
-            "Rock" -> {
-                binding.cardRock.setCardBackgroundColor(themeColor)
-                binding.textRock.setTextColor(errorColor)
-                binding.icRock.imageTintList = whiteCsl
-            }
-
-            "Jazz" -> {
-                binding.cardJazz.setCardBackgroundColor(themeColor)
-                binding.textJazz.setTextColor(errorColor)
-                binding.icJazz.imageTintList = whiteCsl
-            }
-
-            "Classical" -> {
-                binding.cardClassical.setCardBackgroundColor(themeColor)
-                binding.textClassical.setTextColor(errorColor)
-                binding.icClassical.imageTintList = whiteCsl
-            }
-
-            "Dance" -> {
-                binding.cardDance.setCardBackgroundColor(themeColor)
-                binding.textDance.setTextColor(errorColor)
-                binding.icDance.imageTintList = whiteCsl
-            }
-
-            "Flat" -> {
-                binding.cardFlat.setCardBackgroundColor(themeColor)
-                binding.textFlat.setTextColor(errorColor)
-                binding.icFlat.imageTintList = whiteCsl
-            }
+        presetUIs.forEach { ui ->
+            val isSelected = ui.name == selected
+            ui.card.setCardBackgroundColor(if (isSelected) themeColor else containerBg)
+            ui.text.setTextColor(if (isSelected) errorColor else grayColor)
+            ui.icon.imageTintList = if (isSelected) whiteCsl else trackCsl
         }
     }
 
@@ -290,11 +259,12 @@ class EqualizerActivity :
         bandSeekBars.clear()
 
         for (i in bands.indices) {
-            val bandView =
-                layoutInflater.inflate(R.layout.item_eq_band_vertical, binding.eqContainer, false)
-            val tvLabel = bandView.findViewById<TextView>(R.id.tvBandLabel)
-            val tvLevel = bandView.findViewById<TextView>(R.id.tvBandLevel)
-            val seekBar = bandView.findViewById<SeekBar>(R.id.sbBandLevel)
+            val bandBinding =
+                ItemEqBandVerticalBinding.inflate(layoutInflater, binding.eqContainer, false)
+            val bandView = bandBinding.root
+            val tvLabel = bandBinding.tvBandLabel
+            val tvLevel = bandBinding.tvBandLevel
+            val seekBar = bandBinding.sbBandLevel
 
             tvLabel.text = bands[i]
             seekBar.max = 3000
@@ -342,10 +312,11 @@ class EqualizerActivity :
                 }
 
                 override fun onStartTrackingTouch(sb: SeekBar?) {
-                    if (selectedPresetName != "Custom") {
-                        selectedPresetName = "Custom"
-                        updatePresetSelectionUI("Custom", getLibraryColor("mc_track"))
-                        val bundlePreset = Bundle().apply { putString("PRESET", "Custom") }
+                    if (selectedPresetName != DATA.PRESET_CUSTOM) {
+                        selectedPresetName = DATA.PRESET_CUSTOM
+                        updatePresetSelectionUI(DATA.PRESET_CUSTOM, getLibraryColor("mc_track"))
+                        val bundlePreset =
+                            Bundle().apply { putString("PRESET", DATA.PRESET_CUSTOM) }
                         mediaController?.sendCustomCommand(
                             SessionCommand(MusicService.COMMAND_SET_PRESET, Bundle.EMPTY),
                             bundlePreset

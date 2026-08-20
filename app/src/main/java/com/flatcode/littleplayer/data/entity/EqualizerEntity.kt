@@ -2,6 +2,7 @@ package com.flatcode.littleplayer.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.flatcode.littleplayer.utils.DATA
 
 @Entity(tableName = "equalizer_table")
 data class EqualizerEntity(
@@ -11,5 +12,5 @@ data class EqualizerEntity(
     val virtualizerStrength: Short = 0,
     val bandLevels: String = "0,0,0,0,0", // Stored as comma-separated shorts
     val customBandLevels: String = "0,0,0,0,0",
-    val presetName: String = "Custom"
+    val presetName: String = DATA.PRESET_CUSTOM
 )

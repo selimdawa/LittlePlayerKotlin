@@ -44,6 +44,15 @@ object DATA {
     const val PLAYBACK_SPEED = "PLAYBACK_SPEED"
     const val PLAYBACK_PITCH = "PLAYBACK_PITCH"
 
+    // Equalizer Presets
+    const val PRESET_CUSTOM = "Custom"
+    const val PRESET_FLAT = "Flat"
+    const val PRESET_POP = "Pop"
+    const val PRESET_ROCK = "Rock"
+    const val PRESET_JAZZ = "Jazz"
+    const val PRESET_CLASSICAL = "Classical"
+    const val PRESET_DANCE = "Dance"
+
     const val HEADSET_DOUBLE_CLICK_ACTION = "HEADSET_DOUBLE_CLICK_ACTION"
     const val HEADSET_TRIPLE_CLICK_ACTION = "HEADSET_TRIPLE_CLICK_ACTION"
 

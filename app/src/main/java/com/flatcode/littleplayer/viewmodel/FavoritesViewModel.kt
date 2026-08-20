@@ -32,24 +32,24 @@ class FavoritesViewModel @Inject constructor(
                 repository.excludedFolders.distinctUntilChanged()
             ) { favorites, excluded ->
                 favorites.asSequence().filter { song ->
-                        excluded.none { excludedPath -> song.path.startsWith(excludedPath) }
-                    }.map { song ->
-                        MusicFiles(
-                            id = song.id,
-                            title = song.title,
-                            artist = song.artist,
-                            album = MusicFiles.getCleanedAlbum(song.album, song.path),
-                            duration = song.duration.toString(),
-                            path = song.path,
-                            albumId = song.albumId,
-                            cachedImagePath = song.cachedImagePath,
-                            dominantColor = song.dominantColor,
-                            vibrantColor = song.vibrantColor
-                        )
-                    }.toList()
+                    excluded.none { excludedPath -> song.path.startsWith(excludedPath) }
+                }.map { song ->
+                    MusicFiles(
+                        id = song.id,
+                        title = song.title,
+                        artist = song.artist,
+                        album = MusicFiles.getCleanedAlbum(song.album, song.path),
+                        duration = song.duration.toString(),
+                        path = song.path,
+                        albumId = song.albumId,
+                        cachedImagePath = song.cachedImagePath,
+                        dominantColor = song.dominantColor,
+                        vibrantColor = song.vibrantColor
+                    )
+                }.toList()
             }.flowOn(Dispatchers.Default).collect {
-                    _favoriteSongs.value = it
-                }
+                _favoriteSongs.value = it
+            }
         }
     }
 }
