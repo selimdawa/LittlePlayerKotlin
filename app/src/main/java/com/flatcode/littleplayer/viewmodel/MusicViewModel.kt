@@ -248,7 +248,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
                     fullList.filter { it.path?.startsWith(folder ?: "") == true }
                 }
 
-                "Current" -> {
+                DATA.CURRENT -> {
                     repository.currentPlaylist.value
                 }
 

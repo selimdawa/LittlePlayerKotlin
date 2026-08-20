@@ -1,10 +1,12 @@
 package com.flatcode.littleplayer.fragment
 
-import android.os.Bundle
 import android.R.color.transparent
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.databinding.DialogSortSongsBinding
 import com.flatcode.littleplayer.utils.DATA
@@ -22,6 +24,34 @@ class SortSongsBottomSheet(
     private var _binding: DialogSortSongsBinding? = null
     private val binding get() = _binding!!
 
+    private data class SortOption(
+        val type: String, val container: View, val check: ImageView, val text: TextView
+    )
+
+    private val sortOptions by lazy {
+        listOf(
+            SortOption(
+                DATA.SORT_BY_DATE, binding.sortByDate, binding.checkByDate, binding.textByDate
+            ), SortOption(
+                DATA.SORT_BY_NAME, binding.sortByName, binding.checkByName, binding.textByName
+            ), SortOption(
+                DATA.SORT_BY_PLAY_COUNT,
+                binding.sortByPlayCount,
+                binding.checkByPlayCount,
+                binding.textByPlayCount
+            ), SortOption(
+                DATA.SORT_BY_RELEASE_DATE,
+                binding.sortByReleaseDate,
+                binding.checkByReleaseDate,
+                binding.textByReleaseDate
+            ), SortOption(
+                DATA.SORT_BY_SIZE, binding.sortBySize, binding.checkBySize, binding.textBySize
+            ), SortOption(
+                DATA.SORT_BY_SONG_COUNT, binding.sortBySize, binding.checkBySize, binding.textBySize
+            )
+        )
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -33,69 +63,28 @@ class SortSongsBottomSheet(
         super.onViewCreated(view, savedInstanceState)
 
         val trackColor = requireContext().getLibraryColor("mc_track")
-        when (currentSort) {
-            DATA.SORT_BY_DATE -> {
-                binding.checkByDate.visible()
-                binding.checkByDate.setColorFilter(trackColor)
-                binding.textByDate.setTextColor(trackColor)
+
+        sortOptions.forEach { option ->
+            if (option.type == currentSort) {
+                option.check.visible()
+                option.check.setColorFilter(trackColor)
+                option.text.setTextColor(trackColor)
             }
 
-            DATA.SORT_BY_NAME -> {
-                binding.checkByName.visible()
-                binding.checkByName.setColorFilter(trackColor)
-                binding.textByName.setTextColor(trackColor)
+            option.container.setOnClickListener {
+                var sortType = option.type
+                if (option.type == DATA.SORT_BY_SIZE || option.type == DATA.SORT_BY_SONG_COUNT) {
+                    sortType =
+                        if (category == DATA.ALBUMS || category == DATA.PLAYLISTS || category == DATA.ARTISTS || category == DATA.FOLDERS) {
+                            DATA.SORT_BY_SONG_COUNT
+                        } else {
+                            DATA.SORT_BY_SIZE
+                        }
+                }
+
+                if (currentSort != sortType) onSortSelected(category, sortType)
+                dismiss()
             }
-
-            DATA.SORT_BY_PLAY_COUNT -> {
-                binding.checkByPlayCount.visible()
-                binding.checkByPlayCount.setColorFilter(trackColor)
-                binding.textByPlayCount.setTextColor(trackColor)
-            }
-
-            DATA.SORT_BY_RELEASE_DATE -> {
-                binding.checkByReleaseDate.visible()
-                binding.checkByReleaseDate.setColorFilter(trackColor)
-                binding.textByReleaseDate.setTextColor(trackColor)
-            }
-
-            DATA.SORT_BY_SIZE -> {
-                binding.checkBySize.visible()
-                binding.checkBySize.setColorFilter(trackColor)
-                binding.textBySize.setTextColor(trackColor)
-            }
-
-            DATA.SORT_BY_SONG_COUNT -> {
-                binding.checkBySize.visible()
-                binding.checkBySize.setColorFilter(trackColor)
-                binding.textBySize.setTextColor(trackColor)
-            }
-        }
-
-        binding.sortByDate.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_DATE) onSortSelected(category, DATA.SORT_BY_DATE)
-            dismiss()
-        }
-
-        binding.sortByName.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_NAME) onSortSelected(category, DATA.SORT_BY_NAME)
-            dismiss()
-        }
-
-        binding.sortByPlayCount.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_PLAY_COUNT) onSortSelected(category, DATA.SORT_BY_PLAY_COUNT)
-            dismiss()
-        }
-
-        binding.sortByReleaseDate.setOnClickListener {
-            if (currentSort != DATA.SORT_BY_RELEASE_DATE) onSortSelected(category, DATA.SORT_BY_RELEASE_DATE)
-            dismiss()
-        }
-
-        binding.sortBySize.setOnClickListener {
-            val sortType =
-                if (category == DATA.ALBUMS || category == DATA.PLAYLISTS || category == DATA.ARTISTS || category == DATA.FOLDERS) DATA.SORT_BY_SONG_COUNT else DATA.SORT_BY_SIZE
-            if (currentSort != sortType) onSortSelected(category, sortType)
-            dismiss()
         }
 
         when (category) {

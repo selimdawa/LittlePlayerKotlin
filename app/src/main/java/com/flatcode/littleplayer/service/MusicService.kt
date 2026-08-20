@@ -4,7 +4,6 @@ import android.content.ContentUris
 import android.content.Intent
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
-import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -69,6 +68,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.Executors
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
@@ -93,7 +93,6 @@ class MusicService : MediaLibraryService(), Player.Listener {
     var exoPlayer: Player? = null
     private var mediaSession: MediaLibrarySession? = null
 
-    var position = -1
 
     private var isRestoring = false
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -106,7 +105,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private var customBandLevels = shortArrayOf(0, 0, 0, 0, 0)
     private var bassStrength: Short = 0
     private var virtualizerStrength: Short = 0
-    private var currentPreset = "Custom"
+    private var currentPreset = DATA.PRESET_CUSTOM
 
     private var clickCount = 0
     private var updateLastPlayedJob: Job? = null
@@ -230,7 +229,6 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 exoPlayer?.let { player ->
                     val currentPosition = player.currentPosition
                     val isPlaying = player.isPlaying
-                    val currentMediaItem = player.currentMediaItem
 
                     // Get current IDs on Main thread safely
                     val oldIds =
@@ -654,7 +652,6 @@ class MusicService : MediaLibraryService(), Player.Listener {
         super.onMediaItemTransition(mediaItem, reason)
 
         exoPlayer?.let {
-            position = it.currentMediaItemIndex
             loadArtForCurrentItem(it)
 
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && !it.playWhenReady) {
@@ -776,8 +773,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
         override fun onGetItem(
             session: MediaLibrarySession, browser: MediaSession.ControllerInfo, mediaId: String
         ): ListenableFuture<LibraryResult<MediaItem>> {
-            val executor =
-                MoreExecutors.listeningDecorator(java.util.concurrent.Executors.newSingleThreadExecutor())
+            val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
             return executor.submit<LibraryResult<MediaItem>> {
                 try {
                     val song = runBlocking { repository.getSongById(mediaId) }
@@ -786,7 +782,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     } else {
                         LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
                 } finally {
                     executor.shutdown()
@@ -812,20 +808,18 @@ class MusicService : MediaLibraryService(), Player.Listener {
             pageSize: Int,
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-            val executor =
-                MoreExecutors.listeningDecorator(java.util.concurrent.Executors.newSingleThreadExecutor())
+            val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
             return executor.submit<LibraryResult<ImmutableList<MediaItem>>> {
                 try {
                     val songs = runBlocking { musicRepository.getAllAudio(DATA.SORT_BY_NAME) }
                     val filtered = songs.filter {
                         it.title?.contains(query, ignoreCase = true) == true || it.artist?.contains(
-                            query,
-                            ignoreCase = true
+                            query, ignoreCase = true
                         ) == true || it.album?.contains(query, ignoreCase = true) == true
                     }.map { it.musicFileToMediaItem() }
 
                     LibraryResult.ofItemList(ImmutableList.copyOf(filtered), params)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
                 } finally {
                     executor.shutdown()
@@ -841,8 +835,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
             pageSize: Int,
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-            val executor =
-                MoreExecutors.listeningDecorator(java.util.concurrent.Executors.newSingleThreadExecutor())
+            val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
             return executor.submit<LibraryResult<ImmutableList<MediaItem>>> {
                 try {
                     when (parentId) {
@@ -970,15 +963,14 @@ class MusicService : MediaLibraryService(), Player.Listener {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.songId.toLong()
-                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+                ContentUris.withAppendedId("content://media/external/audio/media".toUri(), id)
             } catch (_: Exception) {
                 null
             }
             return MediaItem.Builder().setMediaId(this.songId).setUri(uri).setMediaMetadata(
                 MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
                     .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
-                    .setArtworkUri(artworkUri).setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                    .build()
+                    .setArtworkUri(artworkUri).setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
             ).build()
         }
 
@@ -993,7 +985,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
             val uri = this.path?.toUri() ?: "".toUri()
             val artworkUri = try {
                 val id = this.id?.toLong() ?: 0L
-                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+                ContentUris.withAppendedId("content://media/external/audio/media".toUri(), id)
             } catch (_: Exception) {
                 null
             }
@@ -1012,7 +1004,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.id.toLong()
-                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+                ContentUris.withAppendedId("content://media/external/audio/media".toUri(), id)
             } catch (_: Exception) {
                 null
             }
@@ -1031,7 +1023,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.songId.toLong()
-                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+                ContentUris.withAppendedId("content://media/external/audio/media".toUri(), id)
             } catch (_: Exception) {
                 null
             }
@@ -1046,15 +1038,14 @@ class MusicService : MediaLibraryService(), Player.Listener {
             val uri = this.path.toUri()
             val artworkUri = try {
                 val id = this.songId.toLong()
-                ContentUris.withAppendedId(Uri.parse("content://media/external/audio/media"), id)
+                ContentUris.withAppendedId("content://media/external/audio/media".toUri(), id)
             } catch (_: Exception) {
                 null
             }
             return MediaItem.Builder().setMediaId(this.songId).setUri(uri).setMediaMetadata(
                 MediaMetadata.Builder().setTitle(this.title).setArtist(this.artist)
                     .setAlbumTitle(this.album).setIsBrowsable(false).setIsPlayable(true)
-                    .setArtworkUri(artworkUri).setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                    .build()
+                    .setArtworkUri(artworkUri).setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).build()
             ).build()
         }
 
@@ -1187,7 +1178,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                     try {
                         if (band.toInt() in currentBandLevels.indices) {
                             currentBandLevels[band.toInt()] = level
-                            if (currentPreset == "Custom") {
+                            if (currentPreset == DATA.PRESET_CUSTOM) {
                                 customBandLevels[band.toInt()] = level
                             }
                         }
@@ -1218,8 +1209,8 @@ class MusicService : MediaLibraryService(), Player.Listener {
                 }
 
                 COMMAND_SET_PRESET -> {
-                    currentPreset = args.getString("PRESET") ?: "Custom"
-                    if (currentPreset == "Custom") {
+                    currentPreset = args.getString("PRESET") ?: DATA.PRESET_CUSTOM
+                    if (currentPreset == DATA.PRESET_CUSTOM) {
                         System.arraycopy(
                             customBandLevels, 0, currentBandLevels, 0, customBandLevels.size
                         )

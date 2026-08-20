@@ -18,6 +18,22 @@ object DATA {
     const val PLAYLIST_DETAILS = "PlaylistDetails"
     const val POSITION = "position"
     const val SONG = "song"
+    const val CURRENT = "Current"
+
+    // Intent Keys
+    const val PLAYLIST_NAME = "PLAYLIST_NAME"
+    const val FOLDER_NAME = "FOLDER_NAME"
+    const val FOLDER_PATH = "FOLDER_PATH"
+    const val ARTIST_NAME_KEY = "ARTIST_NAME"
+    const val ALBUM_NAME_KEY = "ALBUM_NAME"
+
+    // Playback Actions
+    const val ACTION_UPDATE_WIDGET = "com.flatcode.littleplayer.ACTION_UPDATE_WIDGET"
+    const val ACTION_PLAY_PAUSE = "com.flatcode.littleplayer.ACTION_PLAY_PAUSE"
+    const val ACTION_NEXT = "com.flatcode.littleplayer.ACTION_NEXT"
+    const val ACTION_PREV = "com.flatcode.littleplayer.ACTION_PREV"
+    const val ACTION_SHUFFLE_MEDIA = "com.flatcode.littleplayer.ACTION_SHUFFLE"
+    const val ACTION_FAVORITE_MEDIA = "com.flatcode.littleplayer.ACTION_FAVORITE"
 
     // Media Keys
     const val MUSIC_FILE = "STORED_MUSIC"
