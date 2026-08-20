@@ -49,6 +49,33 @@ class PlaylistAdapter(
         }
     }
 
+    override fun onBindViewHolder(
+        holder: PlaylistViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+        } else {
+            if (payloads.contains(PAYLOAD_THEME_REFRESH)) {
+                val playlist = getItem(position)
+                // Force refresh themed icons
+                if (holder.binding.playlistImage.getTag(R.id.image_model_tag) is Int) {
+                    holder.binding.playlistImage.setTag(R.id.image_model_tag, null)
+                }
+                if (holder.binding.playlistImageBlur.getTag(R.id.image_model_tag) is Int) {
+                    holder.binding.playlistImageBlur.setTag(R.id.image_model_tag, null)
+                }
+                holder.binding.playlistImage.loadSongImage(null, playlist.firstSongPath)
+                holder.binding.playlistImageBlur.loadSongImageBlur(null, 100, playlist.firstSongPath)
+            }
+        }
+    }
+
+    companion object {
+        const val PAYLOAD_THEME_REFRESH = "payload_theme_refresh"
+    }
+
     private class PlaylistDiffCallback : DiffUtil.ItemCallback<Playlist>() {
         override fun areItemsTheSame(oldItem: Playlist, newItem: Playlist): Boolean {
             return oldItem.name == newItem.name

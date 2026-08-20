@@ -221,22 +221,9 @@ class PlaylistsActivity :
             MultiColorManager.currentThemeId.collect {
                 MultiColorManager.applyTheme(this@PlaylistsActivity)
 
-                // Force refresh themed icons in the list
-                adapter?.let {
-                    for (i in 0 until binding.recyclerView.childCount) {
-                        val view = binding.recyclerView.getChildAt(i)
-                        val holder =
-                            binding.recyclerView.getChildViewHolder(view) as? PlaylistAdapter.PlaylistViewHolder
-                        holder?.let { h ->
-                            if (h.binding.playlistImage.getTag(R.id.image_model_tag) is Int) {
-                                h.binding.playlistImage.setTag(R.id.image_model_tag, null)
-                            }
-                            if (h.binding.playlistImageBlur.getTag(R.id.image_model_tag) is Int) {
-                                h.binding.playlistImageBlur.setTag(R.id.image_model_tag, null)
-                            }
-                        }
-                    }
-                    it.notifyDataSetChanged()
+                // Force refresh themed icons in the list using targeted payload
+                adapter?.let { a ->
+                    a.notifyItemRangeChanged(0, a.itemCount, PlaylistAdapter.PAYLOAD_THEME_REFRESH)
                 }
             }
         }
