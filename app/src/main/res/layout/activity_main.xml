@@ -25,6 +25,7 @@
         android:background="@android:color/transparent"
         android:clipToPadding="false"
         android:minHeight="@dimen/spacing_0"
+        android:layout_marginHorizontal="5dp"
         app:tabBackground="@null"
         app:tabContentStart="@dimen/spacing_0"
         app:tabGravity="start"
@@ -32,8 +33,8 @@
         app:tabMode="scrollable"
         app:tabMinWidth="@dimen/spacing_0"
         app:tabPaddingBottom="@dimen/spacing_0"
-        app:tabPaddingEnd="@dimen/spacing_0"
-        app:tabPaddingStart="@dimen/spacing_0"
+        app:tabPaddingEnd="@dimen/spacing_5"
+        app:tabPaddingStart="@dimen/spacing_5"
         app:tabPaddingTop="@dimen/spacing_0"
         app:tabRippleColor="@null" />
 

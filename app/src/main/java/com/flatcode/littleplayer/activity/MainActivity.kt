@@ -9,7 +9,6 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -211,15 +210,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
         binding.viewPager.adapter = adapter
 
-        val marginSmall = resources.getDimensionPixelSize(R.dimen.tab_margin_small)
-        binding.tabLayout.setPadding(marginSmall, 0, marginSmall, 0)
-
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
             val tabBinding = ItemTabBinding.inflate(layoutInflater, binding.tabLayout, false)
             tabBinding.tabTitle.text = adapter.getPageTitle(pos)
-            (tabBinding.tabContainer.layoutParams as MarginLayoutParams).setMargins(
-                marginSmall, 0, marginSmall, 0
-            )
             tab.customView = tabBinding.root
         }.attach()
     }
