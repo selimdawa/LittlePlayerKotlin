@@ -34,6 +34,9 @@ import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
+import io.selimdawa.multicolors.R as MultiColorR
+import com.google.android.material.R as MaterialR
+import androidx.appcompat.R as AppCompatR
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -119,7 +122,7 @@ class EqualizerActivity :
                 val levels =
                     it.bandLevels.split(",").map { level -> level.toShort() }.toShortArray()
                 setupBands(levels)
-                updatePresetSelectionUI(selectedPresetName, getLibraryColor("mc_track"))
+                updatePresetSelectionUI(selectedPresetName, getLibraryColor(MultiColorR.attr.mc_track))
             }
         }
 
@@ -157,8 +160,8 @@ class EqualizerActivity :
             )
         }
 
-        val trackColor = getLibraryColor("mc_track")
-        val containerBg = getLibraryColor("colorSurfaceContainerHigh")
+        val trackColor = getLibraryColor(MultiColorR.attr.mc_track)
+        val containerBg = getLibraryColor(MaterialR.attr.colorSurfaceContainerHigh)
 
         binding.bassKnob.apply {
             this.trackColor = containerBg
@@ -212,7 +215,7 @@ class EqualizerActivity :
     }
 
     private fun selectPreset(name: String) {
-        val trackColor = getLibraryColor("mc_track")
+        val trackColor = getLibraryColor(MultiColorR.attr.mc_track)
         selectedPresetName = name
         updatePresetSelectionUI(name, trackColor)
 
@@ -241,9 +244,9 @@ class EqualizerActivity :
     }
 
     private fun updatePresetSelectionUI(selected: String?, themeColor: Int) {
-        val containerBg = getLibraryColor("colorSurfaceContainerHigh")
-        val trackColor = getLibraryColor("mc_track")
-        val errorColor = getLibraryColor("colorError")
+        val containerBg = getLibraryColor(MaterialR.attr.colorSurfaceContainerHigh)
+        val trackColor = getLibraryColor(MultiColorR.attr.mc_track)
+        val errorColor = getLibraryColor(AppCompatR.attr.colorError)
         val trackCsl = ColorStateList.valueOf(trackColor)
         val whiteCsl = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
         val grayColor = ContextCompat.getColor(this, R.color.gray)
@@ -317,7 +320,7 @@ class EqualizerActivity :
                 override fun onStartTrackingTouch(sb: SeekBar?) {
                     if (selectedPresetName != DATA.PRESET_CUSTOM) {
                         selectedPresetName = DATA.PRESET_CUSTOM
-                        updatePresetSelectionUI(DATA.PRESET_CUSTOM, getLibraryColor("mc_track"))
+                        updatePresetSelectionUI(DATA.PRESET_CUSTOM, getLibraryColor(MultiColorR.attr.mc_track))
                         val bundlePreset =
                             Bundle().apply { putString("PRESET", DATA.PRESET_CUSTOM) }
                         mediaController?.sendCustomCommand(

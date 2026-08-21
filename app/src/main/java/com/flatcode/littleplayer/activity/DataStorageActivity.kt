@@ -27,6 +27,7 @@ import com.flatcode.littleplayer.viewmodel.DataStorageViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
+import io.selimdawa.multicolors.R as MultiColorR
 import kotlinx.coroutines.launch
 
 @UnstableApi
@@ -42,8 +43,8 @@ class DataStorageActivity :
         applyEdgeToEdge(topView = binding.customToolbar.root)
 
         initToolbar(getString(R.string.data_storage))
-        val track = getLibraryColor("mc_track")
-        val tick = getLibraryColor("mc_tick")
+        val track = getLibraryColor(MultiColorR.attr.mc_track)
+        val tick = getLibraryColor(MultiColorR.attr.mc_tick)
         currentDominantColor = Pair(track, tick)
         extractPalette(R.drawable.ic_image_preview) { palette ->
             currentDominantColor = palette.extractDynamicColors(track, tick)

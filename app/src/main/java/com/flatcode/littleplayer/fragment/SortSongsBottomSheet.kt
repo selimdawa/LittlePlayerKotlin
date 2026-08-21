@@ -13,6 +13,7 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.getLibraryColor
 import com.flatcode.littleplayer.utils.visible
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.selimdawa.multicolors.R as MultiColorR
 import com.google.android.material.R as MaterialR
 
 class SortSongsBottomSheet(
@@ -62,7 +63,7 @@ class SortSongsBottomSheet(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val trackColor = requireContext().getLibraryColor("mc_track")
+        val trackColor = requireContext().getLibraryColor(MultiColorR.attr.mc_track)
 
         sortOptions.forEach { option ->
             if (option.type == currentSort) {

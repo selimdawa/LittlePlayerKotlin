@@ -12,6 +12,8 @@ import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.PlaybackAnimatable
 import com.flatcode.littleplayer.utils.getCurrentThemeColors
 import com.flatcode.littleplayer.utils.getLibraryColor
+import io.selimdawa.multicolors.R as MultiColorR
+import com.google.android.material.R as MaterialR
 import com.flatcode.littleplayer.utils.gone
 import com.flatcode.littleplayer.utils.visible
 
@@ -32,9 +34,9 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
 
     private fun initColors(context: Context) {
         if (colorOnSurface == Color.GRAY) {
-            colorOnSurface = context.getLibraryColor("colorOnSurface")
-            mcTrack = context.getLibraryColor("mc_track")
-            mcTick = context.getLibraryColor("mc_tick")
+            colorOnSurface = context.getLibraryColor(MaterialR.attr.colorOnSurface)
+            mcTrack = context.getLibraryColor(MultiColorR.attr.mc_track)
+            mcTick = context.getLibraryColor(MultiColorR.attr.mc_tick)
         }
     }
 

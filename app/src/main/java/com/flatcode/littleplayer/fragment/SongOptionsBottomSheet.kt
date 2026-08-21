@@ -26,6 +26,7 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.R as MaterialR
+import androidx.appcompat.R as AppCompatR
 
 class SongOptionsBottomSheet(
     private val song: MusicFiles,
@@ -110,7 +111,7 @@ class SongOptionsBottomSheet(
             getString(R.string.remove_song_from_playlist_message, song.title)
 
         // Force colors to ?attr/colorError
-        val errorColor = requireContext().getLibraryColor("colorError")
+        val errorColor = requireContext().getLibraryColor(AppCompatR.attr.colorError)
         dialogBinding.dialogTitle.setTextColor(errorColor)
         dialogBinding.dialogMessage.setTextColor(errorColor)
         dialogBinding.btnCancel.setTextColor(errorColor)

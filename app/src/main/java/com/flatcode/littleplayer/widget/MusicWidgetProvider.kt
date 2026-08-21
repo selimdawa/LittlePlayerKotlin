@@ -14,7 +14,8 @@ import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
-import android.graphics.RectF
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toColorInt
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import androidx.media3.common.util.UnstableApi
@@ -137,27 +138,26 @@ object MusicWidgetUtils {
             cachedBitmap = null
             return null
         }
-        if (imagePath == lastImagePath && cachedBitmap != null) {
+        if ((imagePath == lastImagePath) && cachedBitmap != null) {
             return cachedBitmap
         }
 
         return try {
             val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(imagePath, options)
-            options.inSampleSize = calculateInSampleSize(options, 512, 512)
+            options.inSampleSize = calculateInSampleSize(options)
             options.inJustDecodeBounds = false
             val bitmap = BitmapFactory.decodeFile(imagePath, options)
 
             if (bitmap != null) {
-                val radius = bitmap.width.coerceAtMost(bitmap.height) / 2f
-                val rounded = getRoundedCornerBitmap(bitmap, radius)
+                val rounded = getRoundedCornerBitmap(bitmap)
                 lastImagePath = imagePath
                 cachedBitmap = rounded
                 rounded
             } else {
                 null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -280,17 +280,14 @@ object MusicWidgetUtils {
     }
 
     private fun getRoundedCornerBitmap(
-        bitmap: Bitmap, pixels: Float
+        bitmap: Bitmap
     ): Bitmap {
         val size = bitmap.width.coerceAtMost(bitmap.height)
-        val output = Bitmap.createBitmap(
-            size, size, Bitmap.Config.ARGB_8888
-        )
+        val output = createBitmap(size, size)
         val canvas = Canvas(output)
 
         val paint = Paint()
         val rect = Rect(0, 0, size, size)
-        val rectF = RectF(rect)
 
         paint.isAntiAlias = true
         canvas.drawARGB(0, 0, 0, 0)
@@ -311,7 +308,7 @@ object MusicWidgetUtils {
         // Add a clean white stroke around the circle (1.5dp equivalent)
         paint.xfermode = null
         paint.style = Paint.Style.STROKE
-        paint.color = Color.parseColor("#33FFFFFF") // white_20
+        paint.color = "#33FFFFFF".toColorInt() // white_20
         paint.strokeWidth = 4f 
         canvas.drawCircle(size / 2f, size / 2f, (size / 2f) - 2f, paint)
         
@@ -319,10 +316,12 @@ object MusicWidgetUtils {
     }
 
     private fun calculateInSampleSize(
-        options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int
+        options: BitmapFactory.Options
     ): Int {
         val (height: Int, width: Int) = options.outHeight to options.outWidth
         var inSampleSize = 1
+        val reqWidth = 512
+        val reqHeight = 512
         if (height > reqHeight || width > reqWidth) {
             val halfHeight: Int = height / 2
             val halfWidth: Int = width / 2

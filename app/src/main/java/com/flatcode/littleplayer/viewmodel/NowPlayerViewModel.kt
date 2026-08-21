@@ -14,6 +14,7 @@ import com.flatcode.littleplayer.repository.MusicRoomRepository
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.ThemeManager
 import com.flatcode.littleplayer.utils.getLibraryColor
+import io.selimdawa.multicolors.R as MultiColorR
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -199,8 +200,8 @@ class NowPlayerViewModel @Inject constructor(
         } else {
             // Trigger background extraction if missing
             viewModelScope.launch(Dispatchers.IO) {
-                val track = repository.context.getLibraryColor("mc_track")
-                val tick = repository.context.getLibraryColor("mc_tick")
+                val track = repository.context.getLibraryColor(MultiColorR.attr.mc_track)
+                val tick = repository.context.getLibraryColor(MultiColorR.attr.mc_tick)
                 song.id?.let { id ->
                     song.path?.let { path ->
                         repository.extractColorsForSong(id, path, song.albumId, track, tick)

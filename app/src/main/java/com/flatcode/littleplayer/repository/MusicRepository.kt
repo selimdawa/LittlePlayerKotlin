@@ -34,6 +34,7 @@ import com.flatcode.littleplayer.utils.Resource
 import com.flatcode.littleplayer.utils.extractDynamicColors
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getLibraryColor
+import io.selimdawa.multicolors.R as MultiColorR
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -474,8 +475,8 @@ class MusicRepository @Inject constructor(
         val missing = songDao.getSongsMissingColors()
         if (missing.isEmpty()) return@withContext
 
-        val track = context.getLibraryColor("mc_track")
-        val tick = context.getLibraryColor("mc_tick")
+        val track = context.getLibraryColor(MultiColorR.attr.mc_track)
+        val tick = context.getLibraryColor(MultiColorR.attr.mc_tick)
 
         // Process in chunks to avoid overwhelming the system
         missing.chunked(20).forEach { chunk ->

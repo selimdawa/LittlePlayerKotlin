@@ -43,6 +43,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
+import io.selimdawa.multicolors.R as MultiColorR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -84,7 +85,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
 
     override fun applyInitialTheme() {
         currentMode = ThemeManager.currentMode
-        currentDominantColor = ThemeManager.currentColors ?: Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
+        currentDominantColor = ThemeManager.currentColors ?: Pair(getLibraryColor(MultiColorR.attr.mc_track), getLibraryColor(MultiColorR.attr.mc_tick))
 
         val colors = getCurrentThemeColors(currentMode, currentDominantColor)
         updatePlayerUIColors(colors.first, colors.second)
@@ -99,7 +100,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
         applyEdgeToEdge(topView = binding.toolbar, bottomView = binding.container)
 
         amplituda = Amplituda(this)
-        currentDominantColor = Pair(getLibraryColor("mc_track"), getLibraryColor("mc_tick"))
+        currentDominantColor = Pair(getLibraryColor(MultiColorR.attr.mc_track), getLibraryColor(MultiColorR.attr.mc_tick))
 
         getIntentMethod()
         setupListeners()
@@ -116,8 +117,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
             progressBackgroundTintList = backgroundColorStateList
         }
 
-        val trackColor = if (currentMode == DATA.MODE_BASIC) getLibraryColor("mc_track") else startColor
-        val tickColor = if (currentMode == DATA.MODE_BASIC) getLibraryColor("mc_tick") else endColor
+        val trackColor = if (currentMode == DATA.MODE_BASIC) getLibraryColor(MultiColorR.attr.mc_track) else startColor
+        val tickColor = if (currentMode == DATA.MODE_BASIC) getLibraryColor(MultiColorR.attr.mc_tick) else endColor
         
         binding.playPauseBtn.setHaloBackground(trackColor, tickColor)
         binding.imageBorder.setHaloBackground(trackColor, tickColor)

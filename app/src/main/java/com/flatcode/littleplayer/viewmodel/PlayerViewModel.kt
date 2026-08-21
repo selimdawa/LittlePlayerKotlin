@@ -1,6 +1,7 @@
 package com.flatcode.littleplayer.viewmodel
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -164,7 +165,7 @@ class PlayerViewModel @Inject constructor(
             if (listSongs.isNotEmpty() && (newPosition in listSongs.indices)) {
                 val song = listSongs[position]
                 song.path?.let {
-                    uri = Uri.parse(it)
+                    uri = it.toUri()
                 }
                 _currentSong.value = song
                 song.id?.let { songId ->

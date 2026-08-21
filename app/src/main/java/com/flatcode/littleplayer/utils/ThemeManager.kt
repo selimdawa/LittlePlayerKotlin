@@ -3,6 +3,7 @@ package com.flatcode.littleplayer.utils
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -42,7 +43,7 @@ object ThemeManager {
             currentMode = it.getInt(KEY_MODE, DATA.MODE_BASIC)
             val start = it.getInt(KEY_COLOR_START, -1)
             val end = it.getInt(KEY_COLOR_END, -1)
-            if (start != -1 && end != -1) {
+            if ((start != -1) && (end != -1)) {
                 currentColors = Pair(start, end)
             }
 
@@ -93,15 +94,18 @@ object ThemeManager {
     }
 
     private fun saveMode(mode: Int) {
-        prefs?.edit()?.putInt(KEY_MODE, mode)?.apply()
+        prefs?.edit { putInt(KEY_MODE, mode) }
     }
 
     private fun saveColors(start: Int, end: Int) {
-        prefs?.edit()?.putInt(KEY_COLOR_START, start)?.putInt(KEY_COLOR_END, end)?.apply()
+        prefs?.edit {
+            putInt(KEY_COLOR_START, start)
+            putInt(KEY_COLOR_END, end)
+        }
     }
 
     fun saveDarkMode(mode: Int) {
-        prefs?.edit()?.putInt(KEY_DARK_MODE, mode)?.apply()
+        prefs?.edit { putInt(KEY_DARK_MODE, mode) }
         if (AppCompatDelegate.getDefaultNightMode() != mode) {
             AppCompatDelegate.setDefaultNightMode(mode)
         }

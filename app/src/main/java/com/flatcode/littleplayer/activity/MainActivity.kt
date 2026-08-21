@@ -47,6 +47,7 @@ import com.flatcode.littleplayer.viewmodel.RecentViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
+import io.selimdawa.multicolors.R as MultiColorR
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -133,20 +134,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
     private fun setupBackPressed() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (binding.tabLayout.selectedTabPosition != 0) {
-                    binding.tabLayout.getTabAt(0)?.select()
-                } else {
-                    finish()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(enabled = true) {
+                override fun handleOnBackPressed() {
+                    if (binding.tabLayout.selectedTabPosition != 0) {
+                        binding.tabLayout.getTabAt(0)?.select()
+                    } else {
+                        finish()
+                    }
                 }
             }
-        })
+        )
     }
 
     override fun observeViewModel() {
         viewModel.event.collectWithLifecycle(this) { event ->
-            if (event is MusicEvent.PlaySong) openPlayer(event.position)
+            when (event) {
+                is MusicEvent.PlaySong -> openPlayer(event.position)
+                else -> {}
+            }
         }
 
         viewModel.isInitialLoading.collectWithLifecycle(this) { isLoading ->
@@ -190,8 +197,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             )
         } else {
             val typedValue = TypedValue()
-            val id = resources.getIdentifier("mc_bg", "attr", packageName)
-            if (id != 0 && theme.resolveAttribute(id, typedValue, true)) {
+            val id = MultiColorR.attr.mc_bg
+            if (theme.resolveAttribute(id, typedValue, true)) {
                 setImageResource(typedValue.resourceId)
             } else {
                 setImageDrawable(null)

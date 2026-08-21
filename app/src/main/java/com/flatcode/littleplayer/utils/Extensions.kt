@@ -73,6 +73,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import io.selimdawa.multicolors.MultiColorManager
 import io.selimdawa.multicolors.MultiColorTheme
+import io.selimdawa.multicolors.R as MultiColorR
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import okio.buffer
@@ -271,25 +272,19 @@ fun Context.showDialog(
 
 /* OK */
 @SuppressLint("DiscouragedApi")
-fun Context.getLibraryColor(attrName: String): Int {
-    var id = resources.getIdentifier(attrName, "attr", packageName)
-
-    if (id == 0) {
-        id = resources.getIdentifier(attrName, "attr", "android")
-    }
-
-    val fallback = if (attrName == "mc_track") ContextCompat.getColor(this, R.color.purple_500)
+fun Context.getLibraryColor(@AttrRes attrId: Int): Int {
+    val fallback = if (attrId == MultiColorR.attr.mc_track) ContextCompat.getColor(this, R.color.purple_500)
     else ContextCompat.getColor(this, R.color.purple_700)
-    val color = if (id != 0) getColorFromAttr(id, Color.TRANSPARENT) else Color.TRANSPARENT
+    val color = getColorFromAttr(attrId, Color.TRANSPARENT)
 
     if (color != Color.TRANSPARENT) return color
 
     return try {
         when (val theme = MultiColorManager.getCurrentTheme(this)) {
             is MultiColorTheme.Gradient -> {
-                when (attrName) {
-                    "mc_track" -> theme.colors.first()
-                    "mc_tick" -> theme.colors.last()
+                when (attrId) {
+                    MultiColorR.attr.mc_track -> theme.colors.first()
+                    MultiColorR.attr.mc_tick -> theme.colors.last()
                     else -> fallback
                 }
             }
@@ -298,10 +293,12 @@ fun Context.getLibraryColor(attrName: String): Int {
                 val typedValue = TypedValue()
                 val tempTheme = resources.newTheme()
                 tempTheme.applyStyle(theme.styleRes, true)
-                if (tempTheme.resolveAttribute(id, typedValue, true)) {
+                if (tempTheme.resolveAttribute(attrId, typedValue, true)) {
                     typedValue.data
                 } else fallback
             }
+
+            else -> fallback
         }
     } catch (_: Exception) {
         fallback
@@ -348,8 +345,8 @@ fun LifecycleOwner.observePlaybackSync(
     val sync = {
         adapterProvider()?.let { adapter ->
             val context = if (this is Context) this else viewBindingRoot?.context ?: return@let
-            val trackColor = context.getLibraryColor("mc_track")
-            val tickColor = context.getLibraryColor("mc_tick")
+            val trackColor = context.getLibraryColor(MultiColorR.attr.mc_track)
+            val tickColor = context.getLibraryColor(MultiColorR.attr.mc_tick)
             val song = nowPlayerViewModel.currentPlayingSong.value
             viewBindingRoot?.findViewById<View>(R.id.fragBottomPlayer)?.isVisible(song != null)
             adapter.updatePlaybackState(song?.path, nowPlayerViewModel.isPlaying.value)
@@ -378,8 +375,8 @@ fun LifecycleOwner.observePlaybackSync(
     nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { mode ->
         val context =
             if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
-        val trackColor = context.getLibraryColor("mc_track")
-        val tickColor = context.getLibraryColor("mc_tick")
+        val trackColor = context.getLibraryColor(MultiColorR.attr.mc_track)
+        val tickColor = context.getLibraryColor(MultiColorR.attr.mc_tick)
         val colors = nowPlayerViewModel.currentThemeColor.value ?: Pair(trackColor, tickColor)
         adapterProvider()?.updateThemeState(
             mode, colors.first, colors.second
@@ -388,8 +385,8 @@ fun LifecycleOwner.observePlaybackSync(
     nowPlayerViewModel.currentThemeColor.collectWithLifecycle(this) { colorPair ->
         val context =
             if (this is Context) this else viewBindingRoot?.context ?: return@collectWithLifecycle
-        val trackColor = context.getLibraryColor("mc_track")
-        val tickColor = context.getLibraryColor("mc_tick")
+        val trackColor = context.getLibraryColor(MultiColorR.attr.mc_track)
+        val tickColor = context.getLibraryColor(MultiColorR.attr.mc_tick)
         val colors = colorPair ?: Pair(trackColor, tickColor)
         adapterProvider()?.updateThemeState(
             nowPlayerViewModel.themeColorMode.value, colors.first, colors.second
@@ -708,7 +705,7 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
         val canvas = Canvas(bitmap)
 
         // The context (MusicService) already has MultiColorManager.applyTheme(this) called
-        val backgroundColor = context.getLibraryColor("mc_track")
+        val backgroundColor = context.getLibraryColor(MultiColorR.attr.mc_track)
         canvas.drawColor(backgroundColor)
 
         val drawable = AppCompatResources.getDrawable(
@@ -778,8 +775,8 @@ fun Palette?.extractDynamicColors(defaultStart: Int, defaultEnd: Int): Pair<Int,
 }
 
 fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pair<Int, Int> {
-    val track = getLibraryColor("mc_track")
-    val tick = getLibraryColor("mc_tick")
+    val track = getLibraryColor(MultiColorR.attr.mc_track)
+    val tick = getLibraryColor(MultiColorR.attr.mc_tick)
 
     return when (mode) {
         DATA.MODE_PALETTE -> {

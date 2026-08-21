@@ -18,6 +18,7 @@ import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import com.flatcode.littleplayer.viewmodel.RecentViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.appcompat.R as AppCompatR
 import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
@@ -56,7 +57,7 @@ class RecentActivity : BaseActivity<ActivityRecentBinding>(ActivityRecentBinding
         dialogBinding.btnRemove.text = getString(R.string.clear)
 
         // Force colors to ?attr/colorError
-        val errorColor = getLibraryColor("colorError")
+        val errorColor = getLibraryColor(AppCompatR.attr.colorError)
         dialogBinding.dialogTitle.setTextColor(errorColor)
         dialogBinding.dialogMessage.setTextColor(errorColor)
         dialogBinding.btnCancel.setTextColor(errorColor)
