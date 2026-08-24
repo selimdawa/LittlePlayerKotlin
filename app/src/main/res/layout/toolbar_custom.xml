@@ -9,13 +9,18 @@
     app:navigationIcon="@drawable/ic_navigate_before"
     app:navigationIconTint="?attr/colorError"
     app:titleCentered="true"
-    app:titleTextColor="?attr/colorError">
+    app:titleTextColor="?attr/colorError"
+    app:contentInsetStart="0dp"
+    app:contentInsetStartWithNavigation="0dp"
+    app:contentInsetEnd="0dp"
+    app:contentInsetLeft="0dp"
+    app:contentInsetRight="0dp">
 
     <ImageView
         android:id="@+id/btnMore"
         android:layout_width="@dimen/spacing_xlarge"
         android:layout_height="@dimen/spacing_xlarge"
-        android:layout_gravity="end"
+        android:layout_gravity="end|center_vertical"
         android:layout_marginEnd="@dimen/spacing_medium"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"

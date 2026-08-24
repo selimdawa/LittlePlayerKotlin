@@ -6,11 +6,13 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
+import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivityFolderDetailsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
+import com.flatcode.littleplayer.utils.initToolbar
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.viewmodel.FolderDetailsViewModel
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -29,10 +31,16 @@ class FolderDetailsActivity : BaseActivity<ActivityFolderDetailsBinding>(Activit
     private var adapter: MusicAdapter? = null
 
     override fun setupViews() {
-        applyEdgeToEdge(topView = binding.recyclerView)
+        applyEdgeToEdge(topView = binding.customToolbar.root)
 
+        val folderName = intent.extras?.getString(DATA.FOLDER_NAME)
         val folderPath = intent.extras?.getString(DATA.FOLDER_PATH)
+        initUI(folderName)
         viewModel.filterSongsByFolder(folderPath)
+    }
+
+    private fun initUI(folderName: String?) {
+        initToolbar(folderName ?: getString(R.string.folders))
     }
 
     override fun observeViewModel() {
