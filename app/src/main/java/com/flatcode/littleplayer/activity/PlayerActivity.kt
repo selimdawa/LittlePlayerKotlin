@@ -190,6 +190,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     override fun observeViewModel() {
         viewModel.isFavorite.collectWithLifecycle(this) { binding.favorite.setImageResource(if (it) R.drawable.ic_favorite else R.drawable.ic_favorite_border) }
         nowPlayerViewModel.themeColorMode.collectWithLifecycle(this) { currentMode = it; applyCurrentModeColors() }
+
+        viewModel.repeatMode.collectWithLifecycle(this) { mode ->
+            if (mediaController == null) {
+                updateRepeatShuffleIcons(mode, musicViewModel.shuffleMode.value)
+            }
+        }
+
+        viewModel.playbackProgress.collectWithLifecycle(this) { progress ->
+            if (mediaController == null) {
+                if (binding.seekBar.max <= 0) {
+                    viewModel.currentSong.value?.durationLong?.let { duration ->
+                        binding.seekBar.max = (duration / 1000).toInt()
+                    }
+                }
+                binding.seekBar.progress = (progress / 1000).toInt()
+                binding.durationPlayed.text = progress.milliseconds.formatAsTime()
+            }
+        }
         
         lifecycleScope.launch {
             MultiColorManager.currentThemeId.collect {
@@ -206,7 +224,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
         }
 
         nowPlayerViewModel.marqueeEnabled.collectWithLifecycle(this) { binding.songName.isSelected = it }
-        musicViewModel.shuffleMode.collectWithLifecycle(this) { _ -> mediaController?.let { updateRepeatShuffleIcons(it) } }
+        musicViewModel.shuffleMode.collectWithLifecycle(this) { isShuffle ->
+            if (mediaController != null) {
+                updateRepeatShuffleIcons(mediaController!!)
+            } else {
+                updateRepeatShuffleIcons(viewModel.repeatMode.value, isShuffle)
+            }
+        }
 
         viewModel.currentSong.collectWithLifecycle(this) { song ->
             if (song != null) {
@@ -229,23 +253,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     private fun applyCurrentModeColors() {
         val colors = getCurrentThemeColors(currentMode, currentDominantColor)
         updatePlayerUIColors(colors.first, colors.second)
-        viewModel.currentSong.value?.let { song ->
-            if (lastArtworkSongId != song.id) {
-                lastArtworkSongId = song.id
-                lifecycleScope.launch {
-                    val bitmap = withContext(Dispatchers.Default) {
-                        getSongArtwork(
-                            song.albumId,
-                            song.path,
-                            song.cachedImagePath,
-                            song.album,
-                            600
-                        )
-                    }
-                    applyArtworkAndPalette(bitmap)
-                }
-            }
-        }
         val paletteColors = getCurrentThemeColors(DATA.MODE_PALETTE, currentDominantColor)
         binding.paletteColorBg.applySimpleGradient(paletteColors.first, paletteColors.second)
     }
@@ -253,6 +260,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     private fun updateSongUI(song: MusicFiles) {
         if (binding.songName.text == song.title && binding.songArtist.text == song.artist && isTransitionStarted) return
         updateSongJob?.cancel()
+
+        if (!isAnimating && lastArtworkSongId != song.id) {
+            binding.image.setImageResource(R.drawable.ic_cover_song)
+            binding.imageBlur.setImageResource(R.drawable.ic_cover_song_blur)
+        }
+        lastArtworkSongId = song.id
+
         binding.songName.fadeText(song.title ?: getString(R.string.unknown))
         binding.songArtist.fadeText(song.artist ?: getString(R.string.unknown))
         binding.durationTotal.fadeText(song.durationDuration.formatAsTime())
@@ -275,7 +289,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
                         600
                     )
                 }
-                lastArtworkSongId = song.id
                 applyArtworkAndPalette(bitmap)
             }
         }
@@ -443,10 +456,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     }
 
     private inner class SwipeGestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: MotionEvent): Boolean {
+            return true
+        }
+
         override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             if (e1 == null) return false
             val diffX = e2.x - e1.x
-            if (abs(diffX) > abs(e2.y - e1.y) && abs(diffX) > 100 && abs(velocityX) > 100) {
+            val diffY = e2.y - e1.y
+            if (abs(diffX) > abs(diffY) && abs(diffX) > 100 && abs(velocityX) > 100) {
                 if (diffX > 0) prevBtn() else nextBtn()
                 return true
             }

@@ -34,6 +34,12 @@ class PlayerViewModel @Inject constructor(
     private val _currentSong = MutableStateFlow<MusicFiles?>(null)
     val currentSong: StateFlow<MusicFiles?> = _currentSong.asStateFlow()
 
+    private val _repeatMode = MutableStateFlow(0) // Player.REPEAT_MODE_OFF
+    val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
+
+    private val _playbackProgress = MutableStateFlow(0L)
+    val playbackProgress: StateFlow<Long> = _playbackProgress.asStateFlow()
+
     var listSongs: List<MusicFiles> = emptyList()
     var position = -1
     var lastProgress = 0L
@@ -47,6 +53,8 @@ class PlayerViewModel @Inject constructor(
                     val state = repository.getPlaybackStateSync()
                     val savedSongId = state?.currentSongId
                     lastProgress = state?.lastProgress ?: 0L
+                    _playbackProgress.value = lastProgress
+                    _repeatMode.value = state?.repeatMode ?: 0
 
                     if (_currentSong.value == null) {
                         if (savedSongId != null) {
@@ -72,6 +80,8 @@ class PlayerViewModel @Inject constructor(
             val state = repository.getPlaybackStateSync()
             val savedSongId = state?.currentSongId
             lastProgress = state?.lastProgress ?: 0L
+            _playbackProgress.value = lastProgress
+            _repeatMode.value = state?.repeatMode ?: 0
 
             val preferences = dataStore.data.first()
             
