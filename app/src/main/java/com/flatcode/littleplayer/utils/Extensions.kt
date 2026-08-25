@@ -72,8 +72,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import io.selimdawa.multicolors.MultiColorManager
-import io.selimdawa.multicolors.MultiColorTheme
-import io.selimdawa.multicolors.R as MultiColorR
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import okio.buffer
@@ -83,6 +81,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.Locale
 import kotlin.time.Duration
+import io.selimdawa.multicolors.R as MultiColorR
 
 inline fun <reified T : Activity> Context.launchActivity(
     options: Bundle? = null,
@@ -93,7 +92,6 @@ inline fun <reified T : Activity> Context.launchActivity(
     startActivity(intent, options)
 }
 
-/* OK */
 fun Context.getColorFromAttr(@AttrRes attr: Int, fallback: Int = Color.WHITE): Int {
     val typedValue = TypedValue()
     if (theme.resolveAttribute(attr, typedValue, true)) {
@@ -225,7 +223,6 @@ suspend fun Context.getSongArtwork(
     return (result.drawable as? BitmapDrawable)?.bitmap
 }
 
-/* OK */
 fun Context.extractPalette(data: Any, onPaletteGenerated: (Palette?) -> Unit) {
     val request = ImageRequest.Builder(this).data(data).allowHardware(enable = false)
         .size(200, 200) // Optimization: Downsample for palette extraction
@@ -270,18 +267,22 @@ fun Context.showDialog(
     dialog.show()
 }
 
-/* OK */
 @SuppressLint("DiscouragedApi")
 fun Context.getLibraryColor(@AttrRes attrId: Int): Int {
-    val fallback = if (attrId == MultiColorR.attr.mc_track) ContextCompat.getColor(this, R.color.purple_500)
-    else ContextCompat.getColor(this, R.color.purple_700)
-    val color = getColorFromAttr(attrId, Color.TRANSPARENT)
+    val fallback = if (attrId == MultiColorR.attr.mc_track) {
+        ContextCompat.getColor(this, R.color.purple_500)
+    } else {
+        ContextCompat.getColor(this, R.color.purple_700)
+    }
 
+    val color = getColorFromAttr(attrId, Color.TRANSPARENT)
     if (color != Color.TRANSPARENT) return color
 
     return try {
-        when (val theme = MultiColorManager.getCurrentTheme(this)) {
-            is MultiColorTheme.Gradient -> {
+        val theme = MultiColorManager.getCurrentTheme(this)
+        val styleRes = theme.styleRes
+        when {
+            theme.colors.isNotEmpty() -> {
                 when (attrId) {
                     MultiColorR.attr.mc_track -> theme.colors.first()
                     MultiColorR.attr.mc_tick -> theme.colors.last()
@@ -289,10 +290,10 @@ fun Context.getLibraryColor(@AttrRes attrId: Int): Int {
                 }
             }
 
-            is MultiColorTheme.Xml -> {
+            styleRes != null -> {
                 val typedValue = TypedValue()
                 val tempTheme = resources.newTheme()
-                tempTheme.applyStyle(theme.styleRes, true)
+                tempTheme.applyStyle(styleRes, true)
                 if (tempTheme.resolveAttribute(attrId, typedValue, true)) {
                     typedValue.data
                 } else fallback
@@ -682,7 +683,6 @@ fun View.showKeyboard() {
     }
 }
 
-/* OK */
 fun getAlbumArtBytes(path: String?): ByteArray? {
     if (path.isNullOrEmpty()) return null
     val retriever = MediaMetadataRetriever()
@@ -697,7 +697,6 @@ fun getAlbumArtBytes(path: String?): ByteArray? {
     }
 }
 
-/* OK */
 fun getDefaultArtBytes(context: Context): ByteArray? {
     return try {
         val size = 512
@@ -729,7 +728,6 @@ fun getDefaultArtBytes(context: Context): ByteArray? {
     }
 }
 
-/* OK */
 fun Int.toMiddleColor(): Int {
     val hsv = FloatArray(3)
     Color.colorToHSV(this, hsv)

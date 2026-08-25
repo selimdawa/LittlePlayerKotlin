@@ -15,7 +15,7 @@ hilt = "2.60.1"
 room = "2.8.4"
 navigation = "2.9.8"
 coroutines = "1.11.0"
-ksp = "2.3.8"
+ksp = "2.3.10"
 datastore = "1.2.1"
 palette = "1.0.0"
 media3-exoplayer = "1.11.0"
@@ -26,7 +26,7 @@ waveformseekbar = "5.0.2"
 multiwave = "1.0.1"
 multicolors = "1.0.7-Beta"
 jaudiotagger = "3.0.1"
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
