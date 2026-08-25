@@ -1,4 +1,4 @@
-[versions]
+﻿[versions]
 agp = "9.3.2"
 coil = "2.7.0"
 coreKtx = "1.19.0"
@@ -15,7 +15,7 @@ hilt = "2.60.1"
 room = "2.8.4"
 navigation = "2.9.8"
 coroutines = "1.11.0"
-ksp = "2.3.10"
+ksp = "2.3.11"
 datastore = "1.2.1"
 palette = "1.0.0"
 media3-exoplayer = "1.11.0"
