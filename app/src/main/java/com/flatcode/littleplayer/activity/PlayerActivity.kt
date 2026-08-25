@@ -261,10 +261,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
         if (binding.songName.text == song.title && binding.songArtist.text == song.artist && isTransitionStarted) return
         updateSongJob?.cancel()
 
-        if (!isAnimating && lastArtworkSongId != song.id) {
-            binding.image.setImageResource(R.drawable.ic_cover_song)
-            binding.imageBlur.setImageResource(R.drawable.ic_cover_song_blur)
-        }
+
         lastArtworkSongId = song.id
 
         binding.songName.fadeText(song.title ?: getString(R.string.unknown))

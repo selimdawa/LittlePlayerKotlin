@@ -485,7 +485,6 @@ fun ImageView.loadSongImage(
 
     load(model) {
         crossfade(enable = true)
-        placeholder(R.color.image_profile)
         error(fallback)
         listener(
             onSuccess = { _, _ -> onComplete?.invoke() },
@@ -518,7 +517,6 @@ fun ImageView.loadSongImageBlur(
 
     load(model) {
         crossfade(enable = true)
-        placeholder(R.color.image_profile)
         error(ContextCompat.getDrawable(context, actualFallback))
         allowHardware(enable = false)
         size(80, 80) // High optimization: Tiny size for blur
@@ -535,7 +533,6 @@ fun ImageView.loadCachedAlbumImage(cachedPath: String?) {
     load(if (!cachedPath.isNullOrEmpty()) File(cachedPath) else R.color.image_profile) {
         scale(Scale.FIT)
         crossfade(true)
-        placeholder(R.color.image_profile)
         error(R.color.image_profile)
     }
 }
