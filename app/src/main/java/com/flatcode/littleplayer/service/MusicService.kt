@@ -2,8 +2,12 @@ package com.flatcode.littleplayer.service
 
 import android.content.ContentUris
 import android.content.Intent
+import android.media.AudioAttributes as AndroidAudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -128,6 +132,44 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private val customCommandPlaybackCycle = SessionCommand(COMMAND_PLAYBACK_CYCLE, Bundle.EMPTY)
     private val customCommandStop = SessionCommand(COMMAND_STOP_SERVICE, Bundle.EMPTY)
 
+    private lateinit var audioManager: AudioManager
+    private var audioFocusRequest: AudioFocusRequest? = null
+    private var lastFocusLossTime: Long = 0
+    private var resumeOnFocusGain = false
+    private val resumeThresholdMs = 60_000L
+
+    private val afChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                basePlayer?.volume = 1.0f
+                if (resumeOnFocusGain) {
+                    val currentTime = System.currentTimeMillis()
+                    if (lastFocusLossTime == 0L || (currentTime - lastFocusLossTime <= resumeThresholdMs)) {
+                        exoPlayer?.play()
+                    }
+                    resumeOnFocusGain = false
+                    lastFocusLossTime = 0
+                }
+            }
+
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                resumeOnFocusGain = false
+                lastFocusLossTime = 0
+                exoPlayer?.pause()
+            }
+
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                resumeOnFocusGain = exoPlayer?.playWhenReady == true
+                lastFocusLossTime = System.currentTimeMillis()
+                exoPlayer?.pause()
+            }
+
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                basePlayer?.volume = 0.2f
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         MultiColorManager.applyTheme(this)
@@ -145,7 +187,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
             .setUsage(C.USAGE_MEDIA).setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_AUTO)
             .build()
 
-        basePlayer = ExoPlayer.Builder(this).setAudioAttributes(audioAttributes, true)
+        audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+
+        basePlayer = ExoPlayer.Builder(this).setAudioAttributes(audioAttributes, false)
             .setHandleAudioBecomingNoisy(true).setWakeMode(C.WAKE_MODE_LOCAL).build().apply {
                 addListener(this@MusicService)
                 repeatMode = Player.REPEAT_MODE_ALL
@@ -602,6 +646,54 @@ class MusicService : MediaLibraryService(), Player.Listener {
             updateLastPlayedInfo()
         }
         sendWidgetUpdate()
+    }
+
+    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        if (playWhenReady) {
+            if (!requestAudioFocus()) {
+                exoPlayer?.pause()
+            }
+        } else {
+            if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+                abandonAudioFocus()
+            }
+        }
+    }
+
+    private fun requestAudioFocus(): Boolean {
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val playbackAttributes = AndroidAudioAttributes.Builder()
+                .setUsage(AndroidAudioAttributes.USAGE_MEDIA)
+                .setContentType(AndroidAudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(playbackAttributes)
+                .setAcceptsDelayedFocusGain(true)
+                .setOnAudioFocusChangeListener(afChangeListener)
+                .build()
+            audioManager.requestAudioFocus(audioFocusRequest!!)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                afChangeListener,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
+        }
+
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_DELAYED) {
+            resumeOnFocusGain = true
+        }
+        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
+    private fun abandonAudioFocus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.abandonAudioFocus(afChangeListener)
+        }
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
@@ -1312,6 +1404,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     }
 
     override fun onDestroy() {
+        abandonAudioFocus()
         super.onDestroy()
         equalizer?.release()
         bassBoost?.release()
