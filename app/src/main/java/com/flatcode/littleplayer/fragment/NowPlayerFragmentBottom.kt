@@ -49,7 +49,6 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     private var mediaController: MediaController? = null
     private var progressJob: Job? = null
     private var lastLoadedPath: String? = null
-    private var lastArtworkSongId: String? = null
 
     private val viewModel: NowPlayerViewModel by activityViewModels()
 
@@ -236,6 +235,16 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             }
         }
         updatePlayPauseAnimation(player.isPlaying)
+        updateProgress(player)
+    }
+
+    private fun updateProgress(player: Player) {
+        val duration = player.duration
+        if (duration > 0) {
+            val currentPosition = player.currentPosition
+            val progress = ((currentPosition * 100) / duration).toInt()
+            binding.playerContent.miniProgressBar.progress = progress
+        }
     }
 
     private fun updatePlayPauseAnimation(isPlaying: Boolean) {
@@ -278,18 +287,11 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
 
     private fun startProgressUpdater() {
         stopProgressUpdater()
+        val controller = mediaController ?: return
         progressJob = lifecycleScope.launch {
             while (isActive) {
-                mediaController?.let { controller ->
-                    if (controller.isPlaying) {
-                        val duration = controller.duration
-                        if (duration > 0) {
-                            val currentPosition = controller.currentPosition
-                            val progress = ((currentPosition * 100) / duration).toInt()
-                            binding.playerContent.miniProgressBar.progress = progress
-                        }
-                    }
-                }
+                updateProgress(controller)
+                if (!controller.isPlaying) break
                 delay(1000.milliseconds)
             }
         }
