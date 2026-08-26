@@ -94,9 +94,12 @@ class AlbumsFragment : Fragment() {
 
     private fun setupAdapter() {
         if (adapter == null) {
-            adapter = AlbumAdapter(requireContext()) { albumName, view ->
+            adapter = AlbumAdapter(requireContext()) { album, view ->
                 val intent = Intent(requireContext(), AlbumDetailsActivity::class.java).apply {
-                    putExtra("ALBUM_NAME", albumName)
+                    putExtra(DATA.ALBUM_NAME_KEY, album.album)
+                    putExtra(DATA.ALBUM_ID_KEY, album.albumId)
+                    putExtra(DATA.ALBUM_PATH_KEY, album.path)
+                    putExtra(DATA.ALBUM_IMAGE_PATH_KEY, album.cachedImagePath)
                 }
                 val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     requireActivity(), view, "album_image"

@@ -37,7 +37,8 @@ class AlbumDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val state = withContext(Dispatchers.IO) {
                 val cachedImage = roomRepository.getAlbumImageByName(albumName)?.imagePath
-                val allSongs = repository.getAllAudio(DATA.SORT_BY_NAME)
+                // Use default sorting (DATE) to match MusicViewModel's default behavior for consistency
+                val allSongs = repository.getAllAudio(DATA.SORT_BY_DATE)
 
                 val filteredList = allSongs.filter { it.album == albumName }
                 val firstSong = filteredList.firstOrNull()

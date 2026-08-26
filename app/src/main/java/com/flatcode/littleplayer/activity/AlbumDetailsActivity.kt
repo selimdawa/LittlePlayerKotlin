@@ -36,13 +36,30 @@ class AlbumDetailsActivity : BaseActivity<ActivityAlbumDetailsBinding>(ActivityA
     private val nowPlayerViewModel: NowPlayerViewModel by viewModels()
     private var adapter: MusicAdapter? = null
     private var albumName: String? = null
+    private var albumId: String? = null
+    private var albumPath: String? = null
+    private var albumImagePath: String? = null
 
     override fun setupViews() {
         applyEdgeToEdge(topView = binding.customToolbar.root)
 
         albumName = intent.extras?.getString(DATA.ALBUM_NAME_KEY)
+        albumId = intent.extras?.getString(DATA.ALBUM_ID_KEY)
+        albumPath = intent.extras?.getString(DATA.ALBUM_PATH_KEY)
+        albumImagePath = intent.extras?.getString(DATA.ALBUM_IMAGE_PATH_KEY)
+
         initUI(albumName)
+        loadInitialImage()
         viewModel.filterSongsByAlbum(albumName)
+    }
+
+    private fun loadInitialImage() {
+        binding.image.loadSongImage(
+            albumId, albumPath, albumImagePath, albumName, isAlbum = true
+        )
+        binding.imageBlur.loadSongImageBlur(
+            albumId, 50, albumPath, albumImagePath, albumName, isAlbum = true
+        )
     }
 
     private fun initUI(albumName: String?) {
@@ -52,23 +69,31 @@ class AlbumDetailsActivity : BaseActivity<ActivityAlbumDetailsBinding>(ActivityA
     override fun observeViewModel() {
         viewModel.uiState.collectWithLifecycle(this) { state ->
             if (state.songs.isNotEmpty()) {
-                if (!state.imagePath.isNullOrEmpty()) {
-                    binding.image.loadCachedAlbumImage(state.imagePath)
-                } else {
-                    binding.image.loadSongImage(
-                        state.firstSongAlbumId, state.firstSongPath, album = albumName, isAlbum = true
-                    )
-                }
+                // If we already loaded an image from the Intent, we don't want to reload it
+                // unless it was empty or the ViewModel found a specific cached image path
+                // that we didn't have.
+                val hasInitialImage = !albumImagePath.isNullOrEmpty() || !albumId.isNullOrEmpty()
+                val isNewImageBetter = !state.imagePath.isNullOrEmpty() && state.imagePath != albumImagePath
+                
+                if (!hasInitialImage || isNewImageBetter) {
+                    if (!state.imagePath.isNullOrEmpty()) {
+                        binding.image.loadCachedAlbumImage(state.imagePath)
+                    } else {
+                        binding.image.loadSongImage(
+                            state.firstSongAlbumId, state.firstSongPath, album = albumName, isAlbum = true
+                        )
+                    }
 
-                if (!state.firstSongAlbumId.isNullOrEmpty() || !state.imagePath.isNullOrEmpty()) {
-                    binding.imageBlur.loadSongImageBlur(
-                        state.firstSongAlbumId,
-                        50,
-                        state.firstSongPath,
-                        state.imagePath,
-                        albumName,
-                        isAlbum = true
-                    )
+                    if (!state.firstSongAlbumId.isNullOrEmpty() || !state.imagePath.isNullOrEmpty()) {
+                        binding.imageBlur.loadSongImageBlur(
+                            state.firstSongAlbumId,
+                            50,
+                            state.firstSongPath,
+                            state.imagePath,
+                            albumName,
+                            isAlbum = true
+                        )
+                    }
                 }
 
                 if (adapter == null) {

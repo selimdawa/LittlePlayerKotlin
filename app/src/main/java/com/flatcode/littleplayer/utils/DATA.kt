@@ -26,6 +26,9 @@ object DATA {
     const val FOLDER_PATH = "FOLDER_PATH"
     const val ARTIST_NAME_KEY = "ARTIST_NAME"
     const val ALBUM_NAME_KEY = "ALBUM_NAME"
+    const val ALBUM_ID_KEY = "ALBUM_ID"
+    const val ALBUM_PATH_KEY = "ALBUM_PATH"
+    const val ALBUM_IMAGE_PATH_KEY = "ALBUM_IMAGE_PATH"
 
     // Playback Actions
     const val ACTION_UPDATE_WIDGET = "com.flatcode.littleplayer.ACTION_UPDATE_WIDGET"
