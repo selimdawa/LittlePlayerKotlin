@@ -51,6 +51,9 @@ class NowPlayerViewModel @Inject constructor(
     private val _marqueeEnabled = MutableStateFlow(true)
     val marqueeEnabled: StateFlow<Boolean> = _marqueeEnabled.asStateFlow()
 
+    private val _initialProgress = MutableStateFlow(0)
+    val initialProgress: StateFlow<Int> = _initialProgress.asStateFlow()
+
     private val musicFileKey = stringPreferencesKey(DATA.MUSIC_FILE)
     private val artistNameKey = stringPreferencesKey(DATA.ARTIST_NAME)
     private val songNameKey = stringPreferencesKey(DATA.SONG_NAME)
@@ -79,7 +82,17 @@ class NowPlayerViewModel @Inject constructor(
 
             val playbackState = roomRepository.getPlaybackStateSync()
             if ((playbackState != null) && (!playbackState.currentSongId.isNullOrEmpty())) {
-                _currentPlayingSong.value = queue.find { it.id == playbackState.currentSongId }
+                val song = queue.find { it.id == playbackState.currentSongId }
+                _currentPlayingSong.value = song
+                
+                // Calculate initial progress
+                if (song != null) {
+                    val durationMs = song.duration?.toLongOrNull() ?: 0L
+                    if (durationMs > 0) {
+                        val progress = ((playbackState.lastProgress * 100) / durationMs).toInt()
+                        _initialProgress.value = progress.coerceIn(0, 100)
+                    }
+                }
             }
             
             dataStore.data.collect { preferences ->

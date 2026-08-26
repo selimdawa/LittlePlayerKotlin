@@ -162,6 +162,12 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
             updatePlayPauseAnimation(isPlaying)
         }
 
+        viewModel.initialProgress.collectWithLifecycle(viewLifecycleOwner) { progress ->
+            if (mediaController == null || !mediaController!!.isPlaying) {
+                binding.playerContent.miniProgressBar.progress = progress
+            }
+        }
+
         combine(
             viewModel.bottomPlayerThemeEnabled,
             viewModel.themeColorMode,
@@ -290,8 +296,11 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
         val controller = mediaController ?: return
         progressJob = lifecycleScope.launch {
             while (isActive) {
-                updateProgress(controller)
-                if (!controller.isPlaying) break
+                val duration = controller.duration
+                if (duration > 0) {
+                    updateProgress(controller)
+                    if (!controller.isPlaying) break
+                }
                 delay(1000.milliseconds)
             }
         }
@@ -305,7 +314,13 @@ class NowPlayerFragmentBottom : Fragment(), Player.Listener {
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         viewModel.updatePlaybackState(isPlaying)
         updatePlayPauseAnimation(isPlaying)
-        if (isPlaying) startProgressUpdater() else stopProgressUpdater()
+        startProgressUpdater()
+    }
+
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        if (playbackState == Player.STATE_READY) {
+            startProgressUpdater()
+        }
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
