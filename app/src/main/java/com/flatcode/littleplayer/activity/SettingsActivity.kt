@@ -3,7 +3,6 @@ package com.flatcode.littleplayer.activity
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -52,6 +51,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
         applyEdgeToEdge(topView = binding.customToolbar.root)
 
         initToolbar(getString(R.string.settings))
+        binding.customToolbar.btnNightModeToolbar.isVisible = true
         setupListeners()
     }
 
@@ -77,20 +77,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
     }
 
     private fun setupListeners() {
-        binding.switchNightMode.setOnClickListener {
-            val isChecked = binding.switchNightMode.isChecked
-            val mode =
-                if (isChecked) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
-            if (AppCompatDelegate.getDefaultNightMode() != mode) {
-                viewModel.setDarkMode(mode)
-                AppCompatDelegate.setDefaultNightMode(mode)
-            }
-        }
-
-        binding.btnNightMode.setOnClickListener {
-            binding.switchNightMode.performClick()
-        }
-
         binding.settingScanMedia.setOnClickListener {
             viewModel.rescanMedia()
             binding.root.snackbar(getString(R.string.library_rescan_started))
@@ -248,17 +234,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
     }
 
     override fun observeViewModel() {
-        viewModel.darkModeFlow.collectWithLifecycle(this) { mode ->
-            val isDark = if (mode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-                val currentNightMode =
-                    resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-                currentNightMode == Configuration.UI_MODE_NIGHT_YES
-            } else {
-                mode == AppCompatDelegate.MODE_NIGHT_YES
-            }
-            binding.switchNightMode.isChecked = isDark
-        }
-
         nowPlayerViewModel.currentPlayingSong.collectWithLifecycle(this) { song ->
             binding.fragBottomPlayer.root.isVisible = song != null
         }

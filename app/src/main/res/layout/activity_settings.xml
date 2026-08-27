@@ -24,46 +24,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/spacing_medium">
-
-            <LinearLayout
-                android:id="@+id/btnNightMode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/transparent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="@dimen/spacing_tiny">
-
-                <ImageView
-                    android:id="@+id/ivNightMode"
-                    android:layout_width="@dimen/icon_size_medium"
-                    android:layout_height="@dimen/icon_size_medium"
-                    android:src="@drawable/ic_moon"
-                    app:tint="?attr/mc_track" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/spacing_medium"
-                    android:layout_weight="1"
-                    android:text="@string/night_mode"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="@dimen/text_size_body" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switchNightMode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:splitTrack="false"
-                    android:thumb="@drawable/switch_thumb_custom"
-                    app:showText="false"
-                    app:switchMinWidth="@dimen/icon_size_48"
-                    app:thumbTint="?attr/mc_track"
-                    app:track="@drawable/switch_track_custom"
-                    app:trackTint="@null" />
-
-            </LinearLayout>
+            android:paddingHorizontal="@dimen/spacing_medium"
+            android:paddingBottom="@dimen/spacing_medium">
 
             <LinearLayout
                 android:id="@+id/settingEqualizer"

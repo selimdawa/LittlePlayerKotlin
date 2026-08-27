@@ -31,4 +31,19 @@
         android:visibility="gone"
         app:tint="?attr/colorError" />
 
+    <io.selimdawa.multicolors.MultiColorNightModeButton
+        android:id="@+id/btnNightModeToolbar"
+        android:layout_width="@dimen/spacing_xlarge"
+        android:layout_height="@dimen/spacing_xlarge"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="@dimen/spacing_medium"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="@dimen/spacing_tiny"
+        android:visibility="gone"
+        app:mc_dark_icon="@drawable/ic_moon"
+        app:mc_icon_color_mode="track"
+        app:mc_light_icon="@drawable/ic_sun" />
+
 </com.google.android.material.appbar.MaterialToolbar>

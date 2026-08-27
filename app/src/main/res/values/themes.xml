@@ -17,7 +17,7 @@
     </style>
 
     <!-- Theme for PlayerActivity with Slide Animations -->
-    <style name="Theme.PlayerActivity" parent="Theme.MC.One">
+    <style name="Theme.PlayerActivity" parent="Theme.MC.S1">
         <item name="android:windowActivityTransitions">true</item>
         <item name="android:windowAnimationStyle">@style/ActivityAnimation.SlideUpDown</item>
         <!-- Ensure the activity is fullscreen if needed, as seen in PlayerActivity.kt -->
@@ -25,7 +25,7 @@
         </item>
     </style>
 
-    <style name="Theme.Splash" parent="Theme.MC.One">
+    <style name="Theme.Splash" parent="Theme.MC.S1">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowFullscreen">true</item>
