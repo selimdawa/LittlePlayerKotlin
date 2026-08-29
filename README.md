@@ -4,7 +4,7 @@
   <a href="https://android-arsenal.com/api?level=24"><img alt="Min SDK" src="https://img.shields.io/badge/Min%20SDK-24-020290?style=flat-square&logo=android&logoColor=white"/></a>
   <a href="https://developer.android.com/about/versions/14"><img alt="Target SDK" src="https://img.shields.io/badge/Target%20SDK-37-0EB265?style=flat-square&logo=android&logoColor=white"/></a>
   <a href="https://kotlinlang.org"><img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.4.10-blue?style=flat-square&logo=kotlin&logoColor=white"/></a>
-  <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-CC9900?logo=MIT&logoColor=white"/></a>
 </p>
 
 <p align="center">
