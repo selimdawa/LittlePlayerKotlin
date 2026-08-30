@@ -29,6 +29,7 @@ import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -102,6 +103,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var sleepTimer: CountDownTimer? = null
 
+    private var currentAudioSessionId = -1
     private var equalizer: Equalizer? = null
     private var bassBoost: BassBoost? = null
     private var eqEnabled = false
@@ -329,15 +331,14 @@ class MusicService : MediaLibraryService(), Player.Listener {
     }
 
     private fun loadPlaybackParameters() {
-        dataStore.data.map { prefs ->
+        serviceScope.launch {
+            val prefs = dataStore.data.first()
             val speed = prefs[playbackSpeedKey] ?: 1.0f
             val pitch = prefs[playbackPitchKey] ?: 1.0f
-            speed to pitch
-        }.let { flow ->
-            serviceScope.launch {
-                flow.collect { (speed, pitch) ->
-                    exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
-                }
+            
+            val current = exoPlayer?.playbackParameters ?: PlaybackParameters.DEFAULT
+            if (current.speed != speed || current.pitch != pitch) {
+                exoPlayer?.playbackParameters = PlaybackParameters(speed, pitch)
             }
         }
     }
@@ -474,7 +475,8 @@ class MusicService : MediaLibraryService(), Player.Listener {
     }
 
     private fun initAudioEffects(sessionId: Int) {
-        if (sessionId != -1) {
+        if (sessionId != -1 && sessionId != currentAudioSessionId) {
+            currentAudioSessionId = sessionId
             try {
                 equalizer?.release()
                 bassBoost?.release()
@@ -484,6 +486,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
                 applyEqualizerSettings()
             } catch (_: Exception) {
+                currentAudioSessionId = -1
             }
         }
     }
@@ -696,8 +699,12 @@ class MusicService : MediaLibraryService(), Player.Listener {
         }
     }
 
+    private var savePlaybackParamsJob: Job? = null
+
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-        serviceScope.launch {
+        savePlaybackParamsJob?.cancel()
+        savePlaybackParamsJob = serviceScope.launch {
+            delay(500) // Debounce DataStore writes
             dataStore.edit { prefs ->
                 prefs[playbackSpeedKey] = playbackParameters.speed
                 prefs[playbackPitchKey] = playbackParameters.pitch
@@ -744,7 +751,11 @@ class MusicService : MediaLibraryService(), Player.Listener {
         super.onMediaItemTransition(mediaItem, reason)
 
         exoPlayer?.let {
-            loadArtForCurrentItem(it)
+            // Small delay before loading art to let the audio track stabilize
+            serviceScope.launch {
+                delay(200)
+                loadArtForCurrentItem(it)
+            }
 
             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && !it.playWhenReady) {
                 it.play()
@@ -812,6 +823,27 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         sendWidgetUpdate()
                     }
                 }
+            }
+        }
+    }
+
+    override fun onPlayerError(error: PlaybackException) {
+        super.onPlayerError(error)
+        // If the audio track fails (common with speed/pitch changes), reset and retry
+        if (error.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED ||
+            error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED) {
+            
+            exoPlayer?.let { player ->
+                val currentPos = player.currentPosition
+                val currentIndex = player.currentMediaItemIndex
+                
+                // Reset parameters to default to clear the pipeline error
+                player.playbackParameters = PlaybackParameters.DEFAULT
+                player.prepare()
+                player.seekTo(currentIndex, currentPos)
+                player.play()
+                
+                Toast.makeText(this, "Audio engine reset due to sync error", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿[versions]
+[versions]
 agp = "9.3.2"
 coil = "2.7.0"
 coreKtx = "1.19.0"
