@@ -94,7 +94,7 @@ abstract class BaseMusicAdapter<VH : RecyclerView.ViewHolder>(
 
             val mode = if (listItemThemeEnabled) currentThemeMode else DATA.MODE_BASIC
             val palette = Pair(currentThemeColor, currentThemeColorSecond)
-            val colors = context.getCurrentThemeColors(mode, palette)
+            val colors = context.getCurrentThemeColors(mode, palette, isListItem = true)
 
             wave.startColor = colors.first
             wave.closeColor = colors.second

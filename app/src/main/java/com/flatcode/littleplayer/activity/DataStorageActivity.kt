@@ -2,7 +2,6 @@ package com.flatcode.littleplayer.activity
 
 import android.view.View
 import androidx.activity.viewModels
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
@@ -27,8 +26,8 @@ import com.flatcode.littleplayer.viewmodel.DataStorageViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
-import io.selimdawa.multicolors.R as MultiColorR
 import kotlinx.coroutines.launch
+import io.selimdawa.multicolors.R as MultiColorR
 
 @UnstableApi
 @AndroidEntryPoint
@@ -152,12 +151,7 @@ class DataStorageActivity :
             currentDominantColor
         )
         setupThemeItem(
-            binding.itemWhite,
-            getString(R.string.white),
-            imageRes,
-            20,
-            DATA.MODE_WHITE,
-            null
+            binding.itemWhite, getString(R.string.white), imageRes, 20, DATA.MODE_WHITE, null
         )
 
         // List Item Previews
@@ -172,11 +166,7 @@ class DataStorageActivity :
             currentDominantColor
         )
         setupListItemThemeItem(
-            binding.itemListWhite,
-            getString(R.string.white),
-            imageRes,
-            DATA.MODE_WHITE,
-            null
+            binding.itemListWhite, getString(R.string.white), imageRes, DATA.MODE_WHITE, null
         )
     }
 
@@ -228,7 +218,7 @@ class DataStorageActivity :
         )
         itemBinding.musicItem.songDetails.text = songDetailsText
 
-        val colors = getCurrentThemeColors(mode, colorPair)
+        val colors = getCurrentThemeColors(mode, colorPair, isListItem = true)
 
         itemBinding.musicItem.songName.setTextColor(colors.first)
         itemBinding.musicItem.wave.startColor = colors.first

@@ -34,6 +34,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
+import androidx.appcompat.R as AppCompatR
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityOptionsCompat
@@ -780,7 +781,11 @@ fun Palette?.extractDynamicColors(defaultStart: Int, defaultEnd: Int): Pair<Int,
     return Pair(finalStart.toMiddleColor(), end.toMiddleColor())
 }
 
-fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pair<Int, Int> {
+fun Context.getCurrentThemeColors(
+    mode: Int,
+    paletteColors: Pair<Int, Int>?,
+    isListItem: Boolean = false
+): Pair<Int, Int> {
     val track = getLibraryColor(MultiColorR.attr.mc_track)
     val tick = getLibraryColor(MultiColorR.attr.mc_tick)
 
@@ -796,7 +801,16 @@ fun Context.getCurrentThemeColors(mode: Int, paletteColors: Pair<Int, Int>?): Pa
             }
         }
 
-        DATA.MODE_WHITE -> Pair(Color.WHITE, Color.WHITE)
+        DATA.MODE_WHITE -> {
+            if (isListItem) {
+                val errorColor = getLibraryColor(AppCompatR.attr.colorError)
+                Pair(errorColor, errorColor)
+            } else {
+                val white = ContextCompat.getColor(this, R.color.white)
+                Pair(white, white)
+            }
+        }
+
         else -> Pair(track, tick)
     }
 }
