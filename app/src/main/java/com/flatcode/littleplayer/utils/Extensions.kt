@@ -435,27 +435,31 @@ fun ImageView.loadBitmap(
     crossfade: Boolean = true,
     onComplete: (() -> Unit)? = null
 ) {
+    val themeId = MultiColorManager.currentThemeId.value
+    val request = ImageRequest.Builder(context)
+        .data(bitmap ?: fallback)
+        .target(this)
+        .crossfade(crossfade)
+        .precision(Precision.EXACT)
+
     if (bitmap == null) {
-        val drawable = ContextCompat.getDrawable(context, fallback)
-        load(drawable) {
-            crossfade(crossfade)
-            listener(
-                onSuccess = { _, _ -> onComplete?.invoke() },
-                onError = { _, _ -> onComplete?.invoke() })
-        }
-        return
+        request.memoryCacheKey("fallback_${fallback}_theme_${themeId}_blur_${blurRadius}")
+        request.diskCacheKey("fallback_${fallback}_theme_${themeId}_blur_${blurRadius}")
     }
 
-    load(bitmap) {
-        crossfade(crossfade)
-        if (blurRadius > 0) {
-            size(200)
-            transformations(SimpleBlurTransformation(blurRadius))
-        }
-        listener(
-            onSuccess = { _, _ -> onComplete?.invoke() },
-            onError = { _, _ -> onComplete?.invoke() })
+    if (blurRadius > 0) {
+        request.size(400) // Quality for blur
+        request.transformations(SimpleBlurTransformation(blurRadius))
+    } else {
+        request.size(600) // Standard size for player artwork
     }
+
+    request.listener(
+        onSuccess = { _, _ -> onComplete?.invoke() },
+        onError = { _, _ -> onComplete?.invoke() }
+    )
+
+    context.imageLoader.enqueue(request.build())
 }
 
 fun View?.isVisible(show: Boolean) {
@@ -805,7 +809,8 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
     override val cacheKey: String = "${SimpleBlurTransformation::class.java.name}-$radius"
 
     override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-        val scaleFactor = 8
+        if (input.isRecycled) return input
+        val scaleFactor = 6
         val w = (input.width / scaleFactor).coerceAtLeast(1)
         val h = (input.height / scaleFactor).coerceAtLeast(1)
         val small = input.scale(w, h, true)
@@ -814,35 +819,40 @@ class SimpleBlurTransformation(private val radius: Float) : Transformation {
         small.getPixels(pix, 0, w, 0, 0, w, h)
         val blurred = IntArray(w * h)
         for (y in 0 until h) for (x in 0 until w) {
-            var rs = 0
-            var gs = 0
-            var bs = 0
+            var rs = 0L
+            var gs = 0L
+            var bs = 0L
             var c = 0
             for (i in -r..r) {
-                val p = pix[y * w + ((x + i).coerceIn(0, w - 1))]
+                val xi = (x + i).coerceIn(0, w - 1)
+                val p = pix[y * w + xi]
                 rs += (p shr 16) and 0xff
                 gs += (p shr 8) and 0xff
                 bs += p and 0xff
                 c++
             }
-            blurred[y * w + x] = (0xff shl 24) or (rs / c shl 16) or (gs / c shl 8) or (bs / c)
+            blurred[y * w + x] = (0xff shl 24) or ((rs / c).toInt() shl 16) or ((gs / c).toInt() shl 8) or (bs / c).toInt()
         }
         for (x in 0 until w) for (y in 0 until h) {
-            var rs = 0
-            var gs = 0
-            var bs = 0
+            var rs = 0L
+            var gs = 0L
+            var bs = 0L
             var c = 0
             for (i in -r..r) {
-                val p = blurred[((y + i).coerceIn(0, h - 1)) * w + x]
+                val yi = (y + i).coerceIn(0, h - 1)
+                val p = blurred[yi * w + x]
                 rs += (p shr 16) and 0xff
                 gs += (p shr 8) and 0xff
                 bs += p and 0xff
                 c++
             }
-            pix[y * w + x] = (0xff shl 24) or (rs / c shl 16) or (gs / c shl 8) or (bs / c)
+            pix[y * w + x] = (0xff shl 24) or ((rs / c).toInt() shl 16) or ((gs / c).toInt() shl 8) or (bs / c).toInt()
         }
-        val output = createBitmap(w, h)
+        val output = createBitmap(w, h, Bitmap.Config.ARGB_8888)
         output.setPixels(pix, 0, w, 0, 0, w, h)
-        return output.scale(input.width, input.height, true)
+        val finalOutput = output.scale(input.width, input.height, true)
+        if (output != finalOutput) output.recycle()
+        if (small != input) small.recycle()
+        return finalOutput
     }
 }
