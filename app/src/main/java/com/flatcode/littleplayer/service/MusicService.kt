@@ -269,12 +269,13 @@ class MusicService : MediaLibraryService(), Player.Listener {
 
     private fun observePlaylistChanges() {
         serviceScope.launch {
-            musicRepository.currentPlaylist.collect { songs ->
+            musicRepository.playlistUpdate.collect { update ->
+                val songs = update.songs
                 if (songs.isEmpty()) return@collect
 
                 exoPlayer?.let { player ->
-                    val currentPosition = player.currentPosition
                     val isPlaying = player.isPlaying
+                    val currentPosition = if (update.startIndex != -1) 0L else player.currentPosition
 
                     // Get current IDs on Main thread safely
                     val oldIds =
@@ -294,7 +295,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                                 ).build()
                         }
                         val newIds = newMediaItems.map { it.mediaId }
-                        if (oldIds != newIds) newMediaItems to newIds else null
+                        if (oldIds != newIds || update.startIndex != -1) newMediaItems to newIds else null
                     }
 
                     if (updateResult != null) {
@@ -304,7 +305,9 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         val currentId = player.currentMediaItem?.mediaId
                         val currentIndex = player.currentMediaItemIndex
 
-                        val newIndex = if (currentId != null) {
+                        val newIndex = if (update.startIndex != -1) {
+                            update.startIndex
+                        } else if (currentId != null) {
                             val index = newIds.indexOf(currentId)
                             if (index != -1) index else currentIndex.coerceAtLeast(0)
                         } else {
@@ -315,7 +318,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
                             player.prepare()
                         }
-                        if (isPlaying) player.play()
+                        if (isPlaying || update.startIndex != -1) player.play()
                     }
                 }
             }

@@ -171,7 +171,6 @@
             android:orientation="vertical">
 
             <TextView
-                android:textAlignment="viewStart"
                 android:id="@+id/song_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -184,7 +183,9 @@
                 android:maxLines="1"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
+                android:textAlignment="gravity"
                 android:textColor="@color/white"
+                android:textDirection="locale"
                 android:textSize="@dimen/text_size_22"
                 android:textStyle="bold" />
 
@@ -195,7 +196,6 @@
                 android:layout_marginTop="@dimen/spacing_5">
 
                 <TextView
-                    android:textAlignment="viewStart"
                     android:id="@+id/song_artist"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -203,7 +203,9 @@
                     android:ellipsize="end"
                     android:gravity="start"
                     android:maxLines="1"
+                    android:textAlignment="gravity"
                     android:textColor="@color/white"
+                    android:textDirection="locale"
                     android:textSize="@dimen/text_size_18"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/more_options"

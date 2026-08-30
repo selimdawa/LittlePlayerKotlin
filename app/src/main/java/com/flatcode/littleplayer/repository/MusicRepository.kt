@@ -34,7 +34,6 @@ import com.flatcode.littleplayer.utils.Resource
 import com.flatcode.littleplayer.utils.extractDynamicColors
 import com.flatcode.littleplayer.utils.getAlbumArtBytes
 import com.flatcode.littleplayer.utils.getLibraryColor
-import io.selimdawa.multicolors.R as MultiColorR
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -59,6 +58,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import io.selimdawa.multicolors.R as MultiColorR
+
+data class PlaylistUpdate(
+    val songs: List<MusicFiles>,
+    val startIndex: Int = -1,
+    val timestamp: Long = System.currentTimeMillis()
+)
 
 @Singleton
 class MusicRepository @Inject constructor(
@@ -112,6 +118,9 @@ class MusicRepository @Inject constructor(
 
     private val _currentPlaylist = MutableStateFlow<List<MusicFiles>>(emptyList())
     val currentPlaylist: StateFlow<List<MusicFiles>> = _currentPlaylist.asStateFlow()
+
+    private val _playlistUpdate = MutableStateFlow(PlaylistUpdate(emptyList()))
+    val playlistUpdate: StateFlow<PlaylistUpdate> = _playlistUpdate.asStateFlow()
 
     private val _isInitialLoading = MutableStateFlow(true)
     val isInitialLoading: StateFlow<Boolean> = _isInitialLoading.asStateFlow()
@@ -318,7 +327,9 @@ class MusicRepository @Inject constructor(
                                 path = path,
                                 title = cursor.getString(titleColumn) ?: DATA.UNKNOWN,
                                 artist = cursor.getString(artistColumn) ?: DATA.UNKNOWN,
-                                album = MusicFiles.getCleanedAlbum(cursor.getString(albumColumn), path),
+                                album = MusicFiles.getCleanedAlbum(
+                                    cursor.getString(albumColumn), path
+                                ),
                                 duration = cursor.getLong(durationColumn).toString(),
                                 id = cursor.getString(idColumn) ?: "",
                                 albumId = cursor.getString(albumIdColumn) ?: "",
@@ -338,7 +349,7 @@ class MusicRepository @Inject constructor(
                     _isInitialLoading.value = false
                 }
             } else if (!hasAudioPermission()) {
-                // If list is empty but it's because of missing permissions, keep loading flag true
+                // If list is empty, but it's because of missing permissions, keep loading flag true
                 // to avoid showing empty state prematurely.
                 return@withContext tempAudioList
             } else {
@@ -406,7 +417,8 @@ class MusicRepository @Inject constructor(
             MediaStore.Audio.Media.YEAR
         )
 
-        val allFavs = musicDao.getAllFavoritesSync().associateBy({ it.songId }, { it.timestamp })
+        val allFavorites =
+            musicDao.getAllFavoritesSync().associateBy({ it.songId }, { it.timestamp })
         val songEntities = mutableListOf<SongEntity>()
 
         context.contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { c ->
@@ -444,8 +456,8 @@ class MusicRepository @Inject constructor(
                         dateAdded = c.getLong(dateAddedColumn),
                         size = c.getLong(sizeColumn),
                         year = c.getInt(yearColumn),
-                        isFavorite = id in allFavs,
-                        favoriteDate = allFavs[id] ?: 0L,
+                        isFavorite = id in allFavorites,
+                        favoriteDate = allFavorites[id] ?: 0L,
                         cachedImagePath = existing?.cachedImagePath,
                         cachedBlurPath = existing?.cachedBlurPath,
                         dominantColor = existing?.dominantColor,
@@ -484,21 +496,21 @@ class MusicRepository @Inject constructor(
         // Process in chunks to avoid overwhelming the system
         missing.chunked(20).forEach { chunk ->
             chunk.map { song ->
-                launch { extractColorsForSong(song.id, song.path, song.albumId, track, tick) }
+                launch { extractColorsForSong(song.id, song.path, track, tick) }
             }.joinAll()
             delay(50.milliseconds)
         }
     }
 
     suspend fun extractColorsForSong(
-        songId: String, path: String, albumId: String?, defaultStart: Int, defaultEnd: Int
+        songId: String, path: String, defaultStart: Int, defaultEnd: Int
     ) = withContext(ioDispatcher) {
         try {
             // Check if already has colors
             val existing = songDao.getSongById(songId)
             if (existing?.dominantColor != null && existing.vibrantColor != null && existing.dominantColor != 0) return@withContext
 
-            val bitmap = getSmallArtBitmap(albumId, path)
+            val bitmap = getSmallArtBitmap(path)
             if (bitmap != null) {
                 val palette = Palette.from(bitmap).generate()
                 val colors = palette.extractDynamicColors(defaultStart, defaultEnd)
@@ -512,16 +524,14 @@ class MusicRepository @Inject constructor(
         }
     }
 
-    private fun getSmallArtBitmap(
-        albumId: String?, path: String
-    ): Bitmap? {
+    private fun getSmallArtBitmap(path: String): Bitmap? {
         val artBytes = getAlbumArtBytes(path)
         if (artBytes != null) {
             val options = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
             BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size, options)
-            options.inSampleSize = calculateInSampleSize(options, 100, 100)
+            options.inSampleSize = calculateInSampleSize(options)
             options.inJustDecodeBounds = false
             return BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size, options)
         }
@@ -539,7 +549,7 @@ class MusicRepository @Inject constructor(
                         inJustDecodeBounds = true
                     }
                     BitmapFactory.decodeFile(imageFile.absolutePath, options)
-                    options.inSampleSize = calculateInSampleSize(options, 100, 100)
+                    options.inSampleSize = calculateInSampleSize(options)
                     options.inJustDecodeBounds = false
                     return BitmapFactory.decodeFile(imageFile.absolutePath, options)
                 }
@@ -550,16 +560,14 @@ class MusicRepository @Inject constructor(
         return null
     }
 
-    private fun calculateInSampleSize(
-        options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int
-    ): Int {
+    private fun calculateInSampleSize(options: BitmapFactory.Options): Int {
         val (height: Int, width: Int) = options.outHeight to options.outWidth
         var inSampleSize = 1
 
-        if (height > reqHeight || width > reqWidth) {
+        if (height > 100 || width > 100) {
             val halfHeight: Int = height / 2
             val halfWidth: Int = width / 2
-            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+            while (halfHeight / inSampleSize >= 100 && halfWidth / inSampleSize >= 100) {
                 inSampleSize *= 2
             }
         }
@@ -594,7 +602,8 @@ class MusicRepository @Inject constructor(
                 val options = BitmapFactory.Options().apply { inSampleSize = 4 }
                 val bitmap = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size, options)
                 if (bitmap != null) {
-                    val blurred = com.flatcode.littleplayer.utils.SimpleBlurTransformation(100f).transform(bitmap, coil.size.Size.ORIGINAL)
+                    val blurred = com.flatcode.littleplayer.utils.SimpleBlurTransformation(100f)
+                        .transform(bitmap, coil.size.Size.ORIGINAL)
                     FileOutputStream(blurFile).use { out ->
                         blurred.compress(Bitmap.CompressFormat.JPEG, 70, out)
                     }
@@ -642,8 +651,8 @@ class MusicRepository @Inject constructor(
         saveToRoom: Boolean = true,
         forceShuffleMode: Boolean? = null
     ) {
-        val finalSongs = songs
-        _currentPlaylist.value = finalSongs
+        _currentPlaylist.value = songs
+        _playlistUpdate.value = PlaylistUpdate(songs, startIndex)
 
         queueUpdateJob?.cancel()
         queueUpdateJob = repositoryScope.launch {
@@ -658,6 +667,7 @@ class MusicRepository @Inject constructor(
                         currentState.copy(
                             currentSongId = song.id,
                             lastPosition = startIndex,
+                            lastProgress = 0L,
                             shuffleModeEnabled = forceShuffleMode ?: currentState.shuffleModeEnabled
                         )
                     )
@@ -666,7 +676,7 @@ class MusicRepository @Inject constructor(
                 // OPTIMIZATION: Use a map for original indices
                 val originalIndexMap = songs.mapIndexed { index, song -> song.id to index }.toMap()
 
-                val entities = finalSongs.mapIndexed { index, song ->
+                val entities = songs.mapIndexed { index, song ->
                     val originalIdx = originalIndexMap[song.id] ?: index
                     CurrentQueueEntity(
                         songId = song.id ?: "",

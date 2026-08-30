@@ -218,7 +218,7 @@ class NowPlayerViewModel @Inject constructor(
                 val tick = repository.context.getLibraryColor(MultiColorR.attr.mc_tick)
                 song.id?.let { id ->
                     song.path?.let { path ->
-                        repository.extractColorsForSong(id, path, song.albumId, track, tick)
+                        repository.extractColorsForSong(id, path, track, tick)
                         // After extraction, the repository updates Room. 
                         // We should probably fetch the updated song or just rely on the next update.
                         // For immediate feedback:

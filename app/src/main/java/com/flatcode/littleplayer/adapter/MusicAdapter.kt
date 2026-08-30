@@ -74,6 +74,13 @@ class MusicAdapter(
             super.onBindViewHolder(holder, position, payloads)
         } else {
             val currentFile = getItem(position)
+            // Ensure artwork is loaded/restored even during partial updates (like starting playback)
+            holder.binding.image.loadSongImage(
+                currentFile.albumId, currentFile.path, currentFile.cachedImagePath, currentFile.album
+            )
+            holder.binding.imageBlur.loadSongImageBlur(
+                currentFile.albumId, 25, currentFile.path, currentFile.cachedImagePath, currentFile.album
+            )
             holder.binding.applyTheme(context, currentFile)
         }
     }

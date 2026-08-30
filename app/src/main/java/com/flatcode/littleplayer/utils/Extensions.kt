@@ -564,8 +564,9 @@ fun getSongImageModel(
 
     val isUnknownAlbum = album == null || album == DATA.UNKNOWN
 
-    // PRIORITY 1: MediaStore Album Art (ONLY for Album list)
-    if (isAlbum && !isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
+    // PRIORITY 1: MediaStore Album Art (System Cached)
+    // We use this for songs too now, as it avoids file locking issues when playing.
+    if (!isUnknownAlbum && (!albumId.isNullOrEmpty()) && (albumId != "-1") && (albumId != "0")) {
         return ContentUris.withAppendedId(
             "content://media/external/audio/albumart".toUri(),
             albumId.toLong(),
