@@ -438,8 +438,20 @@ fun ImageView.loadBitmap(
     val themeId = MultiColorManager.currentThemeId.value
     val request = ImageRequest.Builder(context)
         .data(bitmap ?: fallback)
-        .target(this)
-        .crossfade(crossfade)
+        .target(
+            onStart = { if (blurRadius > 0) alpha = 0f },
+            onSuccess = { result ->
+                setImageDrawable(result)
+                if (blurRadius > 0) animate().alpha(1f).setDuration(200L).start()
+                onComplete?.invoke()
+            },
+            onError = { error ->
+                setImageDrawable(error)
+                if (blurRadius > 0) animate().alpha(1f).setDuration(200L).start()
+                onComplete?.invoke()
+            }
+        )
+        .crossfade(crossfade && blurRadius == 0f)
         .precision(Precision.EXACT)
 
     if (bitmap == null) {
@@ -448,16 +460,11 @@ fun ImageView.loadBitmap(
     }
 
     if (blurRadius > 0) {
-        request.size(400) // Quality for blur
+        request.size(400)
         request.transformations(SimpleBlurTransformation(blurRadius))
     } else {
-        request.size(600) // Standard size for player artwork
+        request.size(600)
     }
-
-    request.listener(
-        onSuccess = { _, _ -> onComplete?.invoke() },
-        onError = { _, _ -> onComplete?.invoke() }
-    )
 
     context.imageLoader.enqueue(request.build())
 }

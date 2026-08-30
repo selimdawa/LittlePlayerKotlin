@@ -516,13 +516,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
             binding.songArtist.text = song.artist ?: getString(R.string.unknown)
             binding.durationTotal.text = song.durationDuration.formatAsTime()
             preloadedBitmap?.let {
-                binding.image.loadBitmap(
-                    it, crossfade = false
-                ); binding.imageBlur.loadBitmap(it, blurRadius = 100f, crossfade = false)
+                binding.image.loadBitmap(it, crossfade = false)
+                binding.imageBlur.loadBitmap(it, blurRadius = 100f, crossfade = false)
             } ?: run {
-                binding.image.setImageResource(R.drawable.ic_cover_song); binding.imageBlur.setImageResource(
-                R.drawable.ic_cover_song_blur
-            )
+                binding.image.loadBitmap(null, crossfade = false)
+                binding.imageBlur.loadBitmap(null, blurRadius = 100f, crossfade = false)
             }
             applyCurrentModeColors()
             loadWaveform(song.id ?: "", song.path ?: "")
