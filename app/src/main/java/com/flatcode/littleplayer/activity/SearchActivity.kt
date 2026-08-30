@@ -3,15 +3,12 @@ package com.flatcode.littleplayer.activity
 import android.text.Editable
 import android.text.TextWatcher
 import androidx.activity.viewModels
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.adapter.MusicAdapter
 import com.flatcode.littleplayer.databinding.ActivitySearchBinding
-import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
+import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.showKeyboard
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
@@ -51,15 +48,16 @@ class SearchActivity : BaseActivity<ActivitySearchBinding>(ActivitySearchBinding
         viewModel.filteredMusicFiles.collectWithLifecycle(this) { songs ->
             binding.emptyState.isVisible = songs.isEmpty()
             if (adapter == null) {
-                adapter = MusicAdapter(
-                    this, onItemClick = { _, position, view ->
-                        viewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
-                        openPlayer(position, view)
-                    }, onDeleteClick = { song ->
-                        viewModel.deleteSong(song)
-                    }).apply {
-                        bindToPlaybackSync(this@SearchActivity, nowPlayerViewModel, binding.root)
-                    }
+                adapter = MusicAdapter(this, onItemClick = { _, position, view ->
+                    viewModel.updatePlaylistAndPlay(
+                        adapter?.currentList ?: emptyList(), position, fromUserClick = true
+                    )
+                    openPlayer(position, view)
+                }, onDeleteClick = { song ->
+                    viewModel.deleteSong(song)
+                }).apply {
+                    bindToPlaybackSync(this@SearchActivity, nowPlayerViewModel, binding.root)
+                }
                 binding.recyclerView.adapter = adapter
             }
             adapter?.submitList(songs)

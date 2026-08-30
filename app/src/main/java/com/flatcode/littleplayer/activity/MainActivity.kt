@@ -151,7 +151,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     override fun observeViewModel() {
         viewModel.event.collectWithLifecycle(this) { event ->
             when (event) {
-                is MusicEvent.PlaySong -> openPlayer(event.position)
+                is MusicEvent.PlaySong -> {
+                    if (!event.fromUserClick) {
+                        openPlayer(event.position)
+                    }
+                }
+
                 else -> {}
             }
         }

@@ -88,7 +88,9 @@ class RecentActivity : BaseActivity<ActivityRecentBinding>(ActivityRecentBinding
             if (adapter == null && songs.isNotEmpty()) {
                 adapter = MusicAdapter(
                     context = this, onItemClick = { _, position, view ->
-                    musicViewModel.updateCurrentPlaylist(adapter?.currentList ?: emptyList())
+                    musicViewModel.updatePlaylistAndPlay(
+                        adapter?.currentList ?: emptyList(), position, fromUserClick = true
+                    )
                     openPlayer(position, view)
                 }, onDeleteClick = { song ->
                     musicViewModel.deleteSong(song)

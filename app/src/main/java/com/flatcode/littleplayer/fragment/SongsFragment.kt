@@ -13,6 +13,7 @@ import com.flatcode.littleplayer.databinding.FragmentSongsBinding
 import com.flatcode.littleplayer.utils.DATA
 import com.flatcode.littleplayer.utils.collectWithLifecycle
 import com.flatcode.littleplayer.utils.bindToPlaybackSync
+import com.flatcode.littleplayer.utils.openPlayer
 import com.flatcode.littleplayer.utils.snackbar
 import com.flatcode.littleplayer.utils.visible
 import com.flatcode.littleplayer.viewmodel.MusicEvent
@@ -92,9 +93,10 @@ class SongsFragment : Fragment() {
         if (musicAdapter == null) {
             musicAdapter = MusicAdapter(
                 requireContext(),
-                onItemClick = { _, position, _ ->
+                onItemClick = { _, position, view ->
                     val currentFiles = musicAdapter?.currentList ?: return@MusicAdapter
-                    viewModel.updatePlaylistAndPlay(ArrayList(currentFiles), position)
+                    viewModel.updatePlaylistAndPlay(ArrayList(currentFiles), position, fromUserClick = true)
+                    requireContext().openPlayer(position, view)
                 },
                 onDeleteClick = { song ->
                     viewModel.deleteSong(song)

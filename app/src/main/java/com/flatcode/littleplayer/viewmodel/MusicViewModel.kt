@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
@@ -60,9 +59,8 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         if (query.isEmpty()) songs else {
             songs.filter { it.title?.lowercase()?.contains(query.lowercase()) == true }
         }
-    }
-    .flowOn(Dispatchers.Default)
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val albumFiles: StateFlow<List<MusicFiles>> = combine(
         allSongs, _albumsSortOrder, _searchQuery
@@ -93,9 +91,8 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
             DATA.SORT_BY_SONG_COUNT -> filtered.sortedByDescending { it.songsCount }
             else -> filtered
         }
-    }
-    .flowOn(Dispatchers.Default)
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val folderFiles: StateFlow<List<Folder>> = combine(
         allSongs, _foldersSortOrder, _searchQuery
@@ -113,8 +110,7 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
                     val folderName = File(folderPath).name
                     foldersMap[folderPath] = Triple(folderName, 1, song)
                 } else {
-                    foldersMap[folderPath] =
-                        currentData.copy(second = currentData.second + 1)
+                    foldersMap[folderPath] = currentData.copy(second = currentData.second + 1)
                 }
             }
         }
@@ -139,9 +135,8 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         if (query.isEmpty()) sorted else {
             sorted.filter { it.name.lowercase().contains(query.lowercase()) }
         }
-    }
-    .flowOn(Dispatchers.Default)
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val artistFiles: StateFlow<List<Artist>> = combine(
         allSongs, _artistsSortOrder, _searchQuery
@@ -176,9 +171,8 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         if (query.isEmpty()) sorted else {
             sorted.filter { it.name.lowercase().contains(query.lowercase()) }
         }
-    }
-    .flowOn(Dispatchers.Default)
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         viewModelScope.launch {
@@ -273,10 +267,12 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         repository.updateCurrentPlaylist(songs, startIndex)
     }
 
-    fun updatePlaylistAndPlay(songs: List<MusicFiles>, position: Int) {
+    fun updatePlaylistAndPlay(
+        songs: List<MusicFiles>, position: Int, fromUserClick: Boolean = false
+    ) {
         viewModelScope.launch {
             updateCurrentPlaylist(songs, position)
-            _event.emit(MusicEvent.PlaySong(position))
+            _event.emit(MusicEvent.PlaySong(position, fromUserClick = fromUserClick))
         }
     }
 
@@ -309,21 +305,32 @@ class MusicViewModel @Inject constructor(private val repository: MusicRepository
         }
     }
 
-    val excludedFolders: StateFlow<Set<String>> = repository.excludedFolders
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+    val excludedFolders: StateFlow<Set<String>> = repository.excludedFolders.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptySet()
+        )
 
-    val shuffleMode: StateFlow<Boolean> = repository.shuffleMode
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val shuffleMode: StateFlow<Boolean> =
+        repository.shuffleMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val isInitialLoading: StateFlow<Boolean> = repository.isInitialLoading
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val isInitialLoading: StateFlow<Boolean> = repository.isInitialLoading.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            true
+        )
 
-    val syncStatus: StateFlow<Resource<Unit>> = repository.syncStatus
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Resource.Success(Unit))
+    val syncStatus: StateFlow<Resource<Unit>> = repository.syncStatus.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            Resource.Success(Unit)
+        )
 }
 
 sealed class MusicEvent {
     data class SongDeleted(val song: MusicFiles) : MusicEvent()
     data class Error(val message: String) : MusicEvent()
-    data class PlaySong(val position: Int, val keepProgress: Boolean = false) : MusicEvent()
+    data class PlaySong(
+        val position: Int, val keepProgress: Boolean = false, val fromUserClick: Boolean = false
+    ) : MusicEvent()
 }

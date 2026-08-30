@@ -2,9 +2,6 @@ package com.flatcode.littleplayer.activity
 
 import android.content.Context
 import androidx.activity.viewModels
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.media3.common.util.UnstableApi
 import com.flatcode.littleplayer.R
 import com.flatcode.littleplayer.adapter.MusicAdapter
@@ -22,7 +19,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
 @AndroidEntryPoint
-class ArtistDetailsActivity : BaseActivity<ActivityArtistDetailsBinding>(ActivityArtistDetailsBinding::inflate) {
+class ArtistDetailsActivity :
+    BaseActivity<ActivityArtistDetailsBinding>(ActivityArtistDetailsBinding::inflate) {
 
     private val context: Context = this@ArtistDetailsActivity
     private val viewModel: ArtistDetailsViewModel by viewModels()
@@ -46,10 +44,11 @@ class ArtistDetailsActivity : BaseActivity<ActivityArtistDetailsBinding>(Activit
         viewModel.songs.collectWithLifecycle(this) { songList ->
             if (songList.isNotEmpty()) {
                 if (adapter == null) {
-                    adapter = MusicAdapter(context, onItemClick = { _, position, _ ->
+                    adapter = MusicAdapter(context, onItemClick = { _, position, view ->
                         musicViewModel.updatePlaylistAndPlay(
-                            adapter?.currentList ?: emptyList(), position
+                            adapter?.currentList ?: emptyList(), position, fromUserClick = true
                         )
+                        openPlayer(position, view)
                     }, onDeleteClick = { song ->
                         musicViewModel.deleteSong(song)
                     }).apply {
@@ -65,7 +64,7 @@ class ArtistDetailsActivity : BaseActivity<ActivityArtistDetailsBinding>(Activit
         }
 
         musicViewModel.event.collectWithLifecycle(this) { event ->
-            if (event is MusicEvent.PlaySong) {
+            if (event is MusicEvent.PlaySong && !event.fromUserClick) {
                 openPlayer(event.position)
             }
         }

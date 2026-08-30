@@ -84,10 +84,11 @@ class PlaylistDetailsActivity :
     override fun observeViewModel() {
         viewModel.songs.collectWithLifecycle(this) { songs ->
             if (adapter == null) {
-                adapter = MusicAdapter(this, onItemClick = { _, position, _ ->
+                adapter = MusicAdapter(this, onItemClick = { _, position, view ->
                     musicViewModel.updatePlaylistAndPlay(
-                        adapter?.currentList ?: emptyList(), position
+                        adapter?.currentList ?: emptyList(), position, fromUserClick = true
                     )
+                    openPlayer(position, view)
                 }, onDeleteClick = { song ->
                     musicViewModel.deleteSong(song)
                 }, onRemoveFromPlaylistClick = { song ->
@@ -103,7 +104,7 @@ class PlaylistDetailsActivity :
         }
 
         musicViewModel.event.collectWithLifecycle(this) { event ->
-            if (event is MusicEvent.PlaySong) {
+            if (event is MusicEvent.PlaySong && !event.fromUserClick) {
                 openPlayer(event.position)
             }
         }
