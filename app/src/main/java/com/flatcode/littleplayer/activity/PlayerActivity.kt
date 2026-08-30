@@ -10,14 +10,13 @@ import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
@@ -33,7 +32,23 @@ import com.flatcode.littleplayer.databinding.ActivityPlayerBinding
 import com.flatcode.littleplayer.fragment.PlayerOptionsBottomSheet
 import com.flatcode.littleplayer.model.MusicFiles
 import com.flatcode.littleplayer.service.MusicService
-import com.flatcode.littleplayer.utils.*
+import com.flatcode.littleplayer.utils.DATA
+import com.flatcode.littleplayer.utils.ThemeManager
+import com.flatcode.littleplayer.utils.applySimpleGradient
+import com.flatcode.littleplayer.utils.collectWithLifecycle
+import com.flatcode.littleplayer.utils.fadeText
+import com.flatcode.littleplayer.utils.formatAsTime
+import com.flatcode.littleplayer.utils.getCurrentThemeColors
+import com.flatcode.littleplayer.utils.getLibraryColor
+import com.flatcode.littleplayer.utils.getSongArtwork
+import com.flatcode.littleplayer.utils.getSongImageModel
+import com.flatcode.littleplayer.utils.loadBitmap
+import com.flatcode.littleplayer.utils.onClickPulse
+import com.flatcode.littleplayer.utils.onProgressChanged
+import com.flatcode.littleplayer.utils.setHaloBackground
+import com.flatcode.littleplayer.utils.skipToNextSafe
+import com.flatcode.littleplayer.utils.skipToPreviousSafe
+import com.flatcode.littleplayer.utils.togglePlayPause
 import com.flatcode.littleplayer.viewmodel.MusicEvent
 import com.flatcode.littleplayer.viewmodel.MusicViewModel
 import com.flatcode.littleplayer.viewmodel.NowPlayerViewModel
@@ -43,7 +58,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.linc.amplituda.Amplituda
 import dagger.hilt.android.AndroidEntryPoint
 import io.selimdawa.multicolors.MultiColorManager
-import io.selimdawa.multicolors.R as MultiColorR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -52,6 +66,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
+import io.selimdawa.multicolors.R as MultiColorR
 
 @UnstableApi
 @AndroidEntryPoint
@@ -106,7 +121,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     }
 
     override fun setupViews() {
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
 
         applyEdgeToEdge(topView = binding.toolbar, bottomView = binding.container)
 
@@ -297,9 +315,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
     }
 
     private fun updateSongUI(song: MusicFiles) {
-        if (binding.songName.text == song.title && binding.songArtist.text == song.artist &&
-            isTransitionStarted && isArtworkLoadedForCurrentSong
-        ) return
+        if (binding.songName.text == song.title && binding.songArtist.text == song.artist && isTransitionStarted && isArtworkLoadedForCurrentSong) return
         updateSongJob?.cancel()
 
 
@@ -320,6 +336,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
                 }
             }
             launch {
+                // INSTANT BLUR: Load the pre-blurred cached image immediately if it exists
+                if (!song.cachedBlurPath.isNullOrEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        binding.imageBlur.loadBitmap(
+                            song.cachedBlurPath.toUri(), blurRadius = 0f, // Already blurred
+                            crossfade = false
+                        )
+                    }
+                }
+
                 val bitmap = withContext(Dispatchers.Default) {
                     getSongArtwork(
                         song.albumId, song.path, song.cachedImagePath, song.album, 600
@@ -496,9 +522,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
                         nextSong.albumId, nextSong.path, nextSong.cachedImagePath, nextSong.album
                     )
                 ).allowHardware(false).size(600).listener(onSuccess = { _, result ->
-                        preloadedBitmap = (result.drawable as? BitmapDrawable)?.bitmap; dataReady =
-                        true; onReady()
-                    }, onError = { _, _ -> preloadedBitmap = null; dataReady = true; onReady() })
+                    preloadedBitmap = (result.drawable as? BitmapDrawable)?.bitmap; dataReady =
+                    true; onReady()
+                }, onError = { _, _ -> preloadedBitmap = null; dataReady = true; onReady() })
                     .build()
                 imageLoader.enqueue(request)
             } else {
@@ -517,10 +543,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
             binding.durationTotal.text = song.durationDuration.formatAsTime()
             preloadedBitmap?.let {
                 binding.image.loadBitmap(it, crossfade = false)
-                binding.imageBlur.loadBitmap(it, blurRadius = 100f, crossfade = false)
+                binding.imageBlur.loadBitmap(
+                    song.cachedBlurPath?.toUri() ?: it,
+                    blurRadius = if (song.cachedBlurPath == null) 100f else 0f,
+                    crossfade = false
+                )
             } ?: run {
                 binding.image.loadBitmap(null, crossfade = false)
-                binding.imageBlur.loadBitmap(null, blurRadius = 100f, crossfade = false)
+                binding.imageBlur.loadBitmap(
+                    song.cachedBlurPath?.toUri(),
+                    blurRadius = if (song.cachedBlurPath == null) 100f else 0f,
+                    crossfade = false
+                )
             }
             applyCurrentModeColors()
             loadWaveform(song.id ?: "", song.path ?: "")

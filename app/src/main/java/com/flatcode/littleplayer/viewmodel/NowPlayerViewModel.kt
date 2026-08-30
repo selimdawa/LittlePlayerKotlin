@@ -123,6 +123,7 @@ class NowPlayerViewModel @Inject constructor(
                             id = preferences[songIdKey],
                             albumId = preferences[albumIdKey],
                             cachedImagePath = preferences[cachedImagePathKey],
+                            cachedBlurPath = preferences[stringPreferencesKey("cached_blur_path")],
                             dominantColor = preferences[themeExtractedColorKey],
                             vibrantColor = preferences[themeExtractedColorSecondKey]
                         )

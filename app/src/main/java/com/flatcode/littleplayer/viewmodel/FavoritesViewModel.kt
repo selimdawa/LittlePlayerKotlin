@@ -43,6 +43,7 @@ class FavoritesViewModel @Inject constructor(
                         path = song.path,
                         albumId = song.albumId,
                         cachedImagePath = song.cachedImagePath,
+                        cachedBlurPath = song.cachedBlurPath,
                         dominantColor = song.dominantColor,
                         vibrantColor = song.vibrantColor
                     )

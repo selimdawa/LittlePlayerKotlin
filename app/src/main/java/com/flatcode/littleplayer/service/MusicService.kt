@@ -373,6 +373,7 @@ class MusicService : MediaLibraryService(), Player.Listener {
                         duration = item.duration,
                         path = item.path,
                         cachedImagePath = item.cachedImagePath,
+                        cachedBlurPath = item.cachedBlurPath,
                         dominantColor = item.dominantColor,
                         vibrantColor = item.vibrantColor
                     )

@@ -60,6 +60,8 @@ class PlaylistDetailsViewModel @Inject constructor(
                             artist = dbSong?.artist ?: entity.artist,
                             album = MusicFiles.getCleanedAlbum(dbSong?.album, dbSong?.path ?: entity.path),
                             path = dbSong?.path ?: entity.path,
+                            cachedImagePath = dbSong?.cachedImagePath,
+                            cachedBlurPath = dbSong?.cachedBlurPath,
                             dateAdded = dbSong?.dateAdded ?: 0L,
                             size = dbSong?.size ?: 0L,
                             playCount = dbSong?.playCount ?: 0,

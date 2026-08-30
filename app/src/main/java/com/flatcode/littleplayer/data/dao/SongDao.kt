@@ -38,6 +38,9 @@ interface SongDao {
     @Query("UPDATE songs_table SET cachedImagePath = :path WHERE id = :songId")
     suspend fun updateCachedImagePath(songId: String, path: String?)
 
+    @Query("UPDATE songs_table SET cachedBlurPath = :path WHERE id = :songId")
+    suspend fun updateCachedBlurPath(songId: String, path: String?)
+
     @Query("UPDATE songs_table SET cachedImagePath = NULL")
     suspend fun clearAllCachedImagePaths()
 

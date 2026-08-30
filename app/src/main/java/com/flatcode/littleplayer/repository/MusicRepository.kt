@@ -192,6 +192,7 @@ class MusicRepository @Inject constructor(
                     waveform = dbSong.waveform,
                     playCount = dbSong.playCount,
                     cachedImagePath = dbSong.cachedImagePath,
+                    cachedBlurPath = dbSong.cachedBlurPath,
                     dominantColor = dbSong.dominantColor,
                     vibrantColor = dbSong.vibrantColor,
                     dateAdded = dbSong.dateAdded,
@@ -228,6 +229,7 @@ class MusicRepository @Inject constructor(
                             waveform = dbSong.waveform,
                             playCount = dbSong.playCount,
                             cachedImagePath = dbSong.cachedImagePath,
+                            cachedBlurPath = dbSong.cachedBlurPath,
                             dominantColor = dbSong.dominantColor,
                             vibrantColor = dbSong.vibrantColor,
                             dateAdded = dbSong.dateAdded,
@@ -445,6 +447,7 @@ class MusicRepository @Inject constructor(
                         isFavorite = id in allFavs,
                         favoriteDate = allFavs[id] ?: 0L,
                         cachedImagePath = existing?.cachedImagePath,
+                        cachedBlurPath = existing?.cachedBlurPath,
                         dominantColor = existing?.dominantColor,
                         vibrantColor = existing?.vibrantColor,
                         playCount = existing?.playCount ?: 0,
@@ -571,18 +574,35 @@ class MusicRepository @Inject constructor(
         if (!folder.exists()) folder.mkdirs()
 
         val file = File(folder, "$songId.jpg")
-        if (file.exists()) {
+        val blurFile = File(folder, "${songId}_blur.jpg")
+
+        if (file.exists() && blurFile.exists()) {
             songDao.updateCachedImagePath(songId, file.absolutePath)
+            songDao.updateCachedBlurPath(songId, blurFile.absolutePath)
             return@withContext
         }
 
         val artBytes = getAlbumArtBytes(path) ?: return@withContext
 
         try {
-            FileOutputStream(file).use { out ->
-                out.write(artBytes)
+            if (!file.exists()) {
+                FileOutputStream(file).use { out -> out.write(artBytes) }
+                songDao.updateCachedImagePath(songId, file.absolutePath)
             }
-            songDao.updateCachedImagePath(songId, file.absolutePath)
+
+            if (!blurFile.exists()) {
+                val options = BitmapFactory.Options().apply { inSampleSize = 4 }
+                val bitmap = BitmapFactory.decodeByteArray(artBytes, 0, artBytes.size, options)
+                if (bitmap != null) {
+                    val blurred = com.flatcode.littleplayer.utils.SimpleBlurTransformation(100f).transform(bitmap, coil.size.Size.ORIGINAL)
+                    FileOutputStream(blurFile).use { out ->
+                        blurred.compress(Bitmap.CompressFormat.JPEG, 70, out)
+                    }
+                    songDao.updateCachedBlurPath(songId, blurFile.absolutePath)
+                    bitmap.recycle()
+                    blurred.recycle()
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -657,6 +677,7 @@ class MusicRepository @Inject constructor(
                         duration = song.duration,
                         path = song.path,
                         cachedImagePath = song.cachedImagePath,
+                        cachedBlurPath = song.cachedBlurPath,
                         orderIndex = index,
                         originalOrderIndex = originalIdx,
                         dominantColor = song.dominantColor,
@@ -686,6 +707,7 @@ class MusicRepository @Inject constructor(
                 duration = it.duration,
                 path = it.path,
                 cachedImagePath = it.cachedImagePath,
+                cachedBlurPath = it.cachedBlurPath,
                 dominantColor = it.dominantColor,
                 vibrantColor = it.vibrantColor
             )

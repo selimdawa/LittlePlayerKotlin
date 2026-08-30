@@ -21,6 +21,7 @@ data class SongEntity(
     val size: Long = 0,
     val year: Int = 0,
     val cachedImagePath: String? = null,
+    val cachedBlurPath: String? = null,
     val dominantColor: Int? = null,
     val vibrantColor: Int? = null
 )

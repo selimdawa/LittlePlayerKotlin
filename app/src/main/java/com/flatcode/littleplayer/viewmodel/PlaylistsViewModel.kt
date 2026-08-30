@@ -83,7 +83,9 @@ class PlaylistsViewModel @Inject constructor(
                             albumId = dbSong?.albumId ?: it.albumId,
                             artist = dbSong?.artist ?: it.artist,
                             album = MusicFiles.getCleanedAlbum(dbSong?.album, dbSong?.path ?: it.path),
-                            path = dbSong?.path ?: it.path
+                            path = dbSong?.path ?: it.path,
+                            cachedImagePath = dbSong?.cachedImagePath,
+                            cachedBlurPath = dbSong?.cachedBlurPath
                         )
                     }
                     if (songs.isNotEmpty()) {

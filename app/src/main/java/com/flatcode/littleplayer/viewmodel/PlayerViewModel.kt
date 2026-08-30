@@ -105,7 +105,8 @@ class PlayerViewModel @Inject constructor(
                         duration = preferences[stringPreferencesKey(DATA.DURATION)],
                         id = preferences[stringPreferencesKey(DATA.SONG_ID)],
                         albumId = preferences[stringPreferencesKey(DATA.ALBUM_ID)],
-                        cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)]
+                        cachedImagePath = preferences[stringPreferencesKey(DATA.CACHED_IMAGE_PATH)],
+                        cachedBlurPath = preferences[stringPreferencesKey("cached_blur_path")]
                     )
                     _currentSong.value = song
 

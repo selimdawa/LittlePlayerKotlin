@@ -18,6 +18,7 @@ data class MusicFiles(
     val waveform: String? = null,
     val playCount: Int = 0,
     val cachedImagePath: String? = null,
+    val cachedBlurPath: String? = null,
     val dominantColor: Int? = null,
     val vibrantColor: Int? = null,
     val dateAdded: Long = 0,

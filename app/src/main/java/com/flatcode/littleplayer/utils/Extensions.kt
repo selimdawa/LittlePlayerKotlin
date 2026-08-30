@@ -429,7 +429,7 @@ fun View.gone() {
 }
 
 fun ImageView.loadBitmap(
-    bitmap: Bitmap?,
+    data: Any?,
     blurRadius: Float = 0f,
     fallback: Int = R.drawable.ic_cover_song,
     crossfade: Boolean = true,
@@ -437,24 +437,24 @@ fun ImageView.loadBitmap(
 ) {
     val themeId = MultiColorManager.currentThemeId.value
     val request = ImageRequest.Builder(context)
-        .data(bitmap ?: fallback)
+        .data(data ?: fallback)
         .target(
-            onStart = { if (blurRadius > 0) alpha = 0f },
+            onStart = { if (blurRadius > 0 && drawable == null) alpha = 0f },
             onSuccess = { result ->
                 setImageDrawable(result)
-                if (blurRadius > 0) animate().alpha(1f).setDuration(200L).start()
+                if (blurRadius > 0 && alpha < 1f) animate().alpha(1f).setDuration(200L).start()
                 onComplete?.invoke()
             },
             onError = { error ->
                 setImageDrawable(error)
-                if (blurRadius > 0) animate().alpha(1f).setDuration(200L).start()
+                if (blurRadius > 0 && alpha < 1f) animate().alpha(1f).setDuration(200L).start()
                 onComplete?.invoke()
             }
         )
         .crossfade(crossfade && blurRadius == 0f)
         .precision(Precision.EXACT)
 
-    if (bitmap == null) {
+    if (data == null || data is Int) {
         request.memoryCacheKey("fallback_${fallback}_theme_${themeId}_blur_${blurRadius}")
         request.diskCacheKey("fallback_${fallback}_theme_${themeId}_blur_${blurRadius}")
     }
